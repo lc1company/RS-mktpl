@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .tabs {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 20px;
+    }
+
+    .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .timeline {
+        list-style: none;
+        padding: 0;
+    }
+
+    .timeline-item {
+        border-bottom: 1px solid #ccc;
+        padding: 10px 0;
+    }
+
+    .timeline-item:last-child {
+        border-bottom: none;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tabs">
+        <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
+        <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
+    </div>
+    
+    <div id="userInfo" class="tab-content active">
+        <h2>Informações do Usuário</h2>
+        <p id="userFullName"></p>
+        <p id="userCpfCnpj"></p>
+        <p id="userEmail"></p>
+        <p id="userAddress"></p>
+    </div>
+    
+    <div id="timeline" class="tab-content">
+        <h2>Linha do Tempo</h2>
+        <ul class="timeline" id="userTimeline">
+            <!-- Timeline items will be dynamically added here -->
+        </ul>
+    </div>
+</div>
+
+<!-- Adicione as bibliotecas do Firebase -->
+<script type="module">
+    // Importar as bibliotecas do Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Configurações do Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyATKjtf2xqjdVtZFHSdrZOcA0Taa3J4gao",
+        authDomain: "redesocialmarktplace.firebaseapp.com",
+        projectId: "redesocialmarktplace",
+        storageBucket: "redesocialmarktplace.appspot.com",
+        messagingSenderId: "389449887892",
+        appId: "1:389449887892:web:e87a07a73c04b2ad9d8481",
+        measurementId: "G-KQ8Q4LZVB1"
+    };
+
+    // Inicializar o Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Verificar se o usuário está autenticado
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // Se estiver autenticado, obter informações do usuário
+            getUserInfo(user.uid);
+            getUserTimeline(user.uid);
+        } else {
+            window.location.href = "login.html"
+            console.log("Usuário não autenticado.");
+        }
+    });
+
+    // Função para obter informações do usuário
+    async function getUserInfo(uid) {
+        const userDoc = await getDoc(doc(db, "users", uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            document.getElementById("userFullName").textContent = `Nome: ${userData.fullName}`;
+            document.getElementById("userCpfCnpj").textContent = `CPF/CNPJ: ${userData.cpfCnpj}`;
+            document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
+            document.getElementById("userAddress").textContent = `Endereço: ${userData.address}`;
+        } else {
+            console.log("Usuário não encontrado.");
+        }
+    }
+
+    // Função para obter a timeline do usuário
+    async function getUserTimeline(uid) {
+        const timelineRef = doc(db, "timelines", uid);
+        const timelineDoc = await getDoc(timelineRef);
+        if (timelineDoc.exists()) {
+            const timelineData = timelineDoc.data();
+            const userTimeline = document.getElementById("userTimeline");
+            userTimeline.innerHTML = ""; // Limpar a timeline antes de adicionar novos itens
+            for (const item of timelineData.items) {
+                const li = document.createElement("li");
+                li.classList.add("timeline-item");
+                li.textContent = item.text;
+                userTimeline.appendChild(li);
+            }
+        } else {
+            console.log("Timeline não encontrada.");
+        }
+    }
+
+    // Função para alternar entre as abas
+    window.showTab = function(tabId) {
+        const tabs = document.querySelectorAll(".tab-content");
+        tabs.forEach(tab => {
+            tab.classList.remove("active");
+        });
+        const selectedTab = document.getElementById(tabId);
+        selectedTab.classList.add("active");
+    }
+</script>
+
+</body>
+</html>

@@ -1,219 +1,258 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f0f0f0;
-        margin: 0;
-        padding: 0;
-    }
-    
-    .container {
-        max-width: 800px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
 
-    .tabs {
-        display: flex;
-        justify-content: space-between;
-        border-bottom: 1px solid #ccc;
-        margin-bottom: 20px;
-    }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
 
-    .tab {
-        padding: 10px 20px;
-        cursor: pointer;
-    }
+        .tabs {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
 
-    .tab-content {
-        display: none;
-    }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
 
-    .tab-content.active {
-        display: block;
-    }
+        .tab-content {
+            display: none;
+        }
 
-    .timeline {
-        list-style: none;
-        padding: 0;
-    }
+        .tab-content.active {
+            display: block;
+        }
 
-    .timeline-item {
-        border-bottom: 1px solid #ccc;
-        padding: 10px 0;
-    }
+        .timeline {
+            list-style: none;
+            padding: 0;
+        }
 
-    .timeline-item:last-child {
-        border-bottom: none;
-    }
+        .timeline-item {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
 
-    #formPublicacao {
-        margin-bottom: 20px;
-    }
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
 
-    #formPublicacao input[type="file"] {
-        margin-bottom: 10px;
-    }
+        #formPublicacao {
+            margin-bottom: 20px;
+        }
 
-    .publicacao-img {
-        max-width: 100px;
-        max-height: 100px;
-    }
-</style>
+        #formPublicacao input[type="file"] {
+            margin-bottom: 10px;
+        }
+
+        .publicacao-img {
+            max-width: 100px;
+            max-height: 100px;
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div class="tabs">
-        <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
-        <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
+            <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
+        </div>
+
+        <div id="userInfo" class="tab-content active">
+            <h2>Informações do Usuário</h2>
+            <p id="userFullName"></p>
+            <p id="userCpfCnpj"></p>
+            <p id="userEmail"></p>
+            <p id="userAddress"></p>
+        </div>
+
+        <div id="timeline" class="tab-content">
+            <h2>Linha do Tempo</h2>
+            <form id="formPublicacao">
+                <input type="file" accept="image/*" id="inputImagem" required>
+                <input type="text" maxlength="50" placeholder="Digite sua mensagem" id="inputMensagem" required>
+                <button type="submit">Publicar</button>
+            </form>
+            <ul class="timeline" id="userTimeline">
+                <!-- Timeline items will be dynamically added here -->
+            </ul>
+        </div>
     </div>
-    
-    <div id="userInfo" class="tab-content active">
-        <h2>Informações do Usuário</h2>
-        <p id="userFullName"></p>
-        <p id="userCpfCnpj"></p>
-        <p id="userEmail"></p>
-        <p id="userAddress"></p>
-    </div>
-    
-    <div id="timeline" class="tab-content">
-        <h2>Linha do Tempo</h2>
-        <form id="formPublicacao">
-            <input type="file" accept="image/*" id="inputImagem" required>
-            <input type="text" maxlength="50" placeholder="Digite sua mensagem" id="inputMensagem" required>
-            <button type="submit">Publicar</button>
-        </form>
-        <ul class="timeline" id="userTimeline">
-            <!-- Timeline items will be dynamically added here -->
-        </ul>
-    </div>
-</div>
 
-<!-- Adicione as bibliotecas do Firebase -->
-<script type="module">
-    // Importar as bibliotecas do Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    <!-- Adicione as bibliotecas do Firebase -->
+    <script type="module">
+        // Importar as bibliotecas do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-    // Configurações do Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyATKjtf2xqjdVtZFHSdrZOcA0Taa3J4gao",
-        authDomain: "redesocialmarktplace.firebaseapp.com",
-        projectId: "redesocialmarktplace",
-        storageBucket: "redesocialmarktplace.appspot.com",
-        messagingSenderId: "389449887892",
-        appId: "1:389449887892:web:e87a07a73c04b2ad9d8481",
-        measurementId: "G-KQ8Q4LZVB1"
-    };
+        // Configurações do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyATKjtf2xqjdVtZFHSdrZOcA0Taa3J4gao",
+            authDomain: "redesocialmarktplace.firebaseapp.com",
+            projectId: "redesocialmarktplace",
+            storageBucket: "redesocialmarktplace.appspot.com",
+            messagingSenderId: "389449887892",
+            appId: "1:389449887892:web:e87a07a73c04b2ad9d8481",
+            measurementId: "G-KQ8Q4LZVB1"
+        };
 
-    // Inicializar o Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+        // Inicializar o Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
 
-    // Verificar se o usuário está autenticado
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // Se estiver autenticado, obter informações do usuário
-            getUserInfo(user.uid);
-            getUserTimeline(user.uid);
-        } else {
-            window.location.href = "login.html"
-            console.log("Usuário não autenticado.");
-        }
-    });
-
-    // Função para obter informações do usuário
-    async function getUserInfo(uid) {
-        const userDoc = await getDocs(collection(db, "users"));
-        userDoc.forEach((doc) => {
-            if (doc.id === uid) {
-                const userData = doc.data();
-                document.getElementById("userFullName").textContent = `Nome: ${userData.fullName}`;
-                document.getElementById("userCpfCnpj").textContent = `CPF/CNPJ: ${userData.cpfCnpj}`;
-                document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
-                document.getElementById("userAddress").textContent = `Endereço: ${userData.address}`;
+        // Verificar se o usuário está autenticado
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Se estiver autenticado, obter informações do usuário
+                getUserInfo(user.uid);
+                getUserTimeline(user.uid);
+                getAllUserTimeline();
+            } else {
+                window.location.href = "login.html"
+                console.log("Usuário não autenticado.");
             }
         });
-    }
 
-    // Função para obter a timeline do usuário
-    async function getUserTimeline(uid) {
-        const publicacoesRef = collection(db, "publicacoes");
-        const querySnapshot = await getDocs(publicacoesRef);
-        if (!querySnapshot.empty) {
-            const userTimeline = document.getElementById("userTimeline");
-            userTimeline.innerHTML = ""; // Limpar a timeline antes de adicionar novos itens
-            querySnapshot.forEach((doc) => {
-                const publicacaoData = doc.data();
-                if (publicacaoData.userId === uid) {
-                    const li = document.createElement("li");
-                    li.classList.add("timeline-item");
-                    li.innerHTML = `
+        // Função para obter informações do usuário
+        async function getUserInfo(uid) {
+            const userDoc = await getDocs(collection(db, "users"));
+            userDoc.forEach((doc) => {
+                if (doc.id === uid) {
+                    const userData = doc.data();
+                    document.getElementById("userFullName").textContent = `Nome: ${userData.fullName}`;
+                    document.getElementById("userCpfCnpj").textContent = `CPF/CNPJ: ${userData.cpfCnpj}`;
+                    document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
+                    document.getElementById("userAddress").textContent = `Endereço: ${userData.address}`;
+                }
+            });
+        }
+
+        // Função para obter a timeline do usuário
+        async function getUserTimeline(uid) {
+            const publicacoesRef = collection(db, "publicacoes");
+            const querySnapshot = await getDocs(publicacoesRef);
+            if (!querySnapshot.empty) {
+                const userTimeline = document.getElementById("userTimeline");
+                userTimeline.innerHTML = ""; // Limpar a timeline antes de adicionar novos itens
+                querySnapshot.forEach((doc) => {
+                    const publicacaoData = doc.data();
+                    if (publicacaoData.userId === uid) {
+                        const li = document.createElement("li");
+                        li.classList.add("timeline-item");
+                        li.innerHTML = `
                         <p>${publicacaoData.mensagem}</p>
                         <img src="${publicacaoData.imagemUrl}" class="publicacao-img" alt="Publicação">
                         <p>Data e Hora: ${publicacaoData.timestamp}</p>
                     `;
-                    userTimeline.appendChild(li);
-                }
-            });
-        } else {
-            console.log("Nenhuma publicação encontrada.");
+                        userTimeline.appendChild(li);
+                    }
+                });
+            } else {
+                console.log("Nenhuma publicação encontrada.");
+            }
         }
-    }
 
-    // Função para publicar uma nova publicação
-    document.getElementById("formPublicacao").addEventListener("submit", async (e) => {
-        e.preventDefault();
+        // Função para publicar uma nova publicação
+        document.getElementById("formPublicacao").addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-        const mensagem = document.getElementById("inputMensagem").value;
-        const imagem = document.getElementById("inputImagem").files[0];
+            const mensagem = document.getElementById("inputMensagem").value;
+            const imagem = document.getElementById("inputImagem").files[0];
 
-        // Upload da imagem para o Storage
-        const storageRef = ref(storage, `imagens/${imagem.name}`);
-        const snapshot = await uploadBytes(storageRef, imagem);
+            // Upload da imagem para o Storage
+            const storageRef = ref(storage, `imagens/${imagem.name}`);
+            const snapshot = await uploadBytes(storageRef, imagem);
 
-        // Obter URL da imagem no Storage
-        const imagemUrl = await getDownloadURL(snapshot.ref);
+            // Obter URL da imagem no Storage
+            const imagemUrl = await getDownloadURL(snapshot.ref);
 
-        // Salvar a publicação no Firestore
-        await addDoc(collection(db, "publicacoes"), {
-            mensagem: mensagem,
-            imagemUrl: imagemUrl,
-            timestamp: serverTimestamp(),
-            userId: auth.currentUser.uid
+            // Salvar a publicação no Firestore
+            await addDoc(collection(db, "publicacoes"), {
+                mensagem: mensagem,
+                imagemUrl: imagemUrl,
+                timestamp: serverTimestamp(),
+                userId: auth.currentUser.uid
+            });
+
+            // Atualizar a linha do tempo do usuário
+            getUserTimeline(auth.currentUser.uid);
+
+            // Limpar os campos do formulário
+            document.getElementById("inputMensagem").value = "";
+            document.getElementById("inputImagem").value = "";
         });
 
-        // Atualizar a linha do tempo do usuário
-        getUserTimeline(auth.currentUser.uid);
+        // Função para alternar entre as abas
+        window.showTab = function (tabId) {
+            const tabs = document.querySelectorAll(".tab-content");
+            tabs.forEach(tab => {
+                tab.classList.remove("active");
+            });
+            const selectedTab = document.getElementById(tabId);
+            selectedTab.classList.add("active");
+        }
 
-        // Limpar os campos do formulário
-        document.getElementById("inputMensagem").value = "";
-        document.getElementById("inputImagem").value = "";
-    });
+        // Função para obter a linha do tempo de todos os usuários
+        window.getAllUserTimeline = async function () {
+            try {
+                const publicacoesRef = collection(db, "publicacoes");
+                const querySnapshot = await getDocs(publicacoesRef);
+                const userTimeline = document.getElementById("userTimeline");
+                userTimeline.innerHTML = ""; // Limpar a linha do tempo antes de adicionar novos itens
 
-    // Função para alternar entre as abas
-    window.showTab = function(tabId) {
-        const tabs = document.querySelectorAll(".tab-content");
-        tabs.forEach(tab => {
-            tab.classList.remove("active");
-        });
-        const selectedTab = document.getElementById(tabId);
-        selectedTab.classList.add("active");
-    }
-</script>
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    console.log("Publicaçoes exibidas com sucesso");
+                    const li = document.createElement("li");
+                    li.classList.add("timeline-item");
+                    li.innerHTML = `
+                <p>${data.mensagem}</p>
+                <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação">
+                <p>Data e Hora: ${data.timestamp.toDate()}</p>
+            `;
+                    userTimeline.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Erro ao obter a linha do tempo:", error);
+            }
+        }
 
+        window.formatarDataHora = function(timestamp) {
+            const data = timestamp.toDate();
+            const dia = String(data.getDate()).padStart(2, '0');
+            const mes = String(data.getMonth() + 1).padStart(2, '0');
+            const ano = data.getFullYear();
+            const horas = String(data.getHours()).padStart(2, '0');
+            const minutos = String(data.getMinutes()).padStart(2, '0');
+            return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+        }
+
+    </script>
 </body>
+
 </html>

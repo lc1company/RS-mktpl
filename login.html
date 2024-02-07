@@ -1,186 +1,197 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tela de Login</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f0f0f0;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
-    
-    .container {
-        background-color: #fff;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        max-width: 400px;
-        width: 100%;
-    }
-    
-    input[type="text"],
-    input[type="email"],
-    input[type="password"] {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-    
-    input[type="submit"] {
-        width: 100%;
-        padding: 10px;
-        background-color: #007bff;
-        border: none;
-        border-radius: 4px;
-        color: #fff;
-        cursor: pointer;
-    }
-    
-    input[type="submit"]:hover {
-        background-color: #0056b3;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tela de Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h2>Tela de Login</h2>
-    <button style="margin-bottom: 2%; font-size: 20px; background-color: #007bff; border-radius: 4px; color:#fff; margin-right: 10px; align-items: center;" onclick="showRegisterForm(event)">Registro</button>
-    <button style="margin-bottom: 2%; font-size: 20px; background-color: #007bff; border-radius: 4px; color:#fff; margin-right: 10px;" onclick="showLoginForm(event)">Login</button>
-    
-    <form id="registerForm" style="display:none;" onsubmit="registerUser(event)">
-        <input type="text" placeholder="Nome Completo" id="fullName">
-        <input type="text" placeholder="CPF ou CNPJ" id="cpfCnpj">
-        <input type="email" placeholder="Email" id="email">
-        <input type="password" placeholder="Senha" id="password">
-        <input type="text" placeholder="Endereço com Número" id="address">
-        <input type="checkbox" id="termsCheckbox" required>
-        <label for="termsCheckbox">Confirmo que tenho mais de 18 anos e aceito os<a href="link">Termos de Uso</a></label>
-        <input type="submit" value="Salvar">
-    </form>
-    
-    <form id="loginForm" style="display:none;" onsubmit="loginUser(event)">
-        <input type="email" placeholder="Email" id="loginEmail">
-        <input type="password" placeholder="Senha" id="loginPassword">
-        <input type="submit" value="Entrar">
-    </form>
-    
-    <p id="message" style="display:none;"></p>
-</div>
+    <div class="container">
+        <h2>Tela de Login</h2>
+        <button
+            style="margin-bottom: 2%; font-size: 20px; background-color: #007bff; border-radius: 4px; color:#fff; margin-right: 10px; align-items: center;"
+            onclick="showRegisterForm(event)">Registro</button>
+        <button
+            style="margin-bottom: 2%; font-size: 20px; background-color: #007bff; border-radius: 4px; color:#fff; margin-right: 10px;"
+            onclick="showLoginForm(event)">Login</button>
 
-<!-- Adicione as bibliotecas do Firebase -->
-<script type="module">
-    // Importar as bibliotecas do Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        <form id="registerForm" style="display:none;" onsubmit="registerUser(event)">
+            <input type="text" placeholder="Nome Completo" id="fullName">
+            <input type="text" placeholder="CPF ou CNPJ" id="cpfCnpj">
+            <input type="email" placeholder="Email" id="email">
+            <input type="password" placeholder="Senha" id="password">
+            <input type="text" placeholder="Endereço com Número" id="address">
+            <input type="checkbox" id="termsCheckbox" required>
+            <label for="termsCheckbox">Confirmo que tenho mais de 18 anos e aceito os<a href="link">Termos de
+                    Uso</a></label>
+            <input type="submit" value="Salvar">
+        </form>
 
-    // Configurações do Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyATKjtf2xqjdVtZFHSdrZOcA0Taa3J4gao",
-        authDomain: "redesocialmarktplace.firebaseapp.com",
-        projectId: "redesocialmarktplace",
-        storageBucket: "redesocialmarktplace.appspot.com",
-        messagingSenderId: "389449887892",
-        appId: "1:389449887892:web:e87a07a73c04b2ad9d8481",
-        measurementId: "G-KQ8Q4LZVB1"
-    };
+        <form id="loginForm" style="display:none;" onsubmit="loginUser(event)">
+            <input type="email" placeholder="Email" id="loginEmail">
+            <input type="password" placeholder="Senha" id="loginPassword">
+            <input type="submit" value="Entrar">
+        </form>
 
-    // Inicializar o Firebase
-    const app = initializeApp(firebaseConfig);
-    console.log("Firebase inicializado com sucesso!");
+        <p id="message" style="display:none;"></p>
+    </div>
 
-    const auth = getAuth(app);
-    console.log("Auth inicializado com sucesso!");
+    <!-- Adicione as bibliotecas do Firebase -->
+    <script type="module">
+        // Importar as bibliotecas do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const db = getFirestore(app);
-    console.log("Firestore inicializado com sucesso!");
+        // Configurações do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyATKjtf2xqjdVtZFHSdrZOcA0Taa3J4gao",
+            authDomain: "redesocialmarktplace.firebaseapp.com",
+            projectId: "redesocialmarktplace",
+            storageBucket: "redesocialmarktplace.appspot.com",
+            messagingSenderId: "389449887892",
+            appId: "1:389449887892:web:e87a07a73c04b2ad9d8481",
+            measurementId: "G-KQ8Q4LZVB1"
+        };
 
-    window.showRegisterForm = function(event) {
-        event.preventDefault(); // Evita a atualização da página
-        document.getElementById("registerForm").style.display = "block";
-        document.getElementById("loginForm").style.display = "none";
-        document.getElementById("message").style.display = "none";
-    }
+        // Inicializar o Firebase
+        const app = initializeApp(firebaseConfig);
+        console.log("Firebase inicializado com sucesso!");
 
-    window.showLoginForm = function(event) {
-        event.preventDefault(); // Evita a atualização da página
-        document.getElementById("loginForm").style.display = "block";
-        document.getElementById("registerForm").style.display = "none";
-        document.getElementById("message").style.display = "none";
-    }
+        const auth = getAuth(app);
+        console.log("Auth inicializado com sucesso!");
 
-    window.registerUser = function(event) {
-        event.preventDefault(); // Evita a atualização da página
-        console.log("Registrando usuário...");
+        const db = getFirestore(app);
+        console.log("Firestore inicializado com sucesso!");
 
-        const fullName = document.getElementById("fullName").value;
-        const cpfCnpj = document.getElementById("cpfCnpj").value;
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        const address = document.getElementById("address").value;
+        window.showRegisterForm = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            document.getElementById("registerForm").style.display = "block";
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("message").style.display = "none";
+        }
 
-        createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            console.log("Usuário registrado com sucesso!");
+        window.showLoginForm = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            document.getElementById("loginForm").style.display = "block";
+            document.getElementById("registerForm").style.display = "none";
+            document.getElementById("message").style.display = "none";
+        }
 
-            const userUid = userCredential.user.uid;
-            const userData = {
-                fullName: fullName,
-                cpfCnpj: cpfCnpj,
-                email: email,
-                address: address
-            };
+        window.registerUser = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            console.log("Registrando usuário...");
 
-            setDoc(doc(db, "users", userUid), userData)
-            .then(() => {
-                console.log("Dados do usuário salvos no Firestore com sucesso!");
+            const fullName = document.getElementById("fullName").value;
+            const cpfCnpj = document.getElementById("cpfCnpj").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const address = document.getElementById("address").value;
 
-                document.getElementById("registerForm").reset();
-                document.getElementById("message").innerHTML = "Usuário registrado com sucesso!";
-                document.getElementById("message").style.display = "block";
-            })
-            .catch((error) => {
-                console.error("Erro ao salvar dados do usuário no Firestore: ", error);
-            });
-        })
-        .catch((error) => {
-            console.error("Erro ao registrar usuário: ", error);
-        });
-    }
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    console.log("Usuário registrado com sucesso!");
 
-    window.loginUser = function(event) {
-        event.preventDefault(); // Evita a atualização da página
-        console.log("Fazendo login...");
+                    const userUid = userCredential.user.uid;
+                    const userData = {
+                        fullName: fullName,
+                        cpfCnpj: cpfCnpj,
+                        email: email,
+                        address: address
+                    };
 
-        const email = document.getElementById("loginEmail").value;
-        const password = document.getElementById("loginPassword").value;
+                    setDoc(doc(db, "users", userUid), userData)
+                        .then(() => {
+                            console.log("Dados do usuário salvos no Firestore com sucesso!");
 
-        signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            console.log("Login bem-sucedido!");
+                            document.getElementById("registerForm").reset();
+                            document.getElementById("message").innerHTML = "Usuário registrado com sucesso!";
+                            document.getElementById("message").style.display = "block";
+                        })
+                        .catch((error) => {
+                            console.error("Erro ao salvar dados do usuário no Firestore: ", error);
+                        });
+                })
+                .catch((error) => {
+                    console.error("Erro ao registrar usuário: ", error);
+                });
+        }
 
-            document.getElementById("loginForm").reset();
-            document.getElementById("message").innerHTML = "Login bem-sucedido!";
-            document.getElementById("message").style.display = "block";
+        window.loginUser = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            console.log("Fazendo login...");
 
-            window.location.href = "dashboard.html";
-        })
-        .catch((error) => {
-            console.error("Erro ao fazer login: ", error);
-        });
-    }
-</script>
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    console.log("Login bem-sucedido!");
+
+                    document.getElementById("loginForm").reset();
+                    document.getElementById("message").innerHTML = "Login bem-sucedido!";
+                    document.getElementById("message").style.display = "block";
+
+                    window.location.href = "dashboard.html";
+                })
+                .catch((error) => {
+                    console.error("Erro ao fazer login: ", error);
+                    const mensagemErroElement = document.getElementById("message");
+                    mensagemErroElement.textContent = "Erro email ou senha invalida, tente novamente.";
+                    mensagemErroElement.style.display = "block";
+                });
+        }
+    </script>
 
 </body>
+
 </html>

@@ -166,7 +166,7 @@
                         li.classList.add("timeline-item");
                         li.innerHTML = `
                         <p>${publicacaoData.mensagem}</p>
-                        <img src="${publicacaoData.imagemUrl}" class="publicacao-img" alt="Publicação">
+                        <img src="${publicacaoData.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy">
                         <p>Data e Hora: ${publicacaoData.timestamp}</p>
                     `;
                         userTimeline.appendChild(li);
@@ -205,6 +205,9 @@
             // Limpar os campos do formulário
             document.getElementById("inputMensagem").value = "";
             document.getElementById("inputImagem").value = "";
+
+            //atualizar pagina apos upoa de publicacao
+            location.reload();
         });
 
         // Função para alternar entre as abas
@@ -228,28 +231,25 @@
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     console.log("Publicaçoes exibidas com sucesso");
+                    const timestamp = data.timestamp.toDate();
+                    const dia = String(timestamp.getDate()).padStart(2, '0');
+                    const mes = String(timestamp.getMonth() + 1).padStart(2, '0');
+                    const ano = timestamp.getFullYear();
+                    const horas = String(timestamp.getHours()).padStart(2, '0');
+                    const minutos = String(timestamp.getMinutes()).padStart(2, '0');
+                    const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
                     const li = document.createElement("li");
                     li.classList.add("timeline-item");
                     li.innerHTML = `
                 <p>${data.mensagem}</p>
-                <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação">
-                <p>Data e Hora: ${data.timestamp.toDate()}</p>
+                <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy">
+                <p>Data e Hora: ${dataFormatada}</p>
             `;
                     userTimeline.appendChild(li);
                 });
             } catch (error) {
                 console.error("Erro ao obter a linha do tempo:", error);
             }
-        }
-
-        window.formatarDataHora = function(timestamp) {
-            const data = timestamp.toDate();
-            const dia = String(data.getDate()).padStart(2, '0');
-            const mes = String(data.getMonth() + 1).padStart(2, '0');
-            const ano = data.getFullYear();
-            const horas = String(data.getHours()).padStart(2, '0');
-            const minutos = String(data.getMinutes()).padStart(2, '0');
-            return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
         }
 
     </script>

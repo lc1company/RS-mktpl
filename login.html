@@ -55,8 +55,8 @@
 
 <div class="container">
     <h2>Tela de Login</h2>
-    <button onclick="showRegisterForm(event)">Registro</button>
-    <button onclick="showLoginForm(event)">Login</button>
+    <button style="margin-bottom: 2%; font-size: 20px; background-color: #007bff; border-radius: 4px; color:#fff; margin-right: 10px; align-items: center;" onclick="showRegisterForm(event)">Registro</button>
+    <button style="margin-bottom: 2%; font-size: 20px; background-color: #007bff; border-radius: 4px; color:#fff; margin-right: 10px;" onclick="showLoginForm(event)">Login</button>
     
     <form id="registerForm" style="display:none;" onsubmit="registerUser(event)">
         <input type="text" placeholder="Nome Completo" id="fullName">
@@ -64,6 +64,8 @@
         <input type="email" placeholder="Email" id="email">
         <input type="password" placeholder="Senha" id="password">
         <input type="text" placeholder="Endereço com Número" id="address">
+        <input type="checkbox" id="termsCheckbox" required>
+        <label for="termsCheckbox">Confirmo que tenho mais de 18 anos e aceito os<a href="link">Termos de Uso</a></label>
         <input type="submit" value="Salvar">
     </form>
     

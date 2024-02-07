@@ -54,6 +54,19 @@
     .timeline-item:last-child {
         border-bottom: none;
     }
+
+    #formPublicacao {
+        margin-bottom: 20px;
+    }
+
+    #formPublicacao input[type="file"] {
+        margin-bottom: 10px;
+    }
+
+    .publicacao-img {
+        max-width: 100px;
+        max-height: 100px;
+    }
 </style>
 </head>
 <body>
@@ -74,6 +87,11 @@
     
     <div id="timeline" class="tab-content">
         <h2>Linha do Tempo</h2>
+        <form id="formPublicacao">
+            <input type="file" accept="image/*" id="inputImagem" required>
+            <input type="text" maxlength="50" placeholder="Digite sua mensagem" id="inputMensagem" required>
+            <button type="submit">Publicar</button>
+        </form>
         <ul class="timeline" id="userTimeline">
             <!-- Timeline items will be dynamically added here -->
         </ul>
@@ -85,7 +103,8 @@
     // Importar as bibliotecas do Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     // Configurações do Firebase
     const firebaseConfig = {
@@ -102,6 +121,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     // Verificar se o usuário está autenticado
     onAuthStateChanged(auth, (user) => {
@@ -117,36 +137,72 @@
 
     // Função para obter informações do usuário
     async function getUserInfo(uid) {
-        const userDoc = await getDoc(doc(db, "users", uid));
-        if (userDoc.exists()) {
-            const userData = userDoc.data();
-            document.getElementById("userFullName").textContent = `Nome: ${userData.fullName}`;
-            document.getElementById("userCpfCnpj").textContent = `CPF/CNPJ: ${userData.cpfCnpj}`;
-            document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
-            document.getElementById("userAddress").textContent = `Endereço: ${userData.address}`;
-        } else {
-            console.log("Usuário não encontrado.");
-        }
+        const userDoc = await getDocs(collection(db, "users"));
+        userDoc.forEach((doc) => {
+            if (doc.id === uid) {
+                const userData = doc.data();
+                document.getElementById("userFullName").textContent = `Nome: ${userData.fullName}`;
+                document.getElementById("userCpfCnpj").textContent = `CPF/CNPJ: ${userData.cpfCnpj}`;
+                document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
+                document.getElementById("userAddress").textContent = `Endereço: ${userData.address}`;
+            }
+        });
     }
 
     // Função para obter a timeline do usuário
     async function getUserTimeline(uid) {
-        const timelineRef = doc(db, "timelines", uid);
-        const timelineDoc = await getDoc(timelineRef);
-        if (timelineDoc.exists()) {
-            const timelineData = timelineDoc.data();
+        const publicacoesRef = collection(db, "publicacoes");
+        const querySnapshot = await getDocs(publicacoesRef);
+        if (!querySnapshot.empty) {
             const userTimeline = document.getElementById("userTimeline");
             userTimeline.innerHTML = ""; // Limpar a timeline antes de adicionar novos itens
-            for (const item of timelineData.items) {
-                const li = document.createElement("li");
-                li.classList.add("timeline-item");
-                li.textContent = item.text;
-                userTimeline.appendChild(li);
-            }
+            querySnapshot.forEach((doc) => {
+                const publicacaoData = doc.data();
+                if (publicacaoData.userId === uid) {
+                    const li = document.createElement("li");
+                    li.classList.add("timeline-item");
+                    li.innerHTML = `
+                        <p>${publicacaoData.mensagem}</p>
+                        <img src="${publicacaoData.imagemUrl}" class="publicacao-img" alt="Publicação">
+                        <p>Data e Hora: ${publicacaoData.timestamp}</p>
+                    `;
+                    userTimeline.appendChild(li);
+                }
+            });
         } else {
-            console.log("Timeline não encontrada.");
+            console.log("Nenhuma publicação encontrada.");
         }
     }
+
+    // Função para publicar uma nova publicação
+    document.getElementById("formPublicacao").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const mensagem = document.getElementById("inputMensagem").value;
+        const imagem = document.getElementById("inputImagem").files[0];
+
+        // Upload da imagem para o Storage
+        const storageRef = ref(storage, `imagens/${imagem.name}`);
+        const snapshot = await uploadBytes(storageRef, imagem);
+
+        // Obter URL da imagem no Storage
+        const imagemUrl = await getDownloadURL(snapshot.ref);
+
+        // Salvar a publicação no Firestore
+        await addDoc(collection(db, "publicacoes"), {
+            mensagem: mensagem,
+            imagemUrl: imagemUrl,
+            timestamp: serverTimestamp(),
+            userId: auth.currentUser.uid
+        });
+
+        // Atualizar a linha do tempo do usuário
+        getUserTimeline(auth.currentUser.uid);
+
+        // Limpar os campos do formulário
+        document.getElementById("inputMensagem").value = "";
+        document.getElementById("inputImagem").value = "";
+    });
 
     // Função para alternar entre as abas
     window.showTab = function(tabId) {

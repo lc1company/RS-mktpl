@@ -75,16 +75,14 @@
 
     <div class="container">
         <div class="tabs">
-            <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
+            <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
         </div>
 
         <div id="userInfo" class="tab-content active">
             <h2>Informações do Usuário</h2>
             <p id="userFullName"></p>
-            <p id="userCpfCnpj"></p>
             <p id="userEmail"></p>
-            <p id="userAddress"></p>
         </div>
 
         <div id="timeline" class="tab-content">
@@ -145,9 +143,7 @@
                 if (doc.id === uid) {
                     const userData = doc.data();
                     document.getElementById("userFullName").textContent = `Nome: ${userData.fullName}`;
-                    document.getElementById("userCpfCnpj").textContent = `CPF/CNPJ: ${userData.cpfCnpj}`;
                     document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
-                    document.getElementById("userAddress").textContent = `Endereço: ${userData.address}`;
                 }
             });
         }
@@ -251,6 +247,10 @@
                 console.error("Erro ao obter a linha do tempo:", error);
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            showTab('timeline');
+        });
 
     </script>
 </body>

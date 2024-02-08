@@ -66,10 +66,8 @@
 
         <form id="registerForm" style="display:none;" onsubmit="registerUser(event)">
             <input type="text" placeholder="Nome Completo" id="fullName">
-            <input type="text" placeholder="CPF ou CNPJ" id="cpfCnpj">
             <input type="email" placeholder="Email" id="email">
             <input type="password" placeholder="Senha" id="password">
-            <input type="text" placeholder="Endereço com Número" id="address">
             <input type="checkbox" id="termsCheckbox" required>
             <label for="termsCheckbox">Confirmo que tenho mais de 18 anos e aceito os<a href="link">Termos de
                     Uso</a></label>
@@ -132,10 +130,8 @@
             console.log("Registrando usuário...");
 
             const fullName = document.getElementById("fullName").value;
-            const cpfCnpj = document.getElementById("cpfCnpj").value;
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
-            const address = document.getElementById("address").value;
 
             createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
@@ -144,9 +140,7 @@
                     const userUid = userCredential.user.uid;
                     const userData = {
                         fullName: fullName,
-                        cpfCnpj: cpfCnpj,
                         email: email,
-                        address: address
                     };
 
                     setDoc(doc(db, "users", userUid), userData)

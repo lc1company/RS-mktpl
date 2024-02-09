@@ -98,10 +98,9 @@
         }
 
         .publicacao-img {
-            max-width: 100px;
-            max-height: 100px;
+            max-width: 400px;
+            max-height: 600px;
         }
-
     </style>
 </head>
 
@@ -127,8 +126,10 @@
             <form id="formPublicacao">
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
-                <input type="text" maxlength="50" placeholder="Digite sua mensagem" id="inputMensagem" required>
-                <button style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;" type="submit">Publicar</button>
+                <input type="text" maxlength="200" placeholder="Digite sua mensagem" id="inputMensagem" required>
+                <button
+                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
+                    type="submit">Publicar</button>
             </form>
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
@@ -225,9 +226,18 @@
             const mensagem = document.getElementById("inputMensagem").value;
             const imagem = document.getElementById("inputImagem").files[0];
 
-            // Upload da imagem para o Storage
+            // Verificar se uma imagem foi selecionada
+            if (!imagem) {
+                alert("Por favor, selecione uma imagem.");
+                return;
+            }
+
+            // Comprimir a imagem antes de enviá-la para o Storage
+            const compressedBlob = await compressImage(imagem);
+
+            // Upload da imagem comprimida para o Storage
             const storageRef = ref(storage, `imagens/${imagem.name}`);
-            const snapshot = await uploadBytes(storageRef, imagem);
+            const snapshot = await uploadBytes(storageRef, compressedBlob);
 
             // Obter URL da imagem no Storage
             const imagemUrl = await getDownloadURL(snapshot.ref);
@@ -247,9 +257,61 @@
             document.getElementById("inputMensagem").value = "";
             document.getElementById("inputImagem").value = "";
 
-            //atualizar pagina apos upoa de publicacao
+            // Atualizar a página após a publicação
             location.reload();
         });
+
+        // Função para comprimir a imagem
+        window.compressImage = async function(imageFile) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    const img = new Image();
+
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // Definir as dimensões máximas desejadas para a imagem
+                        const maxWidth = 800;
+                        const maxHeight = 600;
+
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Redimensionar a imagem mantendo a proporção
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        // Desenhar a imagem redimensionada no canvas
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Converter o canvas de volta para Blob
+                        canvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, 'image/jpeg', 0.9); // Comprimir para JPEG com 90% de qualidade
+                    };
+
+                    img.src = event.target.result;
+                };
+
+                reader.readAsDataURL(imageFile);
+            });
+        }
+
 
         // Função para alternar entre as abas
         window.showTab = function (tabId) {
@@ -293,11 +355,11 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             showTab('timeline');
         });
 
-        document.getElementById('btnEscolherArquivo').addEventListener('click', function() {
+        document.getElementById('btnEscolherArquivo').addEventListener('click', function () {
             document.getElementById('inputImagem').click();
         });
 

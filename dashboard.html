@@ -58,6 +58,39 @@
 
         #formPublicacao {
             margin-bottom: 20px;
+            display: flex;
+            flex-wrap: nowrap;
+        }
+
+        #inputMensagem {
+            flex: 1;
+            padding: 10px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #inputImagem {
+            display: none;
+        }
+
+        #btnEscolherArquivo {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin-left: 2%;
+            margin-right: 2%;
+        }
+
+        #btnEscolherArquivo:hover {
+            background-color: #0056b3;
         }
 
         #formPublicacao input[type="file"] {
@@ -68,6 +101,7 @@
             max-width: 100px;
             max-height: 100px;
         }
+
     </style>
 </head>
 
@@ -76,25 +110,34 @@
     <div class="container">
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
+            <div class="tab" onclick="showTab('findService')">Econtrar Serviços</div>
             <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
         </div>
 
         <div id="userInfo" class="tab-content active">
             <h2>Informações do Usuário</h2>
             <p id="userFullName"></p>
+            <p id="userCpfCnpj"></p>
             <p id="userEmail"></p>
+            <p id="userAddress"></p>
         </div>
 
         <div id="timeline" class="tab-content">
             <h2>Linha do Tempo</h2>
             <form id="formPublicacao">
-                <input type="file" accept="image/*" id="inputImagem" required>
+                <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
+                <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
                 <input type="text" maxlength="50" placeholder="Digite sua mensagem" id="inputMensagem" required>
-                <button type="submit">Publicar</button>
+                <button style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;" type="submit">Publicar</button>
             </form>
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
+        </div>
+
+        <div id="findService" class="tab-content">
+            <h2>Encontre Serviços</h2>
+            <img src="https://i.ibb.co/VQvXvKG/combo.png" alt="imgTeste">
         </div>
     </div>
 
@@ -143,7 +186,9 @@
                 if (doc.id === uid) {
                     const userData = doc.data();
                     document.getElementById("userFullName").textContent = `Nome: ${userData.fullName}`;
+                    document.getElementById("userCpfCnpj").textContent = `CPF/CNPJ: ${userData.cpfCnpj}`;
                     document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
+                    document.getElementById("userAddress").textContent = `Endereço: ${userData.address}`;
                 }
             });
         }
@@ -250,6 +295,10 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             showTab('timeline');
+        });
+
+        document.getElementById('btnEscolherArquivo').addEventListener('click', function() {
+            document.getElementById('inputImagem').click();
         });
 
     </script>

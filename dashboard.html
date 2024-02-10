@@ -98,8 +98,8 @@
         }
 
         .publicacao-img {
-            max-width: 75%;
-            max-height: 40%;
+            max-width: 400px;
+            max-height: 425px;
         }
     </style>
 </head>
@@ -302,7 +302,7 @@
                         // Converter o canvas de volta para Blob
                         canvas.toBlob((blob) => {
                             resolve(blob);
-                        }, 'image/jpeg', 0.9); // Comprimir para JPEG com 90% de qualidade
+                        }, 'image/jpeg', 0.7); // Comprimir para JPEG com 70% de qualidade
                     };
 
                     img.src = event.target.result;

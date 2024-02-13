@@ -98,8 +98,34 @@
         }
 
         .publicacao-img {
-            max-width: 75%;
-            max-height: 40%;
+            max-width: 400px;
+            max-height: 425px;
+        }
+
+        #btnEscolherFotoPerfil {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-bottom: 10px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #btnEscolherFotoPerfil:hover {
+            background-color: #0056b3;
+        }
+
+        #userProfilePicture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
 </head>
@@ -109,6 +135,7 @@
     <div class="container">
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
+            <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
             <div class="tab" onclick="showTab('findService')">Econtrar Serviços</div>
             <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
         </div>
@@ -127,9 +154,7 @@
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
                 <input type="text" maxlength="200" placeholder="Digite sua mensagem" id="inputMensagem" required>
-                <button
-                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
-                    type="submit">Publicar</button>
+                <button style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;" type="submit">Publicar</button>
             </form>
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
@@ -140,6 +165,17 @@
             <h2>Encontre Serviços</h2>
             <img src="https://i.ibb.co/VQvXvKG/combo.png" alt="imgTeste">
         </div>
+
+        <div id="meuPerfil" class="tab-content">
+            <h2>Meu Perfil</h2>
+            <div>
+                <img id="userProfilePicture" src="" alt="Foto de Perfil">
+                <p id="FullName"></p>
+                <input type="file" accept="image/*" id="inputFotoPerfil" onchange="handleProfilePictureUpload(event)" style="display: none;">
+                <button type="button" id="btnEscolherFotoPerfil" class="upload-button">Escolher Foto de Perfil</button>
+            </div>
+        </div>
+
     </div>
 
     <!-- Adicione as bibliotecas do Firebase -->
@@ -149,6 +185,7 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Configurações do Firebase
         const firebaseConfig = {
@@ -174,6 +211,7 @@
                 getUserInfo(user.uid);
                 getUserTimeline(user.uid);
                 getAllUserTimeline();
+                exibirPerfilUsuario(user.uid);
             } else {
                 window.location.href = "login.html"
                 console.log("Usuário não autenticado.");
@@ -262,7 +300,7 @@
         });
 
         // Função para comprimir a imagem
-        window.compressImage = async function(imageFile) {
+        window.compressImage = async function (imageFile) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
 
@@ -362,6 +400,66 @@
         document.getElementById('btnEscolherArquivo').addEventListener('click', function () {
             document.getElementById('inputImagem').click();
         });
+
+        // Função para lidar com o upload da foto de perfil
+        function handleProfilePictureUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressAndUploadProfilePicture(file);
+            }
+        }
+
+        // Função para comprimir e enviar a foto de perfil para o armazenamento
+        window.compressAndUploadProfilePicture = async function (file) {
+            try {
+                const compressedBlob = await compressImage(file);
+                const storageRef = ref(storage, `perfil/${auth.currentUser.uid}`);
+                const snapshot = await uploadBytes(storageRef, compressedBlob);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+
+                // Atualize a foto de perfil do usuário no banco de dados Firebase
+                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                    photoURL: downloadURL
+                });
+
+                // Atualize a foto de perfil na interface do usuário
+                document.getElementById("userProfilePicture").src = downloadURL;
+            } catch (error) {
+                console.error("Erro ao fazer upload da foto de perfil:", error);
+            }
+        }
+
+        document.getElementById('btnEscolherFotoPerfil').addEventListener('click', function () {
+            document.getElementById('inputFotoPerfil').click();
+        })
+
+        window.handleProfilePictureUpload = function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressAndUploadProfilePicture(file);
+            }
+        }
+
+        // Função para exibir o perfil do usuário
+        window.exibirPerfilUsuario = async function (uid) {
+            const userDoc = await getDocs(collection(db, "users"));
+            userDoc.forEach((doc) => {
+                if (doc.id === uid) {
+                    const userData = doc.data();
+                    document.getElementById("FullName").textContent = userData.fullName;
+
+                    // Adiciona a imagem de perfil do usuário
+                    const storageRef = ref(storage, `perfil/${uid}`);
+                    getDownloadURL(storageRef)
+                        .then((url) => {
+                            document.getElementById("userProfilePicture").src = url;
+                        })
+                        .catch((error) => {
+                            console.error("Erro ao recuperar a foto de perfil:", error);
+                        });
+                }
+            });
+        }
 
     </script>
 </body>

@@ -126,6 +126,7 @@
             border-radius: 50%;
             margin-left: auto;
             margin-right: auto;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -340,7 +341,7 @@
                         // Converter o canvas de volta para Blob
                         canvas.toBlob((blob) => {
                             resolve(blob);
-                        }, 'image/jpeg', 0.7); // Comprimir para JPEG com 70% de qualidade
+                        }, 'image/jpeg', 0.8); // Comprimir para JPEG com 80% de qualidade
                     };
 
                     img.src = event.target.result;

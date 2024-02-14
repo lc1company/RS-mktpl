@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -129,6 +130,57 @@
             margin-right: auto;
             object-fit: cover;
         }
+
+        /* Estilos para os botões de like, dislike e comentários */
+        .timeline-item button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            margin-bottom: 2%;
+            margin-top: 2%;
+            transition: background-color 0.3s ease;
+        }
+
+        .timeline-item button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Estilos para o contêiner de comentários */
+        .comments-container {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .comments-container p {
+            margin-bottom: 5px;
+        }
+
+        .comments-container textarea {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+
+        .comments-container button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .comments-container button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 
@@ -145,9 +197,7 @@
         <div id="userInfo" class="tab-content active">
             <h2>Informações do Usuário</h2>
             <p id="userFullName"></p>
-            <p id="userCpfCnpj"></p>
             <p id="userEmail"></p>
-            <p id="userAddress"></p>
         </div>
 
         <div id="timeline" class="tab-content">
@@ -156,7 +206,9 @@
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
                 <input type="text" maxlength="200" placeholder="Digite sua mensagem" id="inputMensagem" required>
-                <button style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;" type="submit">Publicar</button>
+                <button
+                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
+                    type="submit">Publicar</button>
             </form>
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
@@ -173,7 +225,8 @@
             <div>
                 <img id="userProfilePicture" src="" alt="Foto de Perfil">
                 <p id="FullName"></p>
-                <input type="file" accept="image/*" id="inputFotoPerfil" onchange="handleProfilePictureUpload(event)" style="display: none;">
+                <input type="file" accept="image/*" id="inputFotoPerfil" onchange="handleProfilePictureUpload(event)"
+                    style="display: none;">
                 <button type="button" id="btnEscolherFotoPerfil" class="upload-button">Escolher Foto de Perfil</button>
             </div>
         </div>
@@ -188,6 +241,7 @@
         import { getFirestore, doc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Configurações do Firebase
         const firebaseConfig = {
@@ -227,9 +281,7 @@
                 if (doc.id === uid) {
                     const userData = doc.data();
                     document.getElementById("userFullName").textContent = `Nome: ${userData.fullName}`;
-                    document.getElementById("userCpfCnpj").textContent = `CPF/CNPJ: ${userData.cpfCnpj}`;
                     document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
-                    document.getElementById("userAddress").textContent = `Endereço: ${userData.address}`;
                 }
             });
         }
@@ -297,7 +349,6 @@
             document.getElementById("inputMensagem").value = "";
             document.getElementById("inputImagem").value = "";
 
-            // Atualizar a página após a publicação
             location.reload();
         });
 
@@ -371,9 +422,9 @@
                 const userTimeline = document.getElementById("userTimeline");
                 userTimeline.innerHTML = ""; // Limpar a linha do tempo antes de adicionar novos itens
 
-                querySnapshot.forEach((doc) => {
+                querySnapshot.forEach(async (doc) => {
                     const data = doc.data();
-                    console.log("Publicaçoes exibidas com sucesso");
+                    console.log("Publicações exibidas com sucesso");
                     const timestamp = data.timestamp.toDate();
                     const dia = String(timestamp.getDate()).padStart(2, '0');
                     const mes = String(timestamp.getMonth() + 1).padStart(2, '0');
@@ -381,14 +432,30 @@
                     const horas = String(timestamp.getHours()).padStart(2, '0');
                     const minutos = String(timestamp.getMinutes()).padStart(2, '0');
                     const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+
+                    // Criação do elemento li para cada publicação
                     const li = document.createElement("li");
                     li.classList.add("timeline-item");
                     li.innerHTML = `
-                <p>${data.mensagem}</p>
-                <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy">
-                <p>Data e Hora: ${dataFormatada}</p>
-            `;
+                    <p>${data.mensagem}</p>
+                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy">
+                    <p>Data e Hora: ${dataFormatada}</p>
+                    <button onclick="likePost('${doc.id}')" id="likeButton_${doc.id}">Like</button>
+                    <span id="likeCount_${doc.id}">${data.likes || 0}</span>
+                    <button onclick="dislikePost('${doc.id}')" id="dislikeButton_${doc.id}">Dislike</button>
+                    <span id="dislikeCount_${doc.id}">${data.dislikes || 0}</span>
+                    <button onclick="showComments('${doc.id}')">Comentários</button>
+                    <span id="commentCount_${doc.id}">${data.comments || 0}</span>
+                    <div id="comments_${doc.id}" style="display:none;"></div>
+                    <textarea id="commentText_${doc.id}" placeholder="Digite seu comentário"></textarea>
+                    <button onclick="addComment('${doc.id}')">Adicionar Comentário</button>`;
                     userTimeline.appendChild(li);
+
+                    // Exibir o contador de comentários
+                    const commentCountElement = document.getElementById(`commentCount_${doc.id}`);
+                    const comentariosRef = collection(db, `publicacoes/${doc.id}/comentarios`);
+                    const comentariosSnapshot = await getDocs(comentariosRef);
+                    commentCountElement.textContent = comentariosSnapshot.size; // Atualiza o total de comentários
                 });
             } catch (error) {
                 console.error("Erro ao obter a linha do tempo:", error);
@@ -461,6 +528,180 @@
                         });
                 }
             });
+        }
+
+        // Função para verificar se o usuário já curtiu uma publicação
+        function hasLikedPost(postId) {
+            return localStorage.getItem(`like_${postId}`) === 'true';
+        }
+
+        // Função para verificar se o usuário já descurtiu uma publicação
+        function hasDislikedPost(postId) {
+            return localStorage.getItem(`dislike_${postId}`) === 'true';
+        }
+
+        // Função para incrementar um valor em um campo específico
+        window.increment = function (value) {
+            return value + 1;
+        }
+
+        // Função para curtir uma publicação
+        window.likePost = async function (postId) {
+            try {
+                // Verificar se o usuário já curtiu a publicação
+                if (hasLikedPost(postId)) {
+                    console.log("Você já curtiu esta publicação.");
+                    return;
+                }
+
+                // Verificar se o usuário já descurtiu a publicação e remover o deslike
+                if (hasDislikedPost(postId)) {
+                    await removeDislike(postId);
+                }
+
+                const postRef = doc(db, "publicacoes", postId);
+                await incrementCounter(postRef, 'likes');
+                const likeCountElement = document.getElementById(`likeCount_${postId}`);
+                likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
+
+                // Desabilitar o botão de like após um clique
+                const likeButton = document.getElementById(`likeButton_${postId}`);
+                likeButton.disabled = true;
+
+                // Armazenar o estado de curtida no armazenamento local
+                localStorage.setItem(`like_${postId}`, 'true');
+            } catch (error) {
+                console.error("Erro ao curtir a publicação:", error);
+            }
+        }
+
+        // Função para descurtir uma publicação
+        window.dislikePost = async function (postId) {
+            try {
+                // Verificar se o usuário já descurtiu a publicação
+                if (hasDislikedPost(postId)) {
+                    console.log("Você já descurtiu esta publicação.");
+                    return;
+                }
+
+                // Verificar se o usuário já curtiu a publicação e remover o like
+                if (hasLikedPost(postId)) {
+                    await removeDislike(postId); // Corrigido aqui
+                }
+
+                const postRef = doc(db, "publicacoes", postId);
+                await incrementCounter(postRef, 'dislikes');
+                const dislikeCountElement = document.getElementById(`dislikeCount_${postId}`);
+                dislikeCountElement.textContent = parseInt(dislikeCountElement.textContent) + 1;
+
+                // Desabilitar o botão de deslike após um clique
+                const dislikeButton = document.getElementById(`dislikeButton_${postId}`);
+                dislikeButton.disabled = true;
+
+                // Armazenar o estado de descurtida no armazenamento local
+                localStorage.setItem(`dislike_${postId}`, 'true');
+            } catch (error) {
+                console.error("Erro ao descurtir a publicação:", error);
+            }
+        }
+
+
+        // Função para incrementar o contador em um documento Firestore
+        window.incrementCounter = async function (docRef, field) {
+            await updateDoc(docRef, {
+                [field]: increment(0)
+            });
+        }
+
+        // Função para remover a marcação de descurtida de uma publicação
+        window.removeDislike = async function (postId) {
+            try {
+                // Remover a marcação de descurtida da publicação do armazenamento local
+                localStorage.removeItem(`dislike_${postId}`);
+
+                // Atualizar o contador de descurtidas na interface do usuário
+                const dislikeCountElement = document.getElementById(`dislikeCount_${postId}`);
+                dislikeCountElement.textContent = parseInt(dislikeCountElement.textContent) - 1;
+
+                // Habilitar o botão de descurtir após remover a descurtida
+                const dislikeButton = document.getElementById(`dislikeButton_${postId}`);
+                dislikeButton.disabled = false;
+
+                console.log("Descurtida removida com sucesso.");
+            } catch (error) {
+                console.error("Erro ao remover a descurtida:", error);
+            }
+        }
+
+        // Função para adicionar um comentário a uma publicação
+        window.addComment = async function (postId) {
+            try {
+                const commentText = document.getElementById(`commentText_${postId}`).value;
+
+                // Verificar se o texto do comentário está vazio
+                if (!commentText) {
+                    alert("Por favor, digite seu comentário.");
+                    return;
+                }
+
+                // Adicionar um novo documento à subcoleção "comentarios" dentro do documento de publicação correspondente
+                const comentarioRef = await addDoc(collection(db, `publicacoes/${postId}/comentarios`), {
+                    texto: commentText,
+                    userId: auth.currentUser.uid,
+                    timestamp: serverTimestamp()
+                });
+
+                // Limpar o campo do texto do comentário após adicionar o comentário
+                document.getElementById(`commentText_${postId}`).value = "";
+
+                // Exibir os comentários atualizados
+                showComments(postId);
+            } catch (error) {
+                console.error("Erro ao adicionar comentário:", error);
+            }
+        }
+
+        // Função para exibir os comentários de uma publicação
+        window.showComments = async function (postId) {
+            try {
+                const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
+                const querySnapshot = await getDocs(comentariosRef);
+                const commentsContainer = document.getElementById(`comments_${postId}`);
+                commentsContainer.innerHTML = ""; // Limpar os comentários anteriores antes de exibir os novos
+
+                querySnapshot.forEach(async (doc) => {
+                    const comentarioData = doc.data();
+                    const userData = await getUserData(comentarioData.userId); // Obter informações do usuário
+
+                    // Formatando a data e hora do comentário
+                    const timestamp = comentarioData.timestamp.toDate();
+                    const dataFormatada = timestamp.toLocaleString();
+
+                    const comentarioHtml = `
+                <div>
+                    <p>${comentarioData.texto}</p>
+                    <p>Usuário: ${userData.fullName}</p> <!-- Exibindo o nome do usuário -->
+                    <img src="${userData.photoURL}" alt="Foto do usuário" style="width: 10%; height: 10%; border-radius: 50%">
+                    <p>Data e Hora: ${dataFormatada}</p>
+                </div>
+            `;
+                    commentsContainer.innerHTML += comentarioHtml;
+                });
+                // Exibir o contêiner de comentários
+                commentsContainer.style.display = "block";
+            } catch (error) {
+                console.error("Erro ao exibir comentários:", error);
+            }
+        }
+
+        // Função para obter informações do usuário com base no userId
+        async function getUserData(userId) {
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+                return userDoc.data();
+            } else {
+                return null;
+            }
         }
 
     </script>

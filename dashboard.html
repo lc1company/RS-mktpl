@@ -49,6 +49,7 @@
         }
 
         .timeline-item {
+            position: relative;
             border-bottom: 1px solid #ccc;
             padding: 10px 0;
         }
@@ -151,6 +152,10 @@
 
         /* Estilos para o contêiner de comentários */
         .comments-container {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            width: 100%;
             background-color: #f9f9f9;
             padding: 10px;
             border-radius: 4px;
@@ -162,10 +167,12 @@
         }
 
         .comments-container textarea {
-            width: 100%;
+            width: calc(100% - 20px);
+            height: 100px;
             padding: 5px;
-            margin-bottom: 5px;
+            margin-top: 5px;
             border-radius: 4px;
+            resize: none;
         }
 
         .comments-container button {
@@ -301,8 +308,7 @@
                         li.innerHTML = `
                         <p>${publicacaoData.mensagem}</p>
                         <img src="${publicacaoData.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy">
-                        <p>Data e Hora: ${publicacaoData.timestamp}</p>
-                    `;
+                        <p>Data e Hora: ${publicacaoData.timestamp}</p>`;
                         userTimeline.appendChild(li);
                     }
                 });
@@ -447,8 +453,8 @@
                     <button onclick="showComments('${doc.id}')">Comentários</button>
                     <span id="commentCount_${doc.id}">${data.comments || 0}</span>
                     <div id="comments_${doc.id}" style="display:none;"></div>
-                    <textarea id="commentText_${doc.id}" placeholder="Digite seu comentário"></textarea>
-                    <button onclick="addComment('${doc.id}')">Adicionar Comentário</button>`;
+                    <textarea id="commentText_${doc.id}" placeholder="Digite seu comentário" style="resize: none !important; width: calc(75% - 20px); height: 20%;"></textarea>
+                    <button onclick="addComment('${doc.id}')" style="display: block; margin-top: 2%;" >Adicionar Comentário</button>`;
                     userTimeline.appendChild(li);
 
                     // Exibir o contador de comentários
@@ -644,7 +650,7 @@
                     return;
                 }
 
-                // Adicionar um novo documento à subcoleção "comentarios" dentro do documento de publicação correspondente
+                // Adicionar um novo documento a coleção
                 const comentarioRef = await addDoc(collection(db, `publicacoes/${postId}/comentarios`), {
                     texto: commentText,
                     userId: auth.currentUser.uid,
@@ -678,13 +684,12 @@
                     const dataFormatada = timestamp.toLocaleString();
 
                     const comentarioHtml = `
-                <div>
-                    <p>${comentarioData.texto}</p>
-                    <p>Usuário: ${userData.fullName}</p> <!-- Exibindo o nome do usuário -->
-                    <img src="${userData.photoURL}" alt="Foto do usuário" style="width: 10%; height: 10%; border-radius: 50%">
-                    <p>Data e Hora: ${dataFormatada}</p>
-                </div>
-            `;
+                    <div style="background-color: #e8e8e8; padding: 10px; border-radius: 4px; margin-bottom: 4%">
+                        <img src="${userData.photoURL}" alt="Foto do usuário" style="width: 10%; height: 10%; border-radius: 50%">
+                        <p>${userData.fullName}</p> <!-- Exibindo o nome do usuário -->
+                        <p>${comentarioData.texto}</p>
+                        <p>Data e Hora: ${dataFormatada}</p>
+                    </div>`;
                     commentsContainer.innerHTML += comentarioHtml;
                 });
                 // Exibir o contêiner de comentários

@@ -439,13 +439,21 @@
                     const minutos = String(timestamp.getMinutes()).padStart(2, '0');
                     const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
 
+                    const user = await getUserData(data.userId);
+
                     // Criação do elemento li para cada publicação
                     const li = document.createElement("li");
                     li.classList.add("timeline-item");
+                    li.style.backgroundColor = "#f0f0f0";
+                    li.style.padding = "10px";
+                    li.style.borderRadius = "4px";
+                    li.style.marginBottom = "10px";
                     li.innerHTML = `
+                    <img src="${user.photoURL}" alt="Foto do usuário" style="width: 10%; height: 10%; border-radius: 50%;">
+                    <p>${user.fullName}</p> <!-- Exibindo o nome do usuário -->
                     <p>${data.mensagem}</p>
-                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy">
                     <p>Data e Hora: ${dataFormatada}</p>
+                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy" style="width: 90%;">
                     <button onclick="likePost('${doc.id}')" id="likeButton_${doc.id}">Like</button>
                     <span id="likeCount_${doc.id}">${data.likes || 0}</span>
                     <button onclick="dislikePost('${doc.id}')" id="dislikeButton_${doc.id}">Dislike</button>
@@ -667,14 +675,29 @@
             }
         }
 
+        let commentsVisible = false;
+
         // Função para exibir os comentários de uma publicação
         window.showComments = async function (postId) {
             try {
-                const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
-                const querySnapshot = await getDocs(comentariosRef);
                 const commentsContainer = document.getElementById(`comments_${postId}`);
+
+                // Alternar o estado dos comentários
+                if (!commentsVisible) {
+                    commentsVisible = true;
+                    commentsContainer.style.display = "block";
+                } else {
+                    commentsVisible = false;
+                    commentsContainer.style.display = "none";
+                }
+
                 commentsContainer.innerHTML = ""; // Limpar os comentários anteriores antes de exibir os novos
 
+                // Obter os comentários da publicação
+                const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
+                const querySnapshot = await getDocs(comentariosRef);
+
+                // Exibir os comentários
                 querySnapshot.forEach(async (doc) => {
                     const comentarioData = doc.data();
                     const userData = await getUserData(comentarioData.userId); // Obter informações do usuário
@@ -692,12 +715,11 @@
                     </div>`;
                     commentsContainer.innerHTML += comentarioHtml;
                 });
-                // Exibir o contêiner de comentários
-                commentsContainer.style.display = "block";
             } catch (error) {
                 console.error("Erro ao exibir comentários:", error);
             }
         }
+
 
         // Função para obter informações do usuário com base no userId
         async function getUserData(userId) {

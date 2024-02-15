@@ -453,7 +453,7 @@
                     <p>${user.fullName}</p> <!-- Exibindo o nome do usuário -->
                     <p>${data.mensagem}</p>
                     <p>Data e Hora: ${dataFormatada}</p>
-                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy" style="width: 90%;">
+                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy" style="width: 95%;">
                     <button onclick="likePost('${doc.id}')" id="likeButton_${doc.id}">Like</button>
                     <span id="likeCount_${doc.id}">${data.likes || 0}</span>
                     <button onclick="dislikePost('${doc.id}')" id="dislikeButton_${doc.id}">Dislike</button>

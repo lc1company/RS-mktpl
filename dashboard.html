@@ -453,7 +453,7 @@
                     <p>${user.fullName}</p> <!-- Exibindo o nome do usuário -->
                     <p>${data.mensagem}</p>
                     <p>Data e Hora: ${dataFormatada}</p>
-                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy" style="width: 95%;">
+                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy" style="width: 90%;">
                     <button onclick="likePost('${doc.id}')" id="likeButton_${doc.id}">Like</button>
                     <span id="likeCount_${doc.id}">${data.likes || 0}</span>
                     <button onclick="dislikePost('${doc.id}')" id="dislikeButton_${doc.id}">Dislike</button>
@@ -531,15 +531,21 @@
                     const userData = doc.data();
                     document.getElementById("FullName").textContent = userData.fullName;
 
-                    // Adiciona a imagem de perfil do usuário
-                    const storageRef = ref(storage, `perfil/${uid}`);
-                    getDownloadURL(storageRef)
-                        .then((url) => {
-                            document.getElementById("userProfilePicture").src = url;
-                        })
-                        .catch((error) => {
-                            console.error("Erro ao recuperar a foto de perfil:", error);
-                        });
+                    // Verificar se o usuário possui uma foto de perfil
+                    if (userData.photoURL) {
+                        // Se tiver, exiba a foto de perfil do usuário
+                        document.getElementById("userProfilePicture").src = userData.photoURL;
+                    } else {
+                        // Se não tiver, exiba a foto de perfil padrão
+                        const storageRef = ref(storage, 'perfil/fotoPadrao.png');
+                        getDownloadURL(storageRef)
+                            .then((url) => {
+                                document.getElementById("userProfilePicture").src = url;
+                            })
+                            .catch((error) => {
+                                console.error("Erro ao recuperar a foto de perfil padrão:", error);
+                            });
+                    }
                 }
             });
         }

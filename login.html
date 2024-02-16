@@ -131,6 +131,7 @@
             const fullName = document.getElementById("fullName").value;
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
+            const photoURL = "https://firebasestorage.googleapis.com/v0/b/redesocialmarktplace.appspot.com/o/perfil%2FfotoPadrao.png?alt=media&token=4d3dc8df-34ff-4768-8fc7-d16cc7afa1fc";
 
             createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
@@ -140,6 +141,7 @@
                     const userData = {
                         fullName: fullName,
                         email: email,
+                        photoURL: photoURL,
                     };
 
                     setDoc(doc(db, "users", userUid), userData)

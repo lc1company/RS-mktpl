@@ -245,10 +245,11 @@
         // Importar as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, collection, addDoc, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         // Configurações do Firebase
         const firebaseConfig = {
@@ -453,6 +454,7 @@
                     <p>${user.fullName}</p> <!-- Exibindo o nome do usuário -->
                     <p>${data.mensagem}</p>
                     <p>Data e Hora: ${dataFormatada}</p>
+                    ${auth.currentUser && auth.currentUser.uid === data.userId ? `<button onclick="deletePost('${doc.id}', '${data.userId}')">Excluir</button>` : ''}
                     <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy" style="width: 90%;">
                     <button onclick="likePost('${doc.id}')" id="likeButton_${doc.id}">Like</button>
                     <span id="likeCount_${doc.id}">${data.likes || 0}</span>
@@ -734,6 +736,41 @@
                 return userDoc.data();
             } else {
                 return null;
+            }
+        }
+
+        // Função para excluir uma publicação
+        window.deletePost = async function (postId, userId) {
+            try {
+                // Confirmar se o usuário deseja realmente excluir a publicação
+                const confirmDelete = confirm("Tem certeza de que deseja excluir esta publicação?");
+                if (!confirmDelete) {
+                    return;
+                }
+
+                // Verificar se o usuário atual é o dono da publicação
+                if (userId !== auth.currentUser.uid) {
+                    console.log("Você não tem permissão para excluir esta publicação.");
+                    return;
+                }
+
+                // Excluir a própria publicação no Firestore
+                await deleteDoc(doc(db, "publicacoes", postId));
+
+                // Agora, vamos tentar excluir a imagem associada à publicação do Storage, se existir
+                const postDoc = await getDoc(doc(db, "publicacoes", postId));
+                if (postDoc.exists()) {
+                    const postData = postDoc.data();
+                    if (postData.imagemUrl) {
+                        const imageRef = ref(storage, postData.imagemUrl);
+                        await deleteObject(imageRef);
+                        console.log("Imagem associada à publicação excluída com sucesso.");
+                    }
+                }
+
+                console.log("Publicação excluída com sucesso.");
+            } catch (error) {
+                console.error("Erro ao excluir a publicação:", error);
             }
         }
 

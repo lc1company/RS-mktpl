@@ -631,7 +631,7 @@
         // Função para incrementar o contador em um documento Firestore
         window.incrementCounter = async function (docRef, field) {
             await updateDoc(docRef, {
-                [field]: increment(1)
+                [field]: increment(0)
             });
         }
 

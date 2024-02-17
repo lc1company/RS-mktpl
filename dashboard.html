@@ -627,12 +627,22 @@
             }
         }
 
-
-        // Função para incrementar o contador em um documento Firestore
         window.incrementCounter = async function (docRef, field) {
-            await updateDoc(docRef, {
-                [field]: increment(0)
-            });
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const currentData = docSnap.data();
+                    const newValue = currentData[field] ? currentData[field] + 1 : 1; // Incrementar o valor atual ou começar de 1 se não existir
+                    await updateDoc(docRef, {
+                        [field]: newValue
+                    });
+                } else {
+                    // Se o documento não existir, criar um novo com o campo inicializado com 1
+                    await setDoc(docRef, { [field]: 1 });
+                }
+            } catch (error) {
+                console.error("Erro ao incrementar o contador:", error);
+            }
         }
 
         // Função para remover a marcação de descurtida de uma publicação
@@ -754,10 +764,14 @@
                     return;
                 }
 
-                // Excluir a própria publicação no Firestore
-                await deleteDoc(doc(db, "publicacoes", postId));
+                // Excluir todos os comentários associados à publicação
+                const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
+                const comentariosSnapshot = await getDocs(comentariosRef);
+                comentariosSnapshot.forEach(async (doc) => {
+                    await deleteDoc(doc.ref);
+                });
 
-                // Agora, vamos tentar excluir a imagem associada à publicação do Storage, se existir
+                // Excluir a imagem associada à publicação no Storage
                 const postDoc = await getDoc(doc(db, "publicacoes", postId));
                 if (postDoc.exists()) {
                     const postData = postDoc.data();
@@ -768,9 +782,35 @@
                     }
                 }
 
+                // Finalmente, excluir o documento de publicação
+                await deleteDoc(doc(db, "publicacoes", postId));
+
                 console.log("Publicação excluída com sucesso.");
             } catch (error) {
                 console.error("Erro ao excluir a publicação:", error);
+            }
+
+            location.reload();
+        }
+
+        // Função para atualizar os contadores de likes e deslikes
+        window.updateLikeDislikeCounts = async function (postId) {
+            const postRef = doc(db, "publicacoes", postId);
+            const postSnap = await getDoc(postRef);
+            if (postSnap.exists()) {
+                const postData = postSnap.data();
+                let likeCount = +1;
+                let dislikeCount = +1;
+                if (postData.likes) {
+                    likeCount = postData.likes;
+                }
+                if (postData.dislikes) {
+                    dislikeCount = postData.dislikes;
+                }
+                const likeCountElement = document.getElementById(`likeCount_${postId}`);
+                const dislikeCountElement = document.getElementById(`dislikeCount_${postId}`);
+                likeCountElement.textContent = likeCount;
+                dislikeCountElement.textContent = dislikeCount;
             }
         }
 

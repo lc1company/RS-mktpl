@@ -448,7 +448,7 @@
                     li.style.backgroundColor = "#f0f0f0";
                     li.style.padding = "10px";
                     li.style.borderRadius = "4px";
-                    li.style.marginBottom = "10px";
+                    li.style.marginBottom = "5%";
                     li.innerHTML = `
                     <img src="${user.photoURL}" alt="Foto do usuário" style="width: 10%; height: 10%; border-radius: 50%;">
                     <p>${user.fullName}</p> <!-- Exibindo o nome do usuário -->
@@ -464,7 +464,7 @@
                     <span id="commentCount_${doc.id}">${data.comments || 0}</span>
                     <div id="comments_${doc.id}" style="display:none;"></div>
                     <textarea id="commentText_${doc.id}" placeholder="Digite seu comentário" style="resize: none !important; width: calc(75% - 20px); height: 20%;"></textarea>
-                    <button onclick="addComment('${doc.id}')" style="display: block; margin-top: 4%;" >Adicionar Comentário</button>`;
+                    <button onclick="addComment('${doc.id}')" style="display: block; margin-top: 2%;" >Adicionar Comentário</button>`;
                     userTimeline.appendChild(li);
 
                     // Exibir o contador de comentários

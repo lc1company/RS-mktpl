@@ -455,7 +455,7 @@
                     <p>${data.mensagem}</p>
                     <p>Data e Hora: ${dataFormatada}</p>
                     ${auth.currentUser && auth.currentUser.uid === data.userId ? `<button onclick="deletePost('${doc.id}', '${data.userId}')">Excluir</button>` : ''}
-                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy" style="width: 90%;">
+                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy" style="width: 95%;">
                     <button onclick="likePost('${doc.id}')" id="likeButton_${doc.id}">Like</button>
                     <span id="likeCount_${doc.id}">${data.likes || 0}</span>
                     <button onclick="dislikePost('${doc.id}')" id="dislikeButton_${doc.id}">Dislike</button>

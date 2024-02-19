@@ -25,8 +25,6 @@
 
         .tabs {
             display: flex;
-            white-space: nowrap;
-            overflow-x: auto;
             justify-content: space-between;
             border-bottom: 1px solid #ccc;
             margin-bottom: 20px;
@@ -199,6 +197,7 @@
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
             <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
+            <div class="tab" onclick="showTab('findService')">Econtrar Serviços</div>
             <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
         </div>
 
@@ -218,19 +217,14 @@
                     style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
                     type="submit">Publicar</button>
             </form>
-            <script type="text/javascript">
-                atOptions = {
-                    'key': '9e0b5ac611f2356c24436eb987030aa8',
-                    'format': 'iframe',
-                    'height': 250,
-                    'width': 300,
-                    'params': {}
-                };
-                document.write('<scr' + 'ipt type="text/javascript" src="//www.topcreativeformat.com/9e0b5ac611f2356c24436eb987030aa8/invoke.js"></scr' + 'ipt>');
-            </script>
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
+        </div>
+
+        <div id="findService" class="tab-content">
+            <h2>Encontre Serviços</h2>
+            <h2>Em breve Você encotrará serviços aqui</h2>
         </div>
 
         <div id="meuPerfil" class="tab-content">

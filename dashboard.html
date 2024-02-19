@@ -25,6 +25,8 @@
 
         .tabs {
             display: flex;
+            white-space: nowrap;
+            overflow-x: auto;
             justify-content: space-between;
             border-bottom: 1px solid #ccc;
             margin-bottom: 20px;
@@ -197,7 +199,6 @@
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
             <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
-            <div class="tab" onclick="showTab('findService')">Econtrar Serviços</div>
             <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
         </div>
 
@@ -219,12 +220,17 @@
             </form>
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
+                <script type="text/javascript">
+                    atOptions = {
+                        'key': '9e0b5ac611f2356c24436eb987030aa8',
+                        'format': 'iframe',
+                        'height': 250,
+                        'width': 300,
+                        'params': {}
+                    };
+                    document.write('<scr' + 'ipt type="text/javascript" src="//www.topcreativeformat.com/9e0b5ac611f2356c24436eb987030aa8/invoke.js"></scr' + 'ipt>');
+                </script>
             </ul>
-        </div>
-
-        <div id="findService" class="tab-content">
-            <h2>Encontre Serviços</h2>
-            <h2>Em breve Você encotrará serviços aqui</h2>
         </div>
 
         <div id="meuPerfil" class="tab-content">
@@ -448,7 +454,7 @@
                     li.style.backgroundColor = "#f0f0f0";
                     li.style.padding = "10px";
                     li.style.borderRadius = "4px";
-                    li.style.marginBottom = "5%";
+                    li.style.marginBottom = "7%";
                     li.innerHTML = `
                     <img src="${user.photoURL}" alt="Foto do usuário" style="width: 10%; height: 10%; border-radius: 50%;">
                     <p>${user.fullName}</p> <!-- Exibindo o nome do usuário -->

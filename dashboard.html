@@ -25,6 +25,8 @@
 
         .tabs {
             display: flex;
+            white-space: nowrap;
+            overflow-x: auto;
             justify-content: space-between;
             border-bottom: 1px solid #ccc;
             margin-bottom: 20px;
@@ -188,6 +190,17 @@
         .comments-container button:hover {
             background-color: #0056b3;
         }
+
+        footer {
+            background-color: rgb(255, 255, 255);
+            color: rgb(0, 0, 0);
+            text-align: center;
+            padding: 1em 0;
+            position: relative;
+            bottom: 0;
+            width: auto;
+            min-width: 100%;
+        }
     </style>
 </head>
 
@@ -197,17 +210,19 @@
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
             <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
-            <div class="tab" onclick="showTab('findService')">Econtrar Serviços</div>
-            <div class="tab" onclick="showTab('userInfo')">Informações do Usuário</div>
+            <div class="tab" onclick="showTab('userInfo')">Configurações</div>
         </div>
 
-        <div id="userInfo" class="tab-content active">
+        <div id="userInfo" class="tab-content">
             <h2>Informações do Usuário</h2>
             <p id="userFullName"></p>
             <p id="userEmail"></p>
+            <h2>Sair</h2>
+            <button style="background-color: rgb(255, 0, 0); color: #fff; font-size: 17px; border-radius: 5px;"
+                onclick="signOut()">Sair</button>
         </div>
 
-        <div id="timeline" class="tab-content">
+        <div id="timeline" class="tab-content active">
             <h2>Linha do Tempo</h2>
             <form id="formPublicacao">
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
@@ -222,11 +237,6 @@
             </ul>
         </div>
 
-        <div id="findService" class="tab-content">
-            <h2>Encontre Serviços</h2>
-            <h2>Em breve Você encotrará serviços aqui</h2>
-        </div>
-
         <div id="meuPerfil" class="tab-content">
             <h2>Meu Perfil</h2>
             <div>
@@ -239,6 +249,13 @@
         </div>
 
     </div>
+
+    <footer>
+        <p>&copy; 2024 LC Company</p>
+        <a href="PoliticaPrivacidade.html" target="_blank" style="color: rgb(0, 0, 0); margin-right: 4%;">Política de
+            Privacidade</a>
+        <a href="TermosDeUso.html" target="_blank" style="color: rgb(0, 0, 0);">Termos de Uso</a>
+    </footer>
 
     <!--bibliotecas do Firebase -->
     <script type="module">
@@ -449,29 +466,127 @@
                     li.style.padding = "10px";
                     li.style.borderRadius = "4px";
                     li.style.marginBottom = "7%";
-                    li.innerHTML = `
-                    <img src="${user.photoURL}" alt="Foto do usuário" style="width: 10%; height: 10%; border-radius: 50%;">
-                    <p>${user.fullName}</p> <!-- Exibindo o nome do usuário -->
-                    <p>${data.mensagem}</p>
-                    <p>Data e Hora: ${dataFormatada}</p>
-                    ${auth.currentUser && auth.currentUser.uid === data.userId ? `<button onclick="deletePost('${doc.id}', '${data.userId}')">Excluir</button>` : ''}
-                    <img src="${data.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy" style="width: 95%;">
-                    <button onclick="likePost('${doc.id}')" id="likeButton_${doc.id}">Like</button>
-                    <span id="likeCount_${doc.id}">${data.likes || 0}</span>
-                    <button onclick="dislikePost('${doc.id}')" id="dislikeButton_${doc.id}">Dislike</button>
-                    <span id="dislikeCount_${doc.id}">${data.dislikes || 0}</span>
-                    <button onclick="showComments('${doc.id}')">Comentários</button>
-                    <span id="commentCount_${doc.id}">${data.comments || 0}</span>
-                    <div id="comments_${doc.id}" style="display:none;"></div>
-                    <textarea id="commentText_${doc.id}" placeholder="Digite seu comentário" style="resize: none !important; width: calc(75% - 20px); height: 20%;"></textarea>
-                    <button onclick="addComment('${doc.id}')" style="display: block; margin-top: 2%;" >Adicionar Comentário</button>`;
+
+                    // Criar um contêiner para a foto do usuário e o nome do usuário
+                    const userInfoContainer = document.createElement("div");
+                    userInfoContainer.style.display = "flex";
+                    userInfoContainer.style.alignItems = "center";
+                    userInfoContainer.style.marginBottom = "10px";
+
+                    // Adicionar a foto do usuário ao contêiner
+                    const userImg = document.createElement("img");
+                    userImg.src = user.photoURL;
+                    userImg.alt = "Foto do usuário";
+                    userImg.style.width = "10%";
+                    userImg.style.height = "10%";
+                    userImg.style.borderRadius = "50%";
+                    userImg.style.marginRight = "2%";
+                    userInfoContainer.appendChild(userImg);
+
+                    // Adicionar o nome do usuário ao contêiner
+                    const userName = document.createElement("p");
+                    userName.textContent = user.fullName;
+                    userInfoContainer.appendChild(userName);
+
+                    // Adicionar o contêiner de informações do usuário ao li
+                    li.appendChild(userInfoContainer);
+
+                    // Adicionar a mensagem da publicação
+                    const mensagem = document.createElement("p");
+                    mensagem.textContent = data.mensagem;
+                    li.appendChild(mensagem);
+
+                    // Adicionar data e hora da publicação
+                    const dataHora = document.createElement("p");
+                    dataHora.textContent = `Data e Hora: ${dataFormatada}`;
+                    li.appendChild(dataHora);
+
+                    // Adicionar a imagem da publicação, se existir
+                    if (data.imagemUrl) {
+                        const imagem = document.createElement("img");
+                        imagem.src = data.imagemUrl;
+                        imagem.alt = "Imagem da publicação";
+                        imagem.classList.add("publicacao-img");
+                        imagem.style.width = "90%";
+                        li.appendChild(imagem);
+                    }
+
+                    // Adicionar botão de excluir publicação (se for o próprio usuário)
+                    if (auth.currentUser && auth.currentUser.uid === data.userId) {
+                        const deleteButton = document.createElement("button");
+                        deleteButton.textContent = "Excluir";
+                        deleteButton.onclick = () => deletePost(doc.id, data.userId);
+                        li.appendChild(deleteButton);
+                    }
+
+                    // Adicionar botão de like
+                    const likeButton = document.createElement("button");
+                    likeButton.textContent = "Like";
+                    likeButton.id = `likeButton_${doc.id}`;
+                    likeButton.onclick = () => likePost(doc.id);
+                    li.appendChild(likeButton);
+
+                    // Exibir contador de likes
+                    const likeCount = document.createElement("span");
+                    likeCount.textContent = data.likes || 0;
+                    likeCount.id = `likeCount_${doc.id}`;
+                    li.appendChild(likeCount);
+
+                    // Adicionar botão de dislike
+                    const dislikeButton = document.createElement("button");
+                    dislikeButton.textContent = "Dislike";
+                    dislikeButton.id = `dislikeButton_${doc.id}`;
+                    dislikeButton.onclick = () => dislikePost(doc.id);
+                    li.appendChild(dislikeButton);
+
+                    // Exibir contador de dislikes
+                    const dislikeCount = document.createElement("span");
+                    dislikeCount.textContent = data.dislikes || 0;
+                    dislikeCount.id = `dislikeCount_${doc.id}`;
+                    li.appendChild(dislikeCount);
+
+                    // Adicionar botão de mostrar comentários
+                    const showCommentsButton = document.createElement("button");
+                    showCommentsButton.textContent = "Comentários";
+                    showCommentsButton.onclick = () => showComments(doc.id);
+                    li.appendChild(showCommentsButton);
+
+                    // Exibir contador de comentários
+                    const commentCount = document.createElement("span");
+                    commentCount.textContent = data.comments || 0;
+                    commentCount.id = `commentCount_${doc.id}`;
+                    li.appendChild(commentCount);
+
+                    // Div para exibir os comentários
+                    const commentsDiv = document.createElement("div");
+                    commentsDiv.id = `comments_${doc.id}`;
+                    commentsDiv.style.display = "none";
+                    li.appendChild(commentsDiv);
+
+                    // Textarea para adicionar comentário
+                    const commentText = document.createElement("textarea");
+                    commentText.id = `commentText_${doc.id}`;
+                    commentText.placeholder = "Digite seu comentário";
+                    commentText.style.resize = "none";
+                    commentText.style.width = "calc(75% - 20px)";
+                    commentText.style.height = "20%";
+                    li.appendChild(commentText);
+
+                    // Botão para adicionar comentário
+                    const addCommentButton = document.createElement("button");
+                    addCommentButton.textContent = "Adicionar Comentário";
+                    addCommentButton.style.display = "block";
+                    addCommentButton.style.marginTop = "2%";
+                    addCommentButton.onclick = () => addComment(doc.id);
+                    li.appendChild(addCommentButton);
+
+                    // Adicionar o li à linha do tempo do usuário
                     userTimeline.appendChild(li);
 
                     // Exibir o contador de comentários
-                    const commentCountElement = document.getElementById(`commentCount_${doc.id}`);
                     const comentariosRef = collection(db, `publicacoes/${doc.id}/comentarios`);
                     const comentariosSnapshot = await getDocs(comentariosRef);
-                    commentCountElement.textContent = comentariosSnapshot.size; // Atualiza o total de comentários
+                    commentCount.textContent = comentariosSnapshot.size; // Atualiza o total de comentários
                 });
             } catch (error) {
                 console.error("Erro ao obter a linha do tempo:", error);
@@ -696,48 +811,70 @@
         let commentsVisible = false;
 
         // Função para exibir os comentários de uma publicação
+        // Função para exibir os comentários de uma publicação
         window.showComments = async function (postId) {
             try {
-                const commentsContainer = document.getElementById(`comments_${postId}`);
+                const commentsDiv = document.getElementById(`comments_${postId}`);
+                commentsDiv.innerHTML = ""; // Limpar os comentários antes de exibir os novos
 
-                // Alternar o estado dos comentários
-                if (!commentsVisible) {
-                    commentsVisible = true;
-                    commentsContainer.style.display = "block";
-                } else {
-                    commentsVisible = false;
-                    commentsContainer.style.display = "none";
-                }
-
-                commentsContainer.innerHTML = ""; // Limpar os comentários anteriores antes de exibir os novos
-
-                // Obter os comentários da publicação
                 const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
                 const querySnapshot = await getDocs(comentariosRef);
 
-                // Exibir os comentários
                 querySnapshot.forEach(async (doc) => {
-                    const comentarioData = doc.data();
-                    const userData = await getUserData(comentarioData.userId); // Obter informações do usuário
+                    const comentario = doc.data();
+                    const user = await getUserData(comentario.userId);
 
-                    // Formatando a data e hora do comentário
-                    const timestamp = comentarioData.timestamp.toDate();
-                    const dataFormatada = timestamp.toLocaleString();
+                    // Criar um contêiner para o comentário
+                    const commentContainer = document.createElement("div");
+                    commentContainer.style.backgroundColor = "#e8e8e8";
+                    commentContainer.style.padding = "10px";
+                    commentContainer.style.borderRadius = "4px";
+                    commentContainer.style.marginTop = "10px";
+                    commentContainer.style.display = "flex"; // Exibir em linha
+                    commentContainer.style.alignItems = "center"; // Alinhar itens ao centro
 
-                    const comentarioHtml = `
-                    <div style="background-color: #e8e8e8; padding: 10px; border-radius: 4px; margin-bottom: 4%">
-                        <img src="${userData.photoURL}" alt="Foto do usuário" style="width: 10%; height: 10%; border-radius: 50%">
-                        <p>${userData.fullName}</p> <!-- Exibindo o nome do usuário -->
-                        <p>${comentarioData.texto}</p>
-                        <p>Data e Hora: ${dataFormatada}</p>
-                    </div>`;
-                    commentsContainer.innerHTML += comentarioHtml;
+                    // Adicionar a foto do usuário ao contêiner
+                    const userImg = document.createElement("img");
+                    userImg.src = user.photoURL;
+                    userImg.alt = "Foto do usuário";
+                    userImg.style.width = "10%";
+                    userImg.style.height = "10%";
+                    userImg.style.marginTop = "-15%";
+                    userImg.style.borderRadius = "50%";
+                    commentContainer.appendChild(userImg);
+
+                    // Criar um contêiner para o nome de usuário e o texto do comentário
+                    const userInfoContainer = document.createElement("div");
+                    userInfoContainer.style.marginLeft = "10px"; // Adicionar margem à esquerda
+                    commentContainer.appendChild(userInfoContainer);
+
+                    // Adicionar o nome do usuário ao contêiner
+                    const userName = document.createElement("p");
+                    userName.textContent = user.fullName;
+                    userInfoContainer.appendChild(userName);
+
+                    // Adicionar o texto do comentário ao contêiner
+                    const commentText = document.createElement("p");
+                    commentText.textContent = comentario.texto;
+                    userInfoContainer.appendChild(commentText);
+
+                    // Adicionar a data e hora do comentário
+                    const timestamp = comentario.timestamp.toDate();
+                    const dataFormatada = `${timestamp.getDate()}/${timestamp.getMonth() + 1}/${timestamp.getFullYear()} ${timestamp.getHours()}:${timestamp.getMinutes()}`;
+                    const commentTime = document.createElement("p");
+                    commentTime.textContent = `Data e Hora: ${dataFormatada}`;
+                    userInfoContainer.appendChild(commentTime);
+
+                    // Adicionar o contêiner de comentário à lista de comentários
+                    commentsDiv.appendChild(commentContainer);
                 });
+
+                // Exibir os comentários
+                commentsDiv.style.display = "block";
             } catch (error) {
                 console.error("Erro ao exibir comentários:", error);
             }
         }
-
 
         // Função para obter informações do usuário com base no userId
         async function getUserData(userId) {
@@ -811,6 +948,20 @@
                 const dislikeCountElement = document.getElementById(`dislikeCount_${postId}`);
                 likeCountElement.textContent = likeCount;
                 dislikeCountElement.textContent = dislikeCount;
+            }
+        }
+
+        window.signOut = function () {
+            try {
+                // Fazer logout do usuário usando Firebase Authentication
+                auth.signOut().then(() => {
+                    // Redirecionar o usuário para a página de login após fazer logout
+                    window.location.href = "login.html";
+                }).catch((error) => {
+                    console.error("Erro ao fazer logout:", error);
+                });
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
             }
         }
 

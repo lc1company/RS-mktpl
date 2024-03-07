@@ -230,8 +230,20 @@
                 <input type="text" maxlength="200" placeholder="Digite sua mensagem" id="inputMensagem" required>
                 <button
                     style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
-                    type="submit">Publicar</button>
+                    type="submit">Publicar
+                </button>
             </form>
+
+            <!-- Adicione um container para a pré-visualização com display:none por padrão -->
+            <div id="previewContainer"
+                style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 20px; text-align: center;">
+                <p>Pré-visualização da Publicação:</p>
+                <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
+                <div style="display: flex; justify-content: center;">
+                    <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
+                </div>
+            </div>
+
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
@@ -849,9 +861,9 @@
                         const userImg = document.createElement("img");
                         userImg.src = user.photoURL;
                         userImg.alt = "Foto do usuário";
-                        userImg.style.width = "10%";
+                        userImg.style.width = "11%";
                         userImg.style.height = "10%";
-                        userImg.style.marginTop = "-7%";
+                        userImg.style.marginTop = "-15%";
                         userImg.style.borderRadius = "50%";
                         commentContainer.appendChild(userImg);
 
@@ -977,6 +989,35 @@
                 console.error("Erro ao fazer logout:", error);
             }
         }
+
+        // Adicione ouvintes de eventos para detectar mudanças no input de mensagem
+        document.getElementById('inputMensagem').addEventListener('input', function () {
+            // Atualize a mensagem na pré-visualização
+            const mensagem = this.value;
+            document.getElementById('mensagemPreview').textContent = mensagem;
+        });
+
+        // Adicione um ouvinte de eventos para detectar mudanças no input de arquivo
+        document.getElementById('inputImagem').addEventListener('change', function () {
+            // Verifique se algum arquivo foi selecionado
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+
+                // Quando o arquivo terminar de carregar, atualize a pré-visualização da imagem
+                reader.onload = function (e) {
+                    document.getElementById('imgPreview').src = e.target.result;
+                }
+
+                // Leia o conteúdo do arquivo como uma URL de dados
+                reader.readAsDataURL(this.files[0]);
+
+                // Exiba o container de pré-visualização
+                document.getElementById('previewContainer').style.display = 'block';
+            } else {
+                // Se nenhum arquivo for selecionado, oculte o container de pré-visualização
+                document.getElementById('previewContainer').style.display = 'none';
+            }
+        });
 
     </script>
 </body>

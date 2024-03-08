@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>Dashboard</title>
 
     <style>
@@ -489,7 +490,7 @@
                     const userImg = document.createElement("img");
                     userImg.src = user.photoURL;
                     userImg.alt = "Foto do usuário";
-                    userImg.style.width = "10%";
+                    userImg.style.width = "11%";
                     userImg.style.height = "10%";
                     userImg.style.borderRadius = "50%";
                     userImg.style.marginRight = "2%";
@@ -519,21 +520,24 @@
                         imagem.src = data.imagemUrl;
                         imagem.alt = "Imagem da publicação";
                         imagem.classList.add("publicacao-img");
-                        imagem.style.width = "90%";
+                        imagem.style.width = "99%";
                         li.appendChild(imagem);
                     }
 
                     // Adicionar botão de excluir publicação (se for o próprio usuário)
                     if (auth.currentUser && auth.currentUser.uid === data.userId) {
                         const deleteButton = document.createElement("button");
-                        deleteButton.textContent = "Excluir";
+                        deleteButton.innerHTML = '<i class="fa fa-trash"></i>';
+                        deleteButton.style.backgroundColor = "red";
                         deleteButton.onclick = () => deletePost(doc.id, data.userId);
                         li.appendChild(deleteButton);
                     }
 
                     // Adicionar botão de like
                     const likeButton = document.createElement("button");
-                    likeButton.textContent = "Like";
+                    likeButton.innerHTML = '<i class="fa fa-thumbs-up"></i>';
+                    likeButton.style.marginLeft = "3%";
+                    likeButton.style.marginRight = "3%";
                     likeButton.id = `likeButton_${doc.id}`;
                     likeButton.onclick = () => likePost(doc.id);
                     li.appendChild(likeButton);
@@ -541,12 +545,14 @@
                     // Exibir contador de likes
                     const likeCount = document.createElement("span");
                     likeCount.textContent = data.likes || 0;
+                    likeCount.style.marginLeft = "-2%";
+                    likeCount.style.marginRight = "1%";
                     likeCount.id = `likeCount_${doc.id}`;
                     li.appendChild(likeCount);
 
                     // Adicionar botão de dislike
                     const dislikeButton = document.createElement("button");
-                    dislikeButton.textContent = "Dislike";
+                    dislikeButton.innerHTML = '<i class="fa fa-thumbs-down"></i>';
                     dislikeButton.id = `dislikeButton_${doc.id}`;
                     dislikeButton.onclick = () => dislikePost(doc.id);
                     li.appendChild(dislikeButton);
@@ -554,18 +560,22 @@
                     // Exibir contador de dislikes
                     const dislikeCount = document.createElement("span");
                     dislikeCount.textContent = data.dislikes || 0;
+                    dislikeCount.style.marginRight = "-2%";
                     dislikeCount.id = `dislikeCount_${doc.id}`;
                     li.appendChild(dislikeCount);
 
                     // Adicionar botão de mostrar comentários
                     const showCommentsButton = document.createElement("button");
-                    showCommentsButton.textContent = "Comentários";
+                    showCommentsButton.innerHTML = '<i class="fa fa-comments"></i>';
+                    showCommentsButton.style.marginLeft = "3%";
+                    showCommentsButton.style.marginRight = "3%";
                     showCommentsButton.onclick = () => showComments(doc.id);
                     li.appendChild(showCommentsButton);
 
                     // Exibir contador de comentários
                     const commentCount = document.createElement("span");
                     commentCount.textContent = data.comments || 0;
+                    commentCount.style.marginLeft = "-2%";
                     commentCount.id = `commentCount_${doc.id}`;
                     li.appendChild(commentCount);
 
@@ -580,7 +590,7 @@
                     commentText.id = `commentText_${doc.id}`;
                     commentText.placeholder = "Digite seu comentário";
                     commentText.style.resize = "none";
-                    commentText.style.width = "calc(75% - 20px)";
+                    commentText.style.width = "calc(80% - 20px)";
                     commentText.style.height = "20%";
                     li.appendChild(commentText);
 

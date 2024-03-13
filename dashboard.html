@@ -275,7 +275,7 @@
         // Importar as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, collection, addDoc, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -455,7 +455,7 @@
         window.getAllUserTimeline = async function () {
             try {
                 const publicacoesRef = collection(db, "publicacoes");
-                const querySnapshot = await getDocs(publicacoesRef);
+                const querySnapshot = await getDocs(query(publicacoesRef, orderBy("timestamp", "desc")));
                 const userTimeline = document.getElementById("userTimeline");
                 userTimeline.innerHTML = ""; // Limpar a linha do tempo antes de adicionar novos itens
 
@@ -609,6 +609,16 @@
                     const comentariosRef = collection(db, `publicacoes/${doc.id}/comentarios`);
                     const comentariosSnapshot = await getDocs(comentariosRef);
                     commentCount.textContent = comentariosSnapshot.size; // Atualiza o total de comentários
+
+                    // Adicionar botão de denúncia
+                    const reportButton = document.createElement("button");
+                    reportButton.innerHTML = '<i class="fa fa-exclamation-triangle"></i>';
+                    reportButton.style.marginLeft = "87%";
+                    reportButton.style.marginRight = "3%";
+                    reportButton.style.backgroundColor = "red";
+                    reportButton.id = `reportButton_${doc.id}`;
+                    reportButton.onclick = () => reportPost(doc.id);
+                    li.appendChild(reportButton);
                 });
             } catch (error) {
                 console.error("Erro ao obter a linha do tempo:", error);
@@ -1028,6 +1038,42 @@
                 document.getElementById('previewContainer').style.display = 'none';
             }
         });
+
+        // Função para denunciar uma publicação
+        window.reportPost = async function (postId) {
+            try {
+                const docRef = doc(db, "publicacoes", postId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && data.mensagem) {
+                        const motivo = prompt("Por favor, informe o motivo da denúncia:");
+                        if (motivo) {
+                            const reportData = {
+                                postId: postId,
+                                motivo: motivo,
+                                dataDenuncia: new Date().toISOString(),
+                                conteudoPublicacao: {
+                                    mensagem: data.mensagem,
+                                    imagemUrl: data.imagemUrl || null
+                                }
+                            };
+                            await addDoc(collection(db, "reportes"), reportData);
+                            alert("Publicação denunciada com sucesso. Nossa equipe avaliará sua denúncia.");
+                        } else {
+                            alert("O motivo da denúncia é obrigatório.");
+                        }
+                    } else {
+                        alert("A publicação não possui uma mensagem.");
+                    }
+                } else {
+                    alert("A publicação não existe.");
+                }
+            } catch (error) {
+                console.error("Erro ao denunciar a publicação:", error);
+                alert("Ocorreu um erro ao denunciar a publicação. Por favor, tente novamente mais tarde.");
+            }
+        }
 
     </script>
 </body>

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <title>Limeira Connect</title>
+    <title>Dashboard</title>
 
     <style>
         body {
@@ -202,6 +202,29 @@
             width: auto;
             min-width: 100%;
         }
+
+        .user-profile-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Fundo semi-transparente para sobreposição */
+            justify-content: center;
+            /* Alinhamento central verticalmente */
+            align-items: center;
+            /* Alinhamento central horizontalmente */
+        }
+
+        .user-profile-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 80%;
+            width: 75%;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -219,8 +242,7 @@
             <p id="userFullName"></p>
             <p id="userEmail"></p>
             <h2>Sair</h2>
-            <button style="background-color: rgb(255, 0, 0); color: #fff; font-size: 17px; border-radius: 5px;"
-                onclick="signOut()">Sair</button>
+            <button style="background-color: rgb(255, 0, 0); color: #fff; font-size: 17px; border-radius: 5px;" onclick="signOut()">Sair</button>
         </div>
 
         <div id="timeline" class="tab-content active">
@@ -229,10 +251,7 @@
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
                 <input type="text" maxlength="200" placeholder="Digite sua mensagem" id="inputMensagem" required>
-                <button
-                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
-                    type="submit">Publicar
-                </button>
+                <button style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;" type="submit">Publicar</button>
             </form>
 
             <!-- Adicione um container para a pré-visualização com display:none por padrão -->
@@ -258,6 +277,14 @@
                 <input type="file" accept="image/*" id="inputFotoPerfil" onchange="handleProfilePictureUpload(event)"
                     style="display: none;">
                 <button type="button" id="btnEscolherFotoPerfil" class="upload-button">Escolher Foto de Perfil</button>
+            </div>
+        </div>
+
+        <div id="userProfileContainer" class="user-profile-container" style="display: none;">
+            <div class="user-profile-content">
+                <button style="background-color: red; color: #fff; font-size: 15px; position: absolute; top: 10; left: 0; margin-left: 12%; right: 1; cursor: pointer" onclick="closeUserProfile()">X</button>
+                <img id="userProfilePicturePopUp" alt="Foto do usuário" style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;">
+                <p id="userProfileName"></p>
             </div>
         </div>
 
@@ -494,11 +521,15 @@
                     userImg.style.height = "10%";
                     userImg.style.borderRadius = "50%";
                     userImg.style.marginRight = "2%";
+                    userImg.style.cursor = "pointer"; // Adicionar cursor à foto do usuário
+                    userImg.onclick = () => showUserProfile(user.userId); // Abrir o perfil do usuário ao clicar na foto
                     userInfoContainer.appendChild(userImg);
 
                     // Adicionar o nome do usuário ao contêiner
                     const userName = document.createElement("p");
                     userName.textContent = user.fullName;
+                    userName.style.cursor = "pointer"; // Adicionar cursor ao nome do usuário
+                    userName.onclick = () => showUserProfile(user.userId); // Abrir o perfil do usuário ao clicar no nome
                     userInfoContainer.appendChild(userName);
 
                     // Adicionar o contêiner de informações do usuário ao li
@@ -619,6 +650,10 @@
                     reportButton.id = `reportButton_${doc.id}`;
                     reportButton.onclick = () => reportPost(doc.id);
                     li.appendChild(reportButton);
+
+                    // Adiciona um evento de clique para exibir o perfil do usuário ao clicar na foto ou no nome
+                    userImg.onclick = () => showUserProfile(data.userId);
+                    userName.onclick = () => showUserProfile(data.userId);
                 });
             } catch (error) {
                 console.error("Erro ao obter a linha do tempo:", error);
@@ -673,30 +708,37 @@
         }
 
         // Função para exibir o perfil do usuário
-        window.exibirPerfilUsuario = async function (uid) {
-            const userDoc = await getDocs(collection(db, "users"));
-            userDoc.forEach((doc) => {
-                if (doc.id === uid) {
-                    const userData = doc.data();
-                    document.getElementById("FullName").textContent = userData.fullName;
+        async function exibirPerfilUsuario(uid) {
+            try {
+                // Obter os dados do usuário do Firestore
+                const userDoc = await getDoc(doc(db, "users", uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+
+                    // Atualizar o nome do usuário
+                    const userProfileName = document.getElementById("userProfileName");
+                    userProfileName.textContent = userData.fullName || "Nome do usuário não disponível";
 
                     // Verificar se o usuário possui uma foto de perfil
                     if (userData.photoURL) {
-                        // Se tiver, exiba a foto de perfil do usuário
-                        document.getElementById("userProfilePicture").src = userData.photoURL;
+                        // Se tiver, atualizar a foto de perfil do usuário
+                        const userProfilePicture = document.getElementById("userProfilePicture");
+                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
+                        userProfilePicturePopUp.src = userData.photoURL;
+                        userProfilePicture.src = userData.photoURL;
                     } else {
-                        // Se não tiver, exiba a foto de perfil padrão
-                        const storageRef = ref(storage, 'perfil/fotoPadrao.png');
-                        getDownloadURL(storageRef)
-                            .then((url) => {
-                                document.getElementById("userProfilePicture").src = url;
-                            })
-                            .catch((error) => {
-                                console.error("Erro ao recuperar a foto de perfil padrão:", error);
-                            });
+                        // Se não tiver, usar uma foto de perfil padrão
+                        const userProfilePicture = document.getElementById("userProfilePicture");
+                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
+                        userProfilePicture.src = "perfil/fotoPadrao.png";
+                        userProfilePicturePopUp.src = "perfil/fotoPadrao.png";
                     }
+                } else {
+                    console.log("Usuário não encontrado no Firestore");
                 }
-            });
+            } catch (error) {
+                console.error("Erro ao exibir perfil do usuário:", error);
+            }
         }
 
         // Função para verificar se o usuário já curtiu uma publicação
@@ -870,10 +912,11 @@
 
                         // Criar um contêiner para o comentário
                         const commentContainer = document.createElement("div");
-                        commentContainer.style.backgroundColor = "#e8e8e8";
+                        commentContainer.style.backgroundColor = "#DFDEDE";
                         commentContainer.style.padding = "10px";
                         commentContainer.style.borderRadius = "4px";
                         commentContainer.style.marginTop = "10px";
+                        commentContainer.style.marginBottom = "3%";
                         commentContainer.style.display = "flex"; // Exibir em linha
                         commentContainer.style.alignItems = "center"; // Alinhar itens ao centro
 
@@ -1073,6 +1116,35 @@
                 console.error("Erro ao denunciar a publicação:", error);
                 alert("Ocorreu um erro ao denunciar a publicação. Por favor, tente novamente mais tarde.");
             }
+        }
+
+        // Função para exibir o perfil do usuário ao clicar no nome ou na foto de perfil
+        function showUserProfile(userId) {
+            console.log("Mostrando perfil do usuário com ID:", userId);
+
+            // Obter o elemento do perfil do usuário
+            const userProfileContainer = document.getElementById("userProfileContainer");
+            const userProfileName = document.getElementById("userProfileName");
+            const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
+
+            // Limpar as informações anteriores do perfil do usuário
+            userProfileName.textContent = "";
+            userProfilePicturePopUp.src = "";
+
+            // Exibir o perfil do usuário
+            exibirPerfilUsuario(userId);
+
+            // Mostrar a tela de perfil do usuário
+            userProfileContainer.style.display = "flex";
+        }
+
+        // Função para fechar a tela do perfil do usuário
+        window.closeUserProfile = function () {
+            console.log("Fechando perfil do usuário.");
+
+            // Ocultar a tela de perfil do usuário
+            const userProfileContainer = document.getElementById("userProfileContainer");
+            userProfileContainer.style.display = "none";
         }
 
     </script>

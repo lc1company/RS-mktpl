@@ -238,6 +238,10 @@
             max-width: 100%;
             height: auto;
             margin-bottom: 10px;
+            width: 35%;
+            height: 30%;
+            border-radius: 50%;
+            object-fit: cover;
         }
 
         .produto h2 {
@@ -285,11 +289,6 @@
                     <label for="codigoBarrasInput">Código de Barras:</label>
                     <input type="text" id="codigoBarrasInput">
                     <button onclick="pesquisarPorCodigoBarras()">Pesquisar</button>
-                </div>
-                <div>
-                    <label for="nomeProdutoInput">Nome do Produto:</label>
-                    <input type="text" id="nomeProdutoInput">
-                    <button onclick="pesquisarPorNomeProduto()">Pesquisar</button>
                 </div>
                 <div id="resultado"></div>
                 <h1>Informações do Produto</h1>
@@ -1213,18 +1212,15 @@
                 const codigoBarras = data.codeResult.code;
                 console.log("Código de Barras detectado:", codigoBarras);
                 pesquisarProduto(codigoBarras);
-                Quagga.stop();
+                setTimeout(function () {
+                    Quagga.stop(); // Aqui fechamos a câmera do scanner
+                }, 2000);
             });
         }
 
         window.pesquisarPorCodigoBarras = function () {
             const codigoBarras = document.getElementById('codigoBarrasInput').value;
             pesquisarProduto(codigoBarras);
-        }
-
-        window.pesquisarPorNomeProduto = function () {
-            const nomeProduto = document.getElementById('nomeProdutoInput').value;
-            pesquisarProdutoPorNome(nomeProduto);
         }
 
         function pesquisarProduto(codigoBarras) {
@@ -1243,24 +1239,7 @@
                         exibirInformacoesProduto(nome, foto, ingredientes, calorias);
                     } else {
                         console.log("Produto não encontrado");
-                    }
-                })
-                .catch(error => {
-                    console.error("Erro ao pesquisar produto:", error);
-                });
-        }
-
-        window.pesquisarProdutoPorNome = function (nomeProduto) {
-            const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(nomeProduto)}&page_size=1&json=true`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.products.length > 0) {
-                        const produto = data.products[0];
-                        console.log("Informações do produto:", produto);
-                    } else {
-                        console.log("Produto não encontrado");
+                        alert('Produto não encontrado');
                     }
                 })
                 .catch(error => {

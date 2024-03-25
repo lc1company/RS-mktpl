@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
     <title>Dashboard</title>
 
     <style>
@@ -225,6 +226,23 @@
             width: 75%;
             text-align: center;
         }
+
+        .produto {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .produto img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .produto h2 {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
@@ -242,7 +260,8 @@
             <p id="userFullName"></p>
             <p id="userEmail"></p>
             <h2>Sair</h2>
-            <button style="background-color: rgb(255, 0, 0); color: #fff; font-size: 17px; border-radius: 5px;" onclick="signOut()">Sair</button>
+            <button style="background-color: rgb(255, 0, 0); color: #fff; font-size: 17px; border-radius: 5px;"
+                onclick="signOut()">Sair</button>
         </div>
 
         <div id="timeline" class="tab-content active">
@@ -251,7 +270,9 @@
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
                 <input type="text" maxlength="200" placeholder="Digite sua mensagem" id="inputMensagem" required>
-                <button style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;" type="submit">Publicar</button>
+                <button
+                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
+                    type="submit">Publicar</button>
             </form>
 
             <!-- Adicione um container para a pré-visualização com display:none por padrão -->
@@ -259,6 +280,20 @@
                 style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 20px; text-align: center;">
                 <p>Pré-visualização da Publicação:</p>
                 <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
+                <button onclick="iniciarScanner()">Iniciar Scanner</button>
+                <div>
+                    <label for="codigoBarrasInput">Código de Barras:</label>
+                    <input type="text" id="codigoBarrasInput">
+                    <button onclick="pesquisarPorCodigoBarras()">Pesquisar</button>
+                </div>
+                <div>
+                    <label for="nomeProdutoInput">Nome do Produto:</label>
+                    <input type="text" id="nomeProdutoInput">
+                    <button onclick="pesquisarPorNomeProduto()">Pesquisar</button>
+                </div>
+                <div id="resultado"></div>
+                <h1>Informações do Produto</h1>
+                <div id="informacoesProduto"></div>
                 <div style="display: flex; justify-content: center;">
                     <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
                 </div>
@@ -272,7 +307,7 @@
         <div id="meuPerfil" class="tab-content">
             <h2>Meu Perfil</h2>
             <div>
-                <img id="userProfilePicture" src="" alt="Foto de Perfil">
+                <img id="userProfilePicture" src="" alt="Foto de Perfil" loading="lazy">
                 <p id="FullName"></p>
                 <input type="file" accept="image/*" id="inputFotoPerfil" onchange="handleProfilePictureUpload(event)"
                     style="display: none;">
@@ -282,8 +317,11 @@
 
         <div id="userProfileContainer" class="user-profile-container" style="display: none;">
             <div class="user-profile-content">
-                <button style="background-color: red; color: #fff; font-size: 15px; position: absolute; top: 10; left: 0; margin-left: 12%; right: 1; cursor: pointer" onclick="closeUserProfile()">X</button>
-                <img id="userProfilePicturePopUp" alt="Foto do usuário" style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;">
+                <button
+                    style="background-color: red; color: #fff; font-size: 15px; position: absolute; top: 10; left: 0; margin-left: 12%; right: 1; cursor: pointer"
+                    onclick="closeUserProfile()">X</button>
+                <img id="userProfilePicturePopUp" alt="Foto do usuário"
+                    style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;" loading="lazy">
                 <p id="userProfileName"></p>
             </div>
         </div>
@@ -517,7 +555,7 @@
                     const userImg = document.createElement("img");
                     userImg.src = user.photoURL;
                     userImg.alt = "Foto do usuário";
-                    userImg.style.width = "11%";
+                    userImg.style.width = "13%";
                     userImg.style.height = "10%";
                     userImg.style.borderRadius = "50%";
                     userImg.style.marginRight = "2%";
@@ -1145,6 +1183,116 @@
             // Ocultar a tela de perfil do usuário
             const userProfileContainer = document.getElementById("userProfileContainer");
             userProfileContainer.style.display = "none";
+        }
+
+        window.iniciarScanner = function () {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#resultado'),
+                    constraints: {
+                        width: 480,
+                        height: 320,
+                        facingMode: "environment"
+                    },
+                },
+                decoder: {
+                    readers: ["ean_reader"]
+                }
+            }, function (err) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                console.log("Scanner iniciado com sucesso");
+                Quagga.start();
+            });
+
+            Quagga.onDetected(function (data) {
+                const codigoBarras = data.codeResult.code;
+                console.log("Código de Barras detectado:", codigoBarras);
+                pesquisarProduto(codigoBarras);
+                Quagga.stop();
+            });
+        }
+
+        window.pesquisarPorCodigoBarras = function () {
+            const codigoBarras = document.getElementById('codigoBarrasInput').value;
+            pesquisarProduto(codigoBarras);
+        }
+
+        window.pesquisarPorNomeProduto = function () {
+            const nomeProduto = document.getElementById('nomeProdutoInput').value;
+            pesquisarProdutoPorNome(nomeProduto);
+        }
+
+        function pesquisarProduto(codigoBarras) {
+            const url = `https://world.openfoodfacts.org/api/v0/product/${codigoBarras}.json`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 1) {
+                        const produto = data.product;
+                        const nome = produto.product_name || produto.product_name_br || 'Nome não disponível';
+                        const foto = produto.image_url || 'https://via.placeholder.com/150';
+                        const ingredientes = produto.ingredients_text || 'Ingredientes não disponíveis';
+                        const calorias = produto.nutriments.energy || 'Calorias não disponíveis';
+
+                        exibirInformacoesProduto(nome, foto, ingredientes, calorias);
+                    } else {
+                        console.log("Produto não encontrado");
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao pesquisar produto:", error);
+                });
+        }
+
+        window.pesquisarProdutoPorNome = function (nomeProduto) {
+            const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(nomeProduto)}&page_size=1&json=true`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.products.length > 0) {
+                        const produto = data.products[0];
+                        console.log("Informações do produto:", produto);
+                    } else {
+                        console.log("Produto não encontrado");
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao pesquisar produto:", error);
+                });
+        }
+
+        function exibirInformacoesProduto(nome, foto, ingredientes, calorias) {
+            const informacoesProdutoDiv = document.getElementById('informacoesProduto');
+
+            const produtoDiv = document.createElement('div');
+            produtoDiv.classList.add('produto');
+
+            const imagemProduto = document.createElement('img');
+            imagemProduto.src = foto;
+
+            const nomeProduto = document.createElement('h2');
+            nomeProduto.textContent = nome;
+
+            const ingredientesProduto = document.createElement('p');
+            ingredientesProduto.textContent = `Ingredientes: ${ingredientes}`;
+
+            const caloriasProduto = document.createElement('p');
+            caloriasProduto.textContent = `Calorias: ${calorias}`;
+
+            produtoDiv.appendChild(imagemProduto);
+            produtoDiv.appendChild(nomeProduto);
+            produtoDiv.appendChild(ingredientesProduto);
+            produtoDiv.appendChild(caloriasProduto);
+
+            informacoesProdutoDiv.innerHTML = '';
+            informacoesProdutoDiv.appendChild(produtoDiv);
         }
 
     </script>

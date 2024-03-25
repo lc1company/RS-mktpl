@@ -238,10 +238,6 @@
             max-width: 100%;
             height: auto;
             margin-bottom: 10px;
-            width: 35%;
-            height: 30%;
-            border-radius: 50%;
-            object-fit: cover;
         }
 
         .produto h2 {
@@ -255,6 +251,7 @@
     <div class="container">
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
+            <div class="tab" onclick="showTab('addProduto')">Escanear Produtos</div>
             <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
             <div class="tab" onclick="showTab('userInfo')">Configurações</div>
         </div>
@@ -284,15 +281,6 @@
                 style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 20px; text-align: center;">
                 <p>Pré-visualização da Publicação:</p>
                 <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
-                <button onclick="iniciarScanner()">Iniciar Scanner</button>
-                <div>
-                    <label for="codigoBarrasInput">Código de Barras:</label>
-                    <input type="text" id="codigoBarrasInput">
-                    <button onclick="pesquisarPorCodigoBarras()">Pesquisar</button>
-                </div>
-                <div id="resultado"></div>
-                <h1>Informações do Produto</h1>
-                <div id="informacoesProduto"></div>
                 <div style="display: flex; justify-content: center;">
                     <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
                 </div>
@@ -301,6 +289,18 @@
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
+        </div>
+
+        <div id="addProduto" class="tab-content">
+            <button onclick="iniciarScanner()">Iniciar Scanner</button>
+            <div>
+                <label for="codigoBarrasInput">Código de Barras:</label>
+                <input type="text" id="codigoBarrasInput">
+                <button onclick="pesquisarPorCodigoBarras()">Pesquisar</button>
+            </div>
+            <div id="resultado"></div>
+            <h1>Informações do Produto</h1>
+            <div id="informacoesProduto"></div>
         </div>
 
         <div id="meuPerfil" class="tab-content">
@@ -1212,9 +1212,7 @@
                 const codigoBarras = data.codeResult.code;
                 console.log("Código de Barras detectado:", codigoBarras);
                 pesquisarProduto(codigoBarras);
-                setTimeout(function () {
-                    Quagga.stop(); // Aqui fechamos a câmera do scanner
-                }, 2000);
+                Quagga.stop();
             });
         }
 
@@ -1235,8 +1233,9 @@
                         const foto = produto.image_url || 'https://via.placeholder.com/150';
                         const ingredientes = produto.ingredients_text || 'Ingredientes não disponíveis';
                         const calorias = produto.nutriments.energy || 'Calorias não disponíveis';
+                        const carboidratos = produto.nutriments.carbohydrates || 'Carboidratos não disponíveis';
 
-                        exibirInformacoesProduto(nome, foto, ingredientes, calorias);
+                        exibirInformacoesProduto(nome, foto, ingredientes, calorias, carboidratos);
                     } else {
                         console.log("Produto não encontrado");
                         alert('Produto não encontrado');
@@ -1247,7 +1246,7 @@
                 });
         }
 
-        function exibirInformacoesProduto(nome, foto, ingredientes, calorias) {
+        function exibirInformacoesProduto(nome, foto, ingredientes, calorias, carboidratos) {
             const informacoesProdutoDiv = document.getElementById('informacoesProduto');
 
             const produtoDiv = document.createElement('div');
@@ -1263,12 +1262,16 @@
             ingredientesProduto.textContent = `Ingredientes: ${ingredientes}`;
 
             const caloriasProduto = document.createElement('p');
-            caloriasProduto.textContent = `Calorias: ${calorias}`;
+            caloriasProduto.textContent = `Calorias: ${calorias} kcal`;
+
+            const carboidratosProduto = document.createElement('p');
+            carboidratosProduto.textContent = `Carboidratos: ${carboidratos} g`;
 
             produtoDiv.appendChild(imagemProduto);
             produtoDiv.appendChild(nomeProduto);
             produtoDiv.appendChild(ingredientesProduto);
             produtoDiv.appendChild(caloriasProduto);
+            produtoDiv.appendChild(carboidratosProduto);
 
             informacoesProdutoDiv.innerHTML = '';
             informacoesProdutoDiv.appendChild(produtoDiv);

@@ -504,7 +504,6 @@
             });
         }
 
-
         // Função para alternar entre as abas
         window.showTab = function (tabId) {
             const tabs = document.querySelectorAll(".tab-content");
@@ -590,6 +589,16 @@
                         imagem.classList.add("publicacao-img");
                         imagem.style.width = "99%";
                         li.appendChild(imagem);
+                    }
+
+                    // Adicionar a foto do produto do usuário, se existir
+                    if (data.fotoProdutoUrl) {
+                        const fotoProduto = document.createElement("img");
+                        fotoProduto.src = data.fotoProdutoUrl;
+                        fotoProduto.alt = "Foto do produto";
+                        fotoProduto.classList.add("foto-produto");
+                        fotoProduto.style.maxWidth = "99%";
+                        li.appendChild(fotoProduto);
                     }
 
                     // Adicionar botão de excluir publicação (se for o próprio usuário)
@@ -1037,8 +1046,17 @@
                 const postDoc = await getDoc(doc(db, "publicacoes", postId));
                 if (postDoc.exists()) {
                     const postData = postDoc.data();
-                    if (postData.imagemUrl) {
-                        const imageRef = ref(storage, postData.imagemUrl);
+                    if (postData.imagemUrl || postData.fotoProdutoUrl) {
+                        // Verificar se a publicação é um produto com base na mensagem
+                        const isProduto = postData.mensagem.toLowerCase().startsWith('consumiu');
+
+                        // Determinar qual URL de imagem usar com base no tipo de publicação
+                        const imageUrl = isProduto ? postData.fotoProdutoUrl : postData.imagemUrl;
+
+                        // Criar a referência para a imagem no Storage
+                        const imageRef = ref(storage, imageUrl);
+
+                        // Excluir a imagem
                         await deleteObject(imageRef);
                         console.log("Imagem associada à publicação excluída com sucesso.");
                     }
@@ -1236,6 +1254,12 @@
                         const carboidratos = produto.nutriments.carbohydrates || 'Carboidratos não disponíveis';
 
                         exibirInformacoesProduto(nome, foto, ingredientes, calorias, carboidratos);
+
+                        // Adicionar botão "Adicionar à linha do tempo"
+                        const adicionarBtn = document.createElement('button');
+                        adicionarBtn.textContent = 'Adicionar à linha do tempo';
+                        adicionarBtn.onclick = () => adicionarProdutoNaLinhaDoTempo(nome, calorias, carboidratos);
+                        document.getElementById('informacoesProduto').appendChild(adicionarBtn);
                     } else {
                         console.log("Produto não encontrado");
                         alert('Produto não encontrado');
@@ -1254,6 +1278,8 @@
 
             const imagemProduto = document.createElement('img');
             imagemProduto.src = foto;
+            imagemProduto.alt = nome; // Adicionar o nome do produto como texto alternativo para acessibilidade
+            imagemProduto.style.width = '200px'; // Definir a largura da imagem (ajustar conforme necessário)
 
             const nomeProduto = document.createElement('h2');
             nomeProduto.textContent = nome;
@@ -1275,6 +1301,64 @@
 
             informacoesProdutoDiv.innerHTML = '';
             informacoesProdutoDiv.appendChild(produtoDiv);
+        }
+
+        async function adicionarProdutoNaLinhaDoTempo(nomeProduto, caloriasProduto, carboidratosProduto) {
+            try {
+                // Obter a quantidade de produto consumido do usuário
+                const quantidade = prompt(`Quantidade de ${nomeProduto} consumida:`);
+                if (!quantidade) return; // Se o usuário cancelar, saia da função
+
+                // Permitir que o usuário selecione ou tire uma foto do produto
+                const fotoProduto = await selecionarFotoProduto();
+
+                // Comprimir a imagem antes de enviá-la para o armazenamento
+                const compressedBlob = await compressImage(fotoProduto);
+
+                // Upload da imagem comprimida para o Storage
+                const storageRef = ref(storage, `imagensProdutos/${auth.currentUser.uid}_${Date.now()}.jpg`); // Nome único para a imagem
+                const snapshot = await uploadBytes(storageRef, compressedBlob);
+
+                // Obter URL da imagem no Storage
+                const fotoUrl = await getDownloadURL(snapshot.ref);
+
+                // Salvar a publicação no Firestore
+                await addDoc(collection(db, "publicacoes"), {
+                    mensagem: `consumiu ${quantidade} de ${nomeProduto}`,
+                    calorias: parseFloat(caloriasProduto) * parseFloat(quantidade),
+                    carboidratos: parseFloat(carboidratosProduto) * parseFloat(quantidade),
+                    timestamp: serverTimestamp(),
+                    userId: auth.currentUser.uid,
+                    fotoProdutoUrl: fotoUrl // Adicionar URL da imagem da foto do produto
+                });
+
+                // Atualizar a linha do tempo do usuário
+                getUserTimeline(auth.currentUser.uid);
+
+                alert('Produto adicionado à linha do tempo com sucesso!');
+                location.reload();
+
+            } catch (error) {
+                console.error("Erro ao adicionar produto à linha do tempo:", error);
+                alert('Ocorreu um erro ao adicionar o produto à linha do tempo. Por favor, tente novamente.');
+            }
+        }
+
+        // Função para permitir que o usuário selecione ou tire uma foto do produto
+        async function selecionarFotoProduto() {
+            return new Promise((resolve, reject) => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.capture = 'camera'; // Permitir captura de foto da câmera no dispositivo móvel
+
+                input.onchange = (event) => {
+                    const file = event.target.files[0];
+                    resolve(file);
+                };
+
+                input.click(); // Abrir o seletor de arquivos
+            });
         }
 
     </script>

@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <title>Dashboard</title>
 
     <style>
@@ -226,23 +227,6 @@
             width: 75%;
             text-align: center;
         }
-
-        .produto {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 20px;
-        }
-
-        .produto img {
-            max-width: 100%;
-            height: auto;
-            margin-bottom: 10px;
-        }
-
-        .produto h2 {
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 
@@ -251,7 +235,7 @@
     <div class="container">
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
-            <div class="tab" onclick="showTab('addProduto')">Escanear Produtos</div>
+            <div class="tab" onclick="showTab('payments')">banco</div>
             <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
             <div class="tab" onclick="showTab('userInfo')">Configurações</div>
         </div>
@@ -291,18 +275,6 @@
             </ul>
         </div>
 
-        <div id="addProduto" class="tab-content">
-            <button onclick="iniciarScanner()">Iniciar Scanner</button>
-            <div>
-                <label for="codigoBarrasInput">Código de Barras:</label>
-                <input type="text" id="codigoBarrasInput">
-                <button onclick="pesquisarPorCodigoBarras()">Pesquisar</button>
-            </div>
-            <div id="resultado"></div>
-            <h1>Informações do Produto</h1>
-            <div id="informacoesProduto"></div>
-        </div>
-
         <div id="meuPerfil" class="tab-content">
             <h2>Meu Perfil</h2>
             <div>
@@ -323,6 +295,14 @@
                     style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;" loading="lazy">
                 <p id="userProfileName"></p>
             </div>
+        </div>
+
+        <div id="payments" class="tab-content">
+            <h1>Criação de Carteira Ethereum</h1>
+            <button onclick="criarCarteira()">Criar Carteira</button>
+            <div id="enderecoCarteira"></div>
+            <div id="carteirasUsuario"></div>
+            <div id="dapp"></div>
         </div>
 
     </div>
@@ -370,6 +350,7 @@
                 getUserTimeline(user.uid);
                 getAllUserTimeline();
                 exibirPerfilUsuario(user.uid);
+                exibirCarteirasUsuario(user.uid);
             } else {
                 window.location.href = "login.html"
                 console.log("Usuário não autenticado.");
@@ -504,6 +485,7 @@
             });
         }
 
+
         // Função para alternar entre as abas
         window.showTab = function (tabId) {
             const tabs = document.querySelectorAll(".tab-content");
@@ -589,16 +571,6 @@
                         imagem.classList.add("publicacao-img");
                         imagem.style.width = "99%";
                         li.appendChild(imagem);
-                    }
-
-                    // Adicionar a foto do produto do usuário, se existir
-                    if (data.fotoProdutoUrl) {
-                        const fotoProduto = document.createElement("img");
-                        fotoProduto.src = data.fotoProdutoUrl;
-                        fotoProduto.alt = "Foto do produto";
-                        fotoProduto.classList.add("foto-produto");
-                        fotoProduto.style.maxWidth = "99%";
-                        li.appendChild(fotoProduto);
                     }
 
                     // Adicionar botão de excluir publicação (se for o próprio usuário)
@@ -1046,17 +1018,8 @@
                 const postDoc = await getDoc(doc(db, "publicacoes", postId));
                 if (postDoc.exists()) {
                     const postData = postDoc.data();
-                    if (postData.imagemUrl || postData.fotoProdutoUrl) {
-                        // Verificar se a publicação é um produto com base na mensagem
-                        const isProduto = postData.mensagem.toLowerCase().startsWith('consumiu');
-
-                        // Determinar qual URL de imagem usar com base no tipo de publicação
-                        const imageUrl = isProduto ? postData.fotoProdutoUrl : postData.imagemUrl;
-
-                        // Criar a referência para a imagem no Storage
-                        const imageRef = ref(storage, imageUrl);
-
-                        // Excluir a imagem
+                    if (postData.imagemUrl) {
+                        const imageRef = ref(storage, postData.imagemUrl);
                         await deleteObject(imageRef);
                         console.log("Imagem associada à publicação excluída com sucesso.");
                     }
@@ -1202,165 +1165,139 @@
             userProfileContainer.style.display = "none";
         }
 
-        window.iniciarScanner = function () {
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: document.querySelector('#resultado'),
-                    constraints: {
-                        width: 480,
-                        height: 320,
-                        facingMode: "environment"
-                    },
-                },
-                decoder: {
-                    readers: ["ean_reader"]
-                }
-            }, function (err) {
-                if (err) {
-                    console.error(err);
+        // Função para criar a carteira
+        window.criarCarteira = async function () {
+            try {
+                // Solicita ao usuário que insira uma senha para a carteira
+                const senha = prompt("Por favor, insira uma senha para a sua carteira Ethereum:");
+
+                if (!senha) {
+                    console.log('Operação cancelada. Nenhuma senha fornecida.');
                     return;
                 }
-                console.log("Scanner iniciado com sucesso");
-                Quagga.start();
-            });
 
-            Quagga.onDetected(function (data) {
-                const codigoBarras = data.codeResult.code;
-                console.log("Código de Barras detectado:", codigoBarras);
-                pesquisarProduto(codigoBarras);
-                Quagga.stop();
-            });
-        }
+                // Criptografa a senha
+                const senhaCriptografada = CryptoJS.AES.encrypt(senha, senha).toString();
 
-        window.pesquisarPorCodigoBarras = function () {
-            const codigoBarras = document.getElementById('codigoBarrasInput').value;
-            pesquisarProduto(codigoBarras);
-        }
+                // Obtém o UID do usuário atualmente autenticado
+                const user = auth.currentUser;
+                if (user) {
+                    const userId = user.uid;
 
-        function pesquisarProduto(codigoBarras) {
-            const url = `https://world.openfoodfacts.org/api/v0/product/${codigoBarras}.json`;
+                    // Cria um novo par de chave pública/privada Ethereum
+                    const web3 = new Web3();
+                    const account = web3.eth.accounts.create();
 
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 1) {
-                        const produto = data.product;
-                        const nome = produto.product_name || produto.product_name_br || 'Nome não disponível';
-                        const foto = produto.image_url || 'https://via.placeholder.com/150';
-                        const ingredientes = produto.ingredients_text || 'Ingredientes não disponíveis';
-                        const calorias = produto.nutriments.energy || 'Calorias não disponíveis';
-                        const carboidratos = produto.nutriments.carbohydrates || 'Carboidratos não disponíveis';
+                    // Endereço Ethereum
+                    const enderecoEthereum = account.address;
 
-                        exibirInformacoesProduto(nome, foto, ingredientes, calorias, carboidratos);
+                    // Chave privada
+                    const chavePrivada = account.privateKey;
 
-                        // Adicionar botão "Adicionar à linha do tempo"
-                        const adicionarBtn = document.createElement('button');
-                        adicionarBtn.textContent = 'Adicionar à linha do tempo';
-                        adicionarBtn.onclick = () => adicionarProdutoNaLinhaDoTempo(nome, calorias, carboidratos);
-                        document.getElementById('informacoesProduto').appendChild(adicionarBtn);
-                    } else {
-                        console.log("Produto não encontrado");
-                        alert('Produto não encontrado');
-                    }
-                })
-                .catch(error => {
-                    console.error("Erro ao pesquisar produto:", error);
-                });
-        }
+                    // Criptografa a chave privada usando a senha fornecida pelo usuário
+                    const chavePrivadaCriptografada = CryptoJS.AES.encrypt(chavePrivada, senha).toString();
 
-        function exibirInformacoesProduto(nome, foto, ingredientes, calorias, carboidratos) {
-            const informacoesProdutoDiv = document.getElementById('informacoesProduto');
+                    // Salva a carteira Ethereum no Firestore associada ao UID do usuário
+                    const docRef = await addDoc(collection(db, 'carteiras'), {
+                        enderecoEthereum: enderecoEthereum,
+                        chavePrivadaCriptografada: chavePrivadaCriptografada,
+                        senhaCriptografada: senhaCriptografada,
+                        userId: userId // Adiciona o UID do usuário à carteira
+                    });
 
-            const produtoDiv = document.createElement('div');
-            produtoDiv.classList.add('produto');
+                    console.log('Carteira criada com sucesso. Document ID:', docRef.id);
 
-            const imagemProduto = document.createElement('img');
-            imagemProduto.src = foto;
-            imagemProduto.alt = nome; // Adicionar o nome do produto como texto alternativo para acessibilidade
-            imagemProduto.style.width = '200px'; // Definir a largura da imagem (ajustar conforme necessário)
-
-            const nomeProduto = document.createElement('h2');
-            nomeProduto.textContent = nome;
-
-            const ingredientesProduto = document.createElement('p');
-            ingredientesProduto.textContent = `Ingredientes: ${ingredientes}`;
-
-            const caloriasProduto = document.createElement('p');
-            caloriasProduto.textContent = `Calorias: ${calorias} kcal`;
-
-            const carboidratosProduto = document.createElement('p');
-            carboidratosProduto.textContent = `Carboidratos: ${carboidratos} g`;
-
-            produtoDiv.appendChild(imagemProduto);
-            produtoDiv.appendChild(nomeProduto);
-            produtoDiv.appendChild(ingredientesProduto);
-            produtoDiv.appendChild(caloriasProduto);
-            produtoDiv.appendChild(carboidratosProduto);
-
-            informacoesProdutoDiv.innerHTML = '';
-            informacoesProdutoDiv.appendChild(produtoDiv);
-        }
-
-        async function adicionarProdutoNaLinhaDoTempo(nomeProduto, caloriasProduto, carboidratosProduto) {
-            try {
-                // Obter a quantidade de produto consumido do usuário
-                const quantidade = prompt(`Quantidade de ${nomeProduto} consumida:`);
-                if (!quantidade) return; // Se o usuário cancelar, saia da função
-
-                // Permitir que o usuário selecione ou tire uma foto do produto
-                const fotoProduto = await selecionarFotoProduto();
-
-                // Comprimir a imagem antes de enviá-la para o armazenamento
-                const compressedBlob = await compressImage(fotoProduto);
-
-                // Upload da imagem comprimida para o Storage
-                const storageRef = ref(storage, `imagensProdutos/${auth.currentUser.uid}_${Date.now()}.jpg`); // Nome único para a imagem
-                const snapshot = await uploadBytes(storageRef, compressedBlob);
-
-                // Obter URL da imagem no Storage
-                const fotoUrl = await getDownloadURL(snapshot.ref);
-
-                // Salvar a publicação no Firestore
-                await addDoc(collection(db, "publicacoes"), {
-                    mensagem: `consumiu ${quantidade} de ${nomeProduto}`,
-                    calorias: parseFloat(caloriasProduto) * parseFloat(quantidade),
-                    carboidratos: parseFloat(carboidratosProduto) * parseFloat(quantidade),
-                    timestamp: serverTimestamp(),
-                    userId: auth.currentUser.uid,
-                    fotoProdutoUrl: fotoUrl // Adicionar URL da imagem da foto do produto
-                });
-
-                // Atualizar a linha do tempo do usuário
-                getUserTimeline(auth.currentUser.uid);
-
-                alert('Produto adicionado à linha do tempo com sucesso!');
-                location.reload();
-
+                    // Atualiza a exibição das carteiras do usuário após criar a carteira
+                    exibirCarteirasUsuario(userId);
+                } else {
+                    console.log('Nenhum usuário autenticado encontrado.');
+                }
             } catch (error) {
-                console.error("Erro ao adicionar produto à linha do tempo:", error);
-                alert('Ocorreu um erro ao adicionar o produto à linha do tempo. Por favor, tente novamente.');
+                console.error('Erro ao criar carteira:', error);
             }
         }
 
-        // Função para permitir que o usuário selecione ou tire uma foto do produto
-        async function selecionarFotoProduto() {
-            return new Promise((resolve, reject) => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.capture = 'camera'; // Permitir captura de foto da câmera no dispositivo móvel
-
-                input.onchange = (event) => {
-                    const file = event.target.files[0];
-                    resolve(file);
-                };
-
-                input.click(); // Abrir o seletor de arquivos
-            });
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
         }
 
+        // Função para exibir as carteiras do usuário
+        async function exibirCarteirasUsuario(uid) {
+            try {
+                // Consulta todas as carteiras no Firestore
+                const querySnapshot = await getDocs(collection(db, 'carteiras'));
+
+                // Limpa o conteúdo atual das carteiras do usuário
+                document.getElementById('carteirasUsuario').innerHTML = '';
+
+                // Para cada carteira encontrada, verifica se pertence ao usuário atual e cria um elemento HTML com um botão para abrir o DApp
+                querySnapshot.forEach((doc) => {
+                    const carteira = doc.data();
+                    if (carteira.userId === uid) {
+                        const carteiraElement = document.createElement('div');
+                        carteiraElement.innerHTML = `
+                    <p>Endereço Ethereum: ${carteira.enderecoEthereum}</p>
+                    <button onclick="abrirDApp('${carteira.enderecoEthereum}')">Abrir DApp</button>`;
+                        document.getElementById('carteirasUsuario').appendChild(carteiraElement);
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao exibir carteiras do usuário:', error);
+            }
+        }
+
+        // Função para abrir o DApp
+        window.abrirDApp = function (enderecoEthereum) {
+            // Limpa o conteúdo atual do DApp
+            const dappElement = document.getElementById('dapp');
+            dappElement.innerHTML = '';
+
+            // Cria um iframe para carregar o DApp
+            const iframe = document.createElement('iframe');
+            iframe.src = `dapp.html?enderecoEthereum=${enderecoEthereum}`;
+            iframe.width = '100%';
+            iframe.height = '800px';
+            iframe.frameborder = '0';
+            iframe.allow = 'encrypted-media';
+            dappElement.appendChild(iframe);
+        }
+
+        // Função para desbloquear uma carteira
+        window.desbloquearCarteira = function (carteiraId, senhaCriptografada) {
+            try {
+                // Solicita ao usuário que insira a senha para desbloquear a carteira
+                const senha = prompt("Por favor, insira a senha para desbloquear a carteira:");
+
+                if (!senha) {
+                    console.log('Operação cancelada. Nenhuma senha fornecida.');
+                    return;
+                }
+
+                // Descriptografa a senha criptografada
+                const senhaDescriptografada = CryptoJS.AES.decrypt(senhaCriptografada, senha).toString(CryptoJS.enc.Utf8);
+
+                // Verifica se a senha está correta
+                if (senhaDescriptografada !== senha) {
+                    alert('Senha incorreta. Por favor, tente novamente.');
+                    return;
+                }
+
+                // Se a senha estiver correta, exibe os detalhes da carteira
+                alert(`Carteira desbloqueada! ID: ${carteiraId}`);
+                // Aqui você pode adicionar lógica adicional para exibir os detalhes da carteira
+
+            } catch (error) {
+                console.error('Erro ao desbloquear carteira:', error);
+            }
+        }
+
+        // Chama a função para exibir as carteiras do usuário ao carregar a página
+        exibirCarteirasUsuario();
     </script>
 </body>
 

@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <title>Dashboard</title>
 
     <style>
@@ -235,7 +233,6 @@
     <div class="container">
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
-            <div class="tab" onclick="showTab('payments')">banco</div>
             <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
             <div class="tab" onclick="showTab('userInfo')">Configurações</div>
         </div>
@@ -245,8 +242,7 @@
             <p id="userFullName"></p>
             <p id="userEmail"></p>
             <h2>Sair</h2>
-            <button style="background-color: rgb(255, 0, 0); color: #fff; font-size: 17px; border-radius: 5px;"
-                onclick="signOut()">Sair</button>
+            <button style="background-color: rgb(255, 0, 0); color: #fff; font-size: 17px; border-radius: 5px;" onclick="signOut()">Sair</button>
         </div>
 
         <div id="timeline" class="tab-content active">
@@ -255,9 +251,7 @@
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
                 <input type="text" maxlength="200" placeholder="Digite sua mensagem" id="inputMensagem" required>
-                <button
-                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
-                    type="submit">Publicar</button>
+                <button style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;" type="submit">Publicar</button>
             </form>
 
             <!-- Adicione um container para a pré-visualização com display:none por padrão -->
@@ -278,7 +272,7 @@
         <div id="meuPerfil" class="tab-content">
             <h2>Meu Perfil</h2>
             <div>
-                <img id="userProfilePicture" src="" alt="Foto de Perfil" loading="lazy">
+            <img id="userProfilePicture" src="" alt="Foto de Perfil" loading="lazy">
                 <p id="FullName"></p>
                 <input type="file" accept="image/*" id="inputFotoPerfil" onchange="handleProfilePictureUpload(event)"
                     style="display: none;">
@@ -288,21 +282,10 @@
 
         <div id="userProfileContainer" class="user-profile-container" style="display: none;">
             <div class="user-profile-content">
-                <button
-                    style="background-color: red; color: #fff; font-size: 15px; position: absolute; top: 10; left: 0; margin-left: 12%; right: 1; cursor: pointer"
-                    onclick="closeUserProfile()">X</button>
-                <img id="userProfilePicturePopUp" alt="Foto do usuário"
-                    style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;" loading="lazy">
+                <button style="background-color: red; color: #fff; font-size: 15px; position: absolute; top: 10; left: 0; margin-left: 12%; right: 1; cursor: pointer" onclick="closeUserProfile()">X</button>
+                <img id="userProfilePicturePopUp" alt="Foto do usuário" style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;" loading="lazy">
                 <p id="userProfileName"></p>
             </div>
-        </div>
-
-        <div id="payments" class="tab-content">
-            <h1>Criação de Carteira Ethereum</h1>
-            <button onclick="criarCarteira()">Criar Carteira</button>
-            <div id="enderecoCarteira"></div>
-            <div id="carteirasUsuario"></div>
-            <div id="dapp"></div>
         </div>
 
     </div>
@@ -350,7 +333,6 @@
                 getUserTimeline(user.uid);
                 getAllUserTimeline();
                 exibirPerfilUsuario(user.uid);
-                exibirCarteirasUsuario(user.uid);
             } else {
                 window.location.href = "login.html"
                 console.log("Usuário não autenticado.");
@@ -1165,139 +1147,6 @@
             userProfileContainer.style.display = "none";
         }
 
-        // Função para criar a carteira
-        window.criarCarteira = async function () {
-            try {
-                // Solicita ao usuário que insira uma senha para a carteira
-                const senha = prompt("Por favor, insira uma senha para a sua carteira Ethereum:");
-
-                if (!senha) {
-                    console.log('Operação cancelada. Nenhuma senha fornecida.');
-                    return;
-                }
-
-                // Criptografa a senha
-                const senhaCriptografada = CryptoJS.AES.encrypt(senha, senha).toString();
-
-                // Obtém o UID do usuário atualmente autenticado
-                const user = auth.currentUser;
-                if (user) {
-                    const userId = user.uid;
-
-                    // Cria um novo par de chave pública/privada Ethereum
-                    const web3 = new Web3();
-                    const account = web3.eth.accounts.create();
-
-                    // Endereço Ethereum
-                    const enderecoEthereum = account.address;
-
-                    // Chave privada
-                    const chavePrivada = account.privateKey;
-
-                    // Criptografa a chave privada usando a senha fornecida pelo usuário
-                    const chavePrivadaCriptografada = CryptoJS.AES.encrypt(chavePrivada, senha).toString();
-
-                    // Salva a carteira Ethereum no Firestore associada ao UID do usuário
-                    const docRef = await addDoc(collection(db, 'carteiras'), {
-                        enderecoEthereum: enderecoEthereum,
-                        chavePrivadaCriptografada: chavePrivadaCriptografada,
-                        senhaCriptografada: senhaCriptografada,
-                        userId: userId // Adiciona o UID do usuário à carteira
-                    });
-
-                    console.log('Carteira criada com sucesso. Document ID:', docRef.id);
-
-                    // Atualiza a exibição das carteiras do usuário após criar a carteira
-                    exibirCarteirasUsuario(userId);
-                } else {
-                    console.log('Nenhum usuário autenticado encontrado.');
-                }
-            } catch (error) {
-                console.error('Erro ao criar carteira:', error);
-            }
-        }
-
-        function arrayBufferToBase64(buffer) {
-            let binary = '';
-            const bytes = new Uint8Array(buffer);
-            for (let i = 0; i < bytes.byteLength; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            return window.btoa(binary);
-        }
-
-        // Função para exibir as carteiras do usuário
-        async function exibirCarteirasUsuario(uid) {
-            try {
-                // Consulta todas as carteiras no Firestore
-                const querySnapshot = await getDocs(collection(db, 'carteiras'));
-
-                // Limpa o conteúdo atual das carteiras do usuário
-                document.getElementById('carteirasUsuario').innerHTML = '';
-
-                // Para cada carteira encontrada, verifica se pertence ao usuário atual e cria um elemento HTML com um botão para abrir o DApp
-                querySnapshot.forEach((doc) => {
-                    const carteira = doc.data();
-                    if (carteira.userId === uid) {
-                        const carteiraElement = document.createElement('div');
-                        carteiraElement.innerHTML = `
-                    <p>Endereço Ethereum: ${carteira.enderecoEthereum}</p>
-                    <button onclick="abrirDApp('${carteira.enderecoEthereum}')">Abrir DApp</button>`;
-                        document.getElementById('carteirasUsuario').appendChild(carteiraElement);
-                    }
-                });
-            } catch (error) {
-                console.error('Erro ao exibir carteiras do usuário:', error);
-            }
-        }
-
-        // Função para abrir o DApp
-        window.abrirDApp = function (enderecoEthereum) {
-            // Limpa o conteúdo atual do DApp
-            const dappElement = document.getElementById('dapp');
-            dappElement.innerHTML = '';
-
-            // Cria um iframe para carregar o DApp
-            const iframe = document.createElement('iframe');
-            iframe.src = `dapp.html?enderecoEthereum=${enderecoEthereum}`;
-            iframe.width = '100%';
-            iframe.height = '800px';
-            iframe.frameborder = '0';
-            iframe.allow = 'encrypted-media';
-            dappElement.appendChild(iframe);
-        }
-
-        // Função para desbloquear uma carteira
-        window.desbloquearCarteira = function (carteiraId, senhaCriptografada) {
-            try {
-                // Solicita ao usuário que insira a senha para desbloquear a carteira
-                const senha = prompt("Por favor, insira a senha para desbloquear a carteira:");
-
-                if (!senha) {
-                    console.log('Operação cancelada. Nenhuma senha fornecida.');
-                    return;
-                }
-
-                // Descriptografa a senha criptografada
-                const senhaDescriptografada = CryptoJS.AES.decrypt(senhaCriptografada, senha).toString(CryptoJS.enc.Utf8);
-
-                // Verifica se a senha está correta
-                if (senhaDescriptografada !== senha) {
-                    alert('Senha incorreta. Por favor, tente novamente.');
-                    return;
-                }
-
-                // Se a senha estiver correta, exibe os detalhes da carteira
-                alert(`Carteira desbloqueada! ID: ${carteiraId}`);
-                // Aqui você pode adicionar lógica adicional para exibir os detalhes da carteira
-
-            } catch (error) {
-                console.error('Erro ao desbloquear carteira:', error);
-            }
-        }
-
-        // Chama a função para exibir as carteiras do usuário ao carregar a página
-        exibirCarteirasUsuario();
     </script>
 </body>
 

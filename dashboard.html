@@ -31,6 +31,10 @@
             justify-content: space-between;
             border-bottom: 1px solid #ccc;
             margin-bottom: 20px;
+            background-color: #0056b3;
+            color: #fff;
+            border-radius: 5px;
+            width: 100%;
         }
 
         .tab {
@@ -231,8 +235,10 @@
 <body>
 
     <div class="container">
+
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
+            <div class="tab" onclick="showTab('MarketPlace')">Promoções</div>
             <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
             <div class="tab" onclick="showTab('userInfo')">Configurações</div>
         </div>
@@ -242,7 +248,8 @@
             <p id="userFullName"></p>
             <p id="userEmail"></p>
             <h2>Sair</h2>
-            <button style="background-color: rgb(255, 0, 0); color: #fff; font-size: 17px; border-radius: 5px;" onclick="signOut()">Sair</button>
+            <button style="background-color: rgb(255, 0, 0); color: #fff; font-size: 17px; border-radius: 5px;"
+                onclick="signOut()">Sair</button>
         </div>
 
         <div id="timeline" class="tab-content active">
@@ -251,7 +258,9 @@
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
                 <input type="text" maxlength="200" placeholder="Digite sua mensagem" id="inputMensagem" required>
-                <button style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;" type="submit">Publicar</button>
+                <button
+                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
+                    type="submit">Publicar</button>
             </form>
 
             <!-- Adicione um container para a pré-visualização com display:none por padrão -->
@@ -272,7 +281,7 @@
         <div id="meuPerfil" class="tab-content">
             <h2>Meu Perfil</h2>
             <div>
-            <img id="userProfilePicture" src="" alt="Foto de Perfil" loading="lazy">
+                <img id="userProfilePicture" src="" alt="Foto de Perfil" loading="lazy">
                 <p id="FullName"></p>
                 <input type="file" accept="image/*" id="inputFotoPerfil" onchange="handleProfilePictureUpload(event)"
                     style="display: none;">
@@ -282,10 +291,17 @@
 
         <div id="userProfileContainer" class="user-profile-container" style="display: none;">
             <div class="user-profile-content">
-                <button style="background-color: red; color: #fff; font-size: 15px; position: absolute; top: 10; left: 0; margin-left: 12%; right: 1; cursor: pointer" onclick="closeUserProfile()">X</button>
-                <img id="userProfilePicturePopUp" alt="Foto do usuário" style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;" loading="lazy">
+                <button
+                    style="background-color: red; color: #fff; font-size: 15px; position: absolute; top: 10; left: 0; margin-left: 12%; right: 1; cursor: pointer"
+                    onclick="closeUserProfile()">X</button>
+                <img id="userProfilePicturePopUp" alt="Foto do usuário"
+                    style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;" loading="lazy">
                 <p id="userProfileName"></p>
             </div>
+        </div>
+
+        <div id="MarketPlace" class="tab-content">
+            <h2>Promoções</h2>
         </div>
 
     </div>
@@ -466,7 +482,6 @@
                 reader.readAsDataURL(imageFile);
             });
         }
-
 
         // Função para alternar entre as abas
         window.showTab = function (tabId) {

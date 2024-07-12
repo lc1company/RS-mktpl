@@ -229,6 +229,54 @@
             width: 75%;
             text-align: center;
         }
+
+        #formPublicacao {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #formPublicacao h2 {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #formPublicacao input[type="text"],
+        #formPublicacao input[type="number"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        #formPublicacao input[type="file"] {
+            display: none;
+        }
+
+        #formPublicacao button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 12px 20px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        #formPublicacao button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 
@@ -257,7 +305,9 @@
             <form id="formPublicacao">
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
-                <input type="text" maxlength="200" placeholder="Digite sua mensagem" id="inputMensagem" required>
+                <input type="text" maxlength="200" placeholder="Nome do Produto" id="inputMensagem" required>
+                <input type="text" maxlength="200" placeholder="Descrição do Produto" id="inputDescricao" required>
+                <input type="number" placeholder="Preço do Produto" id="inputPreco" step="0.01" required>
                 <button
                     style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
                     type="submit">Publicar</button>
@@ -266,8 +316,10 @@
             <!-- Adicione um container para a pré-visualização com display:none por padrão -->
             <div id="previewContainer"
                 style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 20px; text-align: center;">
-                <p>Pré-visualização da Publicação:</p>
+                <p>Pré-visualização do anúncio:</p>
                 <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
+                <p id="descricaoPreview" style="margin-top: 10px; font-style: italic;"></p>
+                <p id="precoPreview" style="margin-top: 10px; font-weight: bold;"></p>
                 <div style="display: flex; justify-content: center;">
                     <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
                 </div>
@@ -396,6 +448,8 @@
             e.preventDefault();
 
             const mensagem = document.getElementById("inputMensagem").value;
+            const descricao = document.getElementById("inputDescricao").value;
+            const preco = document.getElementById("inputPreco").value;
             const imagem = document.getElementById("inputImagem").files[0];
 
             // Verificar se uma imagem foi selecionada
@@ -417,6 +471,8 @@
             // Salvar a publicação no Firestore
             await addDoc(collection(db, "publicacoes"), {
                 mensagem: mensagem,
+                descricao: descricao,
+                preco: preco,
                 imagemUrl: imagemUrl,
                 timestamp: serverTimestamp(),
                 userId: auth.currentUser.uid
@@ -427,6 +483,8 @@
 
             // Limpar os campos do formulário
             document.getElementById("inputMensagem").value = "";
+            document.getElementById("inputDescricao").value = "";
+            document.getElementById("inputPreco").value = "";
             document.getElementById("inputImagem").value = "";
 
             location.reload();
@@ -554,6 +612,16 @@
                     const mensagem = document.createElement("p");
                     mensagem.textContent = data.mensagem;
                     li.appendChild(mensagem);
+
+                    // Adicionar a descrição do produto
+                    const descricao = document.createElement("p");
+                    descricao.textContent = `Descrição: ${data.descricao}`;
+                    li.appendChild(descricao);
+
+                    // Adicionar o preço do produto
+                    const preco = document.createElement("p");
+                    preco.textContent = `Preço: R$ ${data.preco}`;
+                    li.appendChild(preco);
 
                     // Adicionar data e hora da publicação
                     const dataHora = document.createElement("p");
@@ -1073,6 +1141,20 @@
             // Atualize a mensagem na pré-visualização
             const mensagem = this.value;
             document.getElementById('mensagemPreview').textContent = mensagem;
+        });
+
+        // Adicione ouvintes de eventos para detectar mudanças no input de descrição
+        document.getElementById('inputDescricao').addEventListener('input', function () {
+            // Atualize a descrição na pré-visualização
+            const descricao = this.value;
+            document.getElementById('descricaoPreview').textContent = descricao;
+        });
+
+        // Adicione ouvintes de eventos para detectar mudanças no input de preço
+        document.getElementById('inputPreco').addEventListener('input', function () {
+            // Atualize o preço na pré-visualização
+            const preco = this.value;
+            document.getElementById('precoPreview').textContent = `Preço: R$ ${preco}`;
         });
 
         // Adicione um ouvinte de eventos para detectar mudanças no input de arquivo

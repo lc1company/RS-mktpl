@@ -286,7 +286,7 @@
 
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
-            <div class="tab" onclick="showTab('MarketPlace')">Promoções</div>
+            <div class="tab" onclick="showTab('Vender')">Vender</div>
             <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
             <div class="tab" onclick="showTab('userInfo')">Configurações</div>
         </div>
@@ -302,29 +302,6 @@
 
         <div id="timeline" class="tab-content active">
             <h2>Linha do Tempo</h2>
-            <form id="formPublicacao">
-                <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
-                <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
-                <input type="text" maxlength="200" placeholder="Nome do Produto" id="inputMensagem" required>
-                <input type="text" maxlength="200" placeholder="Descrição do Produto" id="inputDescricao" required>
-                <input type="number" placeholder="Preço do Produto" id="inputPreco" step="0.01" required>
-                <button
-                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
-                    type="submit">Publicar</button>
-            </form>
-
-            <!-- Adicione um container para a pré-visualização com display:none por padrão -->
-            <div id="previewContainer"
-                style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 20px; text-align: center;">
-                <p>Pré-visualização do anúncio:</p>
-                <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
-                <p id="descricaoPreview" style="margin-top: 10px; font-style: italic;"></p>
-                <p id="precoPreview" style="margin-top: 10px; font-weight: bold;"></p>
-                <div style="display: flex; justify-content: center;">
-                    <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
-                </div>
-            </div>
-
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
@@ -352,8 +329,36 @@
             </div>
         </div>
 
-        <div id="MarketPlace" class="tab-content">
-            <h2>Promoções</h2>
+        <div id="Vender" class="tab-content">
+            <h2>Vender</h2>
+            <form id="formPublicacao" style="display: none;">
+                <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
+                <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
+                <input type="text" maxlength="200" placeholder="Nome do Produto" id="inputMensagem" required>
+                <input type="text" maxlength="200" placeholder="Descrição do Produto" id="inputDescricao" required>
+                <input type="number" placeholder="Preço do Produto" id="inputPreco" step="0.01" required>
+                <button
+                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
+                    type="submit">Publicar</button>
+            </form>
+
+            <div id="avisoNaoVendedor" style="display: none;">
+                <p>Você não é um vendedor parceiro.</p>
+                <p><a href="link_para_formulario_de_cadastro" target="_blank">Cadastre-se como um vendedor parceiro</a>
+                </p>
+            </div>
+
+            <!--Preview do Anúncio-->
+            <div id="previewContainer"
+                style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 20px; text-align: center;">
+                <p>Pré-visualização do anúncio:</p>
+                <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
+                <p id="descricaoPreview" style="margin-top: 10px; font-style: italic;"></p>
+                <p id="precoPreview" style="margin-top: 10px; font-weight: bold;"></p>
+                <div style="display: flex; justify-content: center;">
+                    <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
+                </div>
+            </div>
         </div>
 
     </div>
@@ -401,6 +406,7 @@
                 getUserTimeline(user.uid);
                 getAllUserTimeline();
                 exibirPerfilUsuario(user.uid);
+                checkUserRole();
             } else {
                 window.location.href = "login.html"
                 console.log("Usuário não autenticado.");
@@ -452,23 +458,16 @@
             const preco = document.getElementById("inputPreco").value;
             const imagem = document.getElementById("inputImagem").files[0];
 
-            // Verificar se uma imagem foi selecionada
             if (!imagem) {
                 alert("Por favor, selecione uma imagem.");
                 return;
             }
 
-            // Comprimir a imagem antes de enviá-la para o Storage
             const compressedBlob = await compressImage(imagem);
-
-            // Upload da imagem comprimida para o Storage
             const storageRef = ref(storage, `imagens/${imagem.name}`);
             const snapshot = await uploadBytes(storageRef, compressedBlob);
-
-            // Obter URL da imagem no Storage
             const imagemUrl = await getDownloadURL(snapshot.ref);
 
-            // Salvar a publicação no Firestore
             await addDoc(collection(db, "publicacoes"), {
                 mensagem: mensagem,
                 descricao: descricao,
@@ -478,10 +477,8 @@
                 userId: auth.currentUser.uid
             });
 
-            // Atualizar a linha do tempo do usuário
             getUserTimeline(auth.currentUser.uid);
 
-            // Limpar os campos do formulário
             document.getElementById("inputMensagem").value = "";
             document.getElementById("inputDescricao").value = "";
             document.getElementById("inputPreco").value = "";
@@ -489,6 +486,31 @@
 
             location.reload();
         });
+
+        // Função para verificar o papel do usuário
+        async function checkUserRole() {
+            const user = auth.currentUser;
+            if (!user) {
+                console.log("Usuário não autenticado.");
+                return;
+            }
+
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                if (userData.role === "vendedor") {
+                    document.getElementById("formPublicacao").style.display = "block";
+                } else {
+                    console.log("Usuário não é um vendedor.");
+                    document.getElementById("avisoNaoVendedor").style.display = "block";
+                }
+            } else {
+                console.log("Documento do usuário não encontrado.");
+            }
+        }
+
+        // Chame a função para verificar o papel do usuário ao carregar a página
+        window.onload = checkUserRole;
 
         // Função para comprimir a imagem
         window.compressImage = async function (imageFile) {

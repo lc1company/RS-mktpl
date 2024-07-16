@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <title>Dashboard</title>
 
     <style>
@@ -285,10 +285,11 @@
     <div class="container">
 
         <div class="tabs">
-            <div class="tab" onclick="showTab('timeline')">Linha do Tempo</div>
-            <div class="tab" onclick="showTab('Vender')">Vender</div>
-            <div class="tab" onclick="showTab('meuPerfil')">Meu Perfil</div>
-            <div class="tab" onclick="showTab('userInfo')">Configurações</div>
+            <div class="tab" onclick="showTab('timeline')"><i class="fas fa-stream"></i>Linha do Tempo</div>
+            <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-calendar-plus"></i>Produzir Evento</div>
+            <div class="tab" onclick="showTab('meuPerfil')"><i class="fas fa-user"></i>Meu Perfil</div>
+            <div class="tab" onclick="showTab('notificacoes')"><i class="fas fa-bell"></i>Notificações</div>
+            <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i>Configurações</div>
         </div>
 
         <div id="userInfo" class="tab-content">
@@ -302,9 +303,15 @@
 
         <div id="timeline" class="tab-content active">
             <h2>Linha do Tempo</h2>
+            <button onclick="capturarLocalizacao()">Encontrar Evento na cidade</button>
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
+        </div>
+
+        <div id="notificacoes" class="tab-content">
+            <h2>Notificações</h2>
+            <ul id="notificationsList" class="notifications-list"></ul>
         </div>
 
         <div id="meuPerfil" class="tab-content">
@@ -329,22 +336,30 @@
             </div>
         </div>
 
-        <div id="Vender" class="tab-content">
-            <h2>Vender</h2>
+        <div id="Produtor" class="tab-content">
+            <h2>Área do Produtor</h2>
             <form id="formPublicacao" style="display: none;">
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
                 <input type="text" maxlength="200" placeholder="Nome do Produto" id="inputMensagem" required>
                 <input type="text" maxlength="200" placeholder="Descrição do Produto" id="inputDescricao" required>
                 <input type="number" placeholder="Preço do Produto" id="inputPreco" step="0.01" required>
+                <select id="inputCidadeEvento" required>
+                    <option value="">Selecione a cidade do evento</option>
+                    <option value="limeira">Limeira</option>
+                    <option value="americana">Americana</option>
+                    <option value="piracicaba">Piracicaba</option>
+                    <!-- Adicione outras cidades conforme necessário -->
+                </select><br><br>
                 <button
                     style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
                     type="submit">Publicar</button>
             </form>
 
-            <div id="avisoNaoVendedor" style="display: none;">
-                <p>Você não é um vendedor parceiro.</p>
-                <p><a href="link_para_formulario_de_cadastro" target="_blank">Cadastre-se como um vendedor parceiro</a>
+            <div id="avisoNaoProdutor" style="display: none;">
+                <p>Você não é um Produtor parceiro.</p>
+                <p><a href="link_para_formulario_de_cadastro" target="_blank">Cadastre-se como um produtor de eventos
+                        parceiro</a>
                 </p>
             </div>
 
@@ -375,7 +390,7 @@
         // Importar as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -407,6 +422,8 @@
                 getAllUserTimeline();
                 exibirPerfilUsuario(user.uid);
                 checkUserRole();
+                const currentUserId = auth.currentUser.uid;
+                getUserNotifications(currentUserId);
             } else {
                 window.location.href = "login.html"
                 console.log("Usuário não autenticado.");
@@ -423,6 +440,46 @@
                     document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
                 }
             });
+        }
+
+        window.capturarLocalizacao = function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async function (position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Chama a função para converter as coordenadas em nome da cidade
+                    const cidade = await converterCoordenadasParaCidade(latitude, longitude);
+
+                    // Aqui você pode usar o nome da cidade para qualquer ação necessária
+                    console.log(`Localização capturada: Latitude ${latitude}, Longitude ${longitude}, Cidade: ${cidade}`);
+
+                    // Por exemplo, você pode enviar esses dados para o servidor ou fazer outra operação
+                }, function (error) {
+                    console.error('Erro ao capturar localização:', error);
+                });
+            } else {
+                console.error('Geolocalização não suportada pelo navegador.');
+            }
+        }
+
+        async function converterCoordenadasParaCidade(latitude, longitude) {
+            try {
+                // Faz uma requisição para o serviço de geocodificação reversa (Nominatim)
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+                const data = await response.json();
+
+                // Verifica se a requisição foi bem-sucedida e retorna o nome da cidade
+                if (data && data.address && data.address.city) {
+                    return data.address.city;
+                } else {
+                    console.error('Não foi possível obter o nome da cidade a partir das coordenadas.');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Erro ao converter coordenadas para cidade:', error);
+                return null;
+            }
         }
 
         // Função para obter a timeline do usuário
@@ -457,6 +514,7 @@
             const descricao = document.getElementById("inputDescricao").value;
             const preco = document.getElementById("inputPreco").value;
             const imagem = document.getElementById("inputImagem").files[0];
+            const cidadeEvento = document.getElementById("inputCidadeEvento").value;
 
             if (!imagem) {
                 alert("Por favor, selecione uma imagem.");
@@ -474,7 +532,8 @@
                 preco: preco,
                 imagemUrl: imagemUrl,
                 timestamp: serverTimestamp(),
-                userId: auth.currentUser.uid
+                userId: auth.currentUser.uid,
+                cidadeEvento: cidadeEvento // Incluir a cidade do evento na publicação
             });
 
             getUserTimeline(auth.currentUser.uid);
@@ -483,8 +542,9 @@
             document.getElementById("inputDescricao").value = "";
             document.getElementById("inputPreco").value = "";
             document.getElementById("inputImagem").value = "";
+            document.getElementById("inputCidadeEvento").value = ""; // Limpar o campo da cidade do evento
 
-            location.reload();
+            location.reload(); // Recarregar a página para atualizar a linha do tempo
         });
 
         // Função para verificar o papel do usuário
@@ -498,11 +558,11 @@
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists()) {
                 const userData = userDoc.data();
-                if (userData.role === "vendedor") {
+                if (userData.role === "Produtor") {
                     document.getElementById("formPublicacao").style.display = "block";
                 } else {
-                    console.log("Usuário não é um vendedor.");
-                    document.getElementById("avisoNaoVendedor").style.display = "block";
+                    console.log("Usuário não é um Produtor.");
+                    document.getElementById("avisoNaoProdutor").style.display = "block";
                 }
             } else {
                 console.log("Documento do usuário não encontrado.");
@@ -864,13 +924,11 @@
         // Função para curtir uma publicação
         window.likePost = async function (postId) {
             try {
-                // Verificar se o usuário já curtiu a publicação
                 if (hasLikedPost(postId)) {
                     console.log("Você já curtiu esta publicação.");
                     return;
                 }
 
-                // Verificar se o usuário já descurtiu a publicação e remover o deslike
                 if (hasDislikedPost(postId)) {
                     await removeDislike(postId);
                 }
@@ -880,12 +938,17 @@
                 const likeCountElement = document.getElementById(`likeCount_${postId}`);
                 likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
 
-                // Desabilitar o botão de like após um clique
                 const likeButton = document.getElementById(`likeButton_${postId}`);
                 likeButton.disabled = true;
 
-                // Armazenar o estado de curtida no armazenamento local
                 localStorage.setItem(`like_${postId}`, 'true');
+
+                // Adicionar notificação
+                const postSnapshot = await getDoc(postRef);
+                if (postSnapshot.exists()) {
+                    const postData = postSnapshot.data();
+                    await addNotification(postData.userId, `curtiu sua publicação`, postId);
+                }
             } catch (error) {
                 console.error("Erro ao curtir a publicação:", error);
             }
@@ -894,15 +957,13 @@
         // Função para descurtir uma publicação
         window.dislikePost = async function (postId) {
             try {
-                // Verificar se o usuário já descurtiu a publicação
                 if (hasDislikedPost(postId)) {
                     console.log("Você já descurtiu esta publicação.");
                     return;
                 }
 
-                // Verificar se o usuário já curtiu a publicação e remover o like
                 if (hasLikedPost(postId)) {
-                    await removeDislike(postId); // Corrigido aqui
+                    await removeDislike(postId);
                 }
 
                 const postRef = doc(db, "publicacoes", postId);
@@ -910,12 +971,17 @@
                 const dislikeCountElement = document.getElementById(`dislikeCount_${postId}`);
                 dislikeCountElement.textContent = parseInt(dislikeCountElement.textContent) + 1;
 
-                // Desabilitar o botão de deslike após um clique
                 const dislikeButton = document.getElementById(`dislikeButton_${postId}`);
                 dislikeButton.disabled = true;
 
-                // Armazenar o estado de descurtida no armazenamento local
                 localStorage.setItem(`dislike_${postId}`, 'true');
+
+                // Adicionar notificação
+                const postSnapshot = await getDoc(postRef);
+                if (postSnapshot.exists()) {
+                    const postData = postSnapshot.data();
+                    await addNotification(postData.userId, `descurtiu sua publicação`, postId);
+                }
             } catch (error) {
                 console.error("Erro ao descurtir a publicação:", error);
             }
@@ -964,24 +1030,28 @@
             try {
                 const commentText = document.getElementById(`commentText_${postId}`).value;
 
-                // Verificar se o texto do comentário está vazio
                 if (!commentText) {
                     alert("Por favor, digite seu comentário.");
                     return;
                 }
 
-                // Adicionar um novo documento a coleção
                 const comentarioRef = await addDoc(collection(db, `publicacoes/${postId}/comentarios`), {
                     texto: commentText,
                     userId: auth.currentUser.uid,
                     timestamp: serverTimestamp()
                 });
 
-                // Limpar o campo do texto do comentário após adicionar o comentário
                 document.getElementById(`commentText_${postId}`).value = "";
 
-                // Exibir os comentários atualizados
                 showComments(postId);
+
+                // Adicionar notificação
+                const postRef = doc(db, "publicacoes", postId);
+                const postSnapshot = await getDoc(postRef);
+                if (postSnapshot.exists()) {
+                    const postData = postSnapshot.data();
+                    await addNotification(postData.userId, `comentou em sua publicação`, postId);
+                }
             } catch (error) {
                 console.error("Erro ao adicionar comentário:", error);
             }
@@ -1264,6 +1334,43 @@
             // Ocultar a tela de perfil do usuário
             const userProfileContainer = document.getElementById("userProfileContainer");
             userProfileContainer.style.display = "none";
+        }
+
+        window.addNotification = async function (userId, message, postId) {
+            try {
+                await addDoc(collection(db, "notificacoes"), {
+                    userId: userId,
+                    message: message,
+                    postId: postId,
+                    timestamp: serverTimestamp(),
+                    read: false
+                });
+            } catch (error) {
+                console.error("Erro ao adicionar notificação:", error);
+            }
+        }
+
+        window.getUserNotifications = async function (userId) {
+            try {
+                const notificationsRef = collection(db, "notificacoes");
+                const q = query(notificationsRef, where("userId", "==", userId), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                const notificationsList = document.getElementById("notificationsList");
+                notificationsList.innerHTML = "";
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const notificationItem = document.createElement("li");
+                    notificationItem.classList.add("notification-item");
+
+                    notificationItem.textContent = `${data.message} em ${data.timestamp.toDate().toLocaleString()}`;
+
+                    notificationsList.appendChild(notificationItem);
+                });
+            } catch (error) {
+                console.error("Erro ao obter notificações:", error);
+            }
         }
 
     </script>

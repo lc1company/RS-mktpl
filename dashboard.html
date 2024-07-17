@@ -277,6 +277,32 @@
         #formPublicacao button:hover {
             background-color: #0056b3;
         }
+
+        .notification-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .notification-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .notification-item .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-item .user-info span {
+            font-weight: bold;
+        }
+
+        .notification-item .notification-text {
+            margin-left: 10px;
+        }
     </style>
 </head>
 
@@ -1338,13 +1364,25 @@
 
         window.addNotification = async function (userId, message, postId) {
             try {
-                await addDoc(collection(db, "notificacoes"), {
-                    userId: userId,
-                    message: message,
-                    postId: postId,
-                    timestamp: serverTimestamp(),
-                    read: false
-                });
+                // Obter informações do usuário que interagiu
+                const userDoc = await getDoc(doc(db, "users", userId));
+                const userData = userDoc.data();
+
+                // Verificar se encontrou os dados do usuário
+                if (userData) {
+                    // Salvar a notificação com nome e foto do usuário
+                    await addDoc(collection(db, "notificacoes"), {
+                        userId: userId,
+                        message: message,
+                        postId: postId,
+                        fullName: userData.fullName,
+                        photoURL: userData.photoURL,
+                        timestamp: serverTimestamp(),
+                        read: false
+                    });
+                } else {
+                    throw new Error("Dados do usuário não encontrados.");
+                }
             } catch (error) {
                 console.error("Erro ao adicionar notificação:", error);
             }
@@ -1364,7 +1402,21 @@
                     const notificationItem = document.createElement("li");
                     notificationItem.classList.add("notification-item");
 
-                    notificationItem.textContent = `${data.message} em ${data.timestamp.toDate().toLocaleString()}`;
+                    // Criar elementos para mostrar as informações da notificação
+                    const userPhoto = document.createElement("img");
+                    userPhoto.src = data.photoURL; // Usar photoURL da notificação
+                    userPhoto.alt = "Foto de perfil do usuário";
+
+                    const userName = document.createElement("span");
+                    userName.textContent = data.fullName; // Usar fullName da notificação
+
+                    const notificationText = document.createElement("span");
+                    notificationText.textContent = `${data.message} em ${data.timestamp.toDate().toLocaleString()}`;
+
+                    // Adicionar elementos à lista de notificações
+                    notificationItem.appendChild(userPhoto);
+                    notificationItem.appendChild(userName);
+                    notificationItem.appendChild(notificationText);
 
                     notificationsList.appendChild(notificationItem);
                 });

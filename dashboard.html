@@ -719,18 +719,20 @@
                     const userImg = document.createElement("img");
                     userImg.src = user.photoURL;
                     userImg.alt = "Foto do usuário";
-                    userImg.style.width = "13%";
-                    userImg.style.height = "10%";
+                    userImg.style.width = "60px";
+                    userImg.style.height = "60px";
                     userImg.style.borderRadius = "50%";
-                    userImg.style.marginRight = "2%";
-                    userImg.style.cursor = "pointer"; // Adicionar cursor à foto do usuário
+                    userImg.style.marginRight = "15px";
+                    userImg.style.cursor = "pointer";
+                    userImg.style.border = "2px solid #ddd"; // Borda sutil
                     userImg.onclick = () => showUserProfile(user.userId); // Abrir o perfil do usuário ao clicar na foto
                     userInfoContainer.appendChild(userImg);
 
                     // Adicionar o nome do usuário ao contêiner
                     const userName = document.createElement("p");
                     userName.textContent = user.fullName;
-                    userName.style.cursor = "pointer"; // Adicionar cursor ao nome do usuário
+                    userName.style.fontWeight = "bold";
+                    userName.style.cursor = "pointer";
                     userName.onclick = () => showUserProfile(user.userId); // Abrir o perfil do usuário ao clicar no nome
                     userInfoContainer.appendChild(userName);
 
@@ -740,21 +742,30 @@
                     // Adicionar a mensagem da publicação
                     const mensagem = document.createElement("p");
                     mensagem.textContent = data.mensagem;
+                    mensagem.style.marginBottom = "10px";
+                    mensagem.style.fontSize = "16px";
                     li.appendChild(mensagem);
 
                     // Adicionar a descrição do produto
                     const descricao = document.createElement("p");
                     descricao.textContent = `Descrição: ${data.descricao}`;
+                    descricao.style.fontSize = "14px";
+                    descricao.style.color = "#666";
                     li.appendChild(descricao);
 
                     // Adicionar o preço do produto
                     const preco = document.createElement("p");
                     preco.textContent = `Preço: R$ ${data.preco}`;
+                    preco.style.fontSize = "16px";
+                    preco.style.fontWeight = "bold";
+                    preco.style.color = "#333";
                     li.appendChild(preco);
 
                     // Adicionar data e hora da publicação
                     const dataHora = document.createElement("p");
                     dataHora.textContent = `Data e Hora: ${dataFormatada}`;
+                    dataHora.style.fontSize = "12px";
+                    dataHora.style.color = "#999";
                     li.appendChild(dataHora);
 
                     // Adicionar a imagem da publicação, se existir
@@ -762,8 +773,10 @@
                         const imagem = document.createElement("img");
                         imagem.src = data.imagemUrl;
                         imagem.alt = "Imagem da publicação";
-                        imagem.classList.add("publicacao-img");
-                        imagem.style.width = "99%";
+                        imagem.style.width = "100%";
+                        imagem.style.height = "auto";
+                        imagem.style.borderRadius = "4px";
+                        imagem.style.marginTop = "10px";
                         li.appendChild(imagem);
                     }
 
@@ -771,7 +784,16 @@
                     if (auth.currentUser && auth.currentUser.uid === data.userId) {
                         const deleteButton = document.createElement("button");
                         deleteButton.innerHTML = '<i class="fa fa-trash"></i>';
-                        deleteButton.style.backgroundColor = "red";
+                        deleteButton.style.backgroundColor = "#e74c3c";
+                        deleteButton.style.border = "none";
+                        deleteButton.style.color = "#fff";
+                        deleteButton.style.padding = "8px 12px";
+                        deleteButton.style.borderRadius = "4px";
+                        deleteButton.style.cursor = "pointer";
+                        deleteButton.style.fontSize = "14px";
+                        deleteButton.style.position = "absolute";
+                        deleteButton.style.top = "10px";
+                        deleteButton.style.right = "10px";
                         deleteButton.onclick = () => deletePost(doc.id, data.userId);
                         li.appendChild(deleteButton);
                     }
@@ -779,8 +801,14 @@
                     // Adicionar botão de like
                     const likeButton = document.createElement("button");
                     likeButton.innerHTML = '<i class="fa fa-thumbs-up"></i>';
-                    likeButton.style.marginLeft = "3%";
-                    likeButton.style.marginRight = "3%";
+                    likeButton.style.backgroundColor = "#3498db";
+                    likeButton.style.border = "none";
+                    likeButton.style.color = "#fff";
+                    likeButton.style.padding = "8px 12px";
+                    likeButton.style.borderRadius = "4px";
+                    likeButton.style.cursor = "pointer";
+                    likeButton.style.fontSize = "14px";
+                    likeButton.style.marginRight = "10px";
                     likeButton.id = `likeButton_${doc.id}`;
                     likeButton.onclick = () => likePost(doc.id);
                     li.appendChild(likeButton);
@@ -788,14 +816,21 @@
                     // Exibir contador de likes
                     const likeCount = document.createElement("span");
                     likeCount.textContent = data.likes || 0;
-                    likeCount.style.marginLeft = "-2%";
-                    likeCount.style.marginRight = "1%";
+                    likeCount.style.fontSize = "14px";
+                    likeCount.style.color = "#333";
                     likeCount.id = `likeCount_${doc.id}`;
                     li.appendChild(likeCount);
 
                     // Adicionar botão de dislike
                     const dislikeButton = document.createElement("button");
                     dislikeButton.innerHTML = '<i class="fa fa-thumbs-down"></i>';
+                    dislikeButton.style.backgroundColor = "#e67e22";
+                    dislikeButton.style.border = "none";
+                    dislikeButton.style.color = "#fff";
+                    dislikeButton.style.padding = "8px 12px";
+                    dislikeButton.style.borderRadius = "4px";
+                    dislikeButton.style.cursor = "pointer";
+                    dislikeButton.style.fontSize = "14px";
                     dislikeButton.id = `dislikeButton_${doc.id}`;
                     dislikeButton.onclick = () => dislikePost(doc.id);
                     li.appendChild(dislikeButton);
@@ -803,22 +838,30 @@
                     // Exibir contador de dislikes
                     const dislikeCount = document.createElement("span");
                     dislikeCount.textContent = data.dislikes || 0;
-                    dislikeCount.style.marginRight = "-2%";
+                    dislikeCount.style.fontSize = "14px";
+                    dislikeCount.style.color = "#333";
                     dislikeCount.id = `dislikeCount_${doc.id}`;
                     li.appendChild(dislikeCount);
 
                     // Adicionar botão de mostrar comentários
                     const showCommentsButton = document.createElement("button");
                     showCommentsButton.innerHTML = '<i class="fa fa-comments"></i>';
-                    showCommentsButton.style.marginLeft = "3%";
-                    showCommentsButton.style.marginRight = "3%";
+                    showCommentsButton.style.backgroundColor = "#2ecc71";
+                    showCommentsButton.style.border = "none";
+                    showCommentsButton.style.color = "#fff";
+                    showCommentsButton.style.padding = "8px 12px";
+                    showCommentsButton.style.borderRadius = "4px";
+                    showCommentsButton.style.cursor = "pointer";
+                    showCommentsButton.style.fontSize = "14px";
+                    showCommentsButton.style.marginLeft = "10px";
                     showCommentsButton.onclick = () => showComments(doc.id);
                     li.appendChild(showCommentsButton);
 
                     // Exibir contador de comentários
                     const commentCount = document.createElement("span");
                     commentCount.textContent = data.comments || 0;
-                    commentCount.style.marginLeft = "-2%";
+                    commentCount.style.fontSize = "14px";
+                    commentCount.style.color = "#333";
                     commentCount.id = `commentCount_${doc.id}`;
                     li.appendChild(commentCount);
 
@@ -856,9 +899,17 @@
                     // Adicionar botão de denúncia
                     const reportButton = document.createElement("button");
                     reportButton.innerHTML = '<i class="fa fa-exclamation-triangle"></i>';
-                    reportButton.style.marginLeft = "87%";
-                    reportButton.style.marginRight = "3%";
-                    reportButton.style.backgroundColor = "red";
+                    reportButton.innerHTML = '<i class="fa fa-flag"></i>';
+                    reportButton.style.backgroundColor = "#e74c3c";
+                    reportButton.style.border = "none";
+                    reportButton.style.color = "#fff";
+                    reportButton.style.padding = "8px 12px";
+                    reportButton.style.borderRadius = "4px";
+                    reportButton.style.cursor = "pointer";
+                    reportButton.style.fontSize = "14px";
+                    reportButton.style.position = "absolute";
+                    reportButton.style.bottom = "10px";
+                    reportButton.style.right = "10px";
                     reportButton.id = `reportButton_${doc.id}`;
                     reportButton.onclick = () => reportPost(doc.id);
                     li.appendChild(reportButton);

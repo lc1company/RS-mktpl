@@ -687,6 +687,27 @@
                     li.style.padding = "10px";
                     li.style.borderRadius = "4px";
                     li.style.marginBottom = "7%";
+                    li.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)"; // Estilo 3D padrão
+                    li.style.transition = "all 0.3s ease"; // Transição suave
+                    li.style.transform = "translateY(0)"; // Posição padrão
+
+                    // Função para aplicar o estilo de hover/touch
+                    function applyHoverStyles() {
+                        li.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.2)"; // Estilo 3D ao passar o mouse ou tocar
+                        li.style.transform = "translateY(-4px)"; // Levanta o item
+                    }
+
+                    // Função para remover o estilo de hover/touch
+                    function removeHoverStyles() {
+                        li.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)"; // Volta ao estilo 3D padrão
+                        li.style.transform = "translateY(0)"; // Volta à posição original
+                    }
+
+                    // Adiciona os eventos de mouse e toque
+                    li.addEventListener("mouseover", applyHoverStyles);
+                    li.addEventListener("mouseout", removeHoverStyles);
+                    li.addEventListener("touchstart", applyHoverStyles, { passive: true }); // Para dispositivos móveis
+                    li.addEventListener("touchend", removeHoverStyles, { passive: true }); // Para dispositivos móveis
 
                     // Criar um contêiner para a foto do usuário e o nome do usuário
                     const userInfoContainer = document.createElement("div");
@@ -969,6 +990,12 @@
 
                 localStorage.setItem(`like_${postId}`, 'true');
 
+                // Adicionar interação
+                const user = auth.currentUser;
+                if (user) {
+                    await addInteraction(user.uid, "like", postId, user.displayName, user.photoURL);
+                }
+
                 // Adicionar notificação
                 const postSnapshot = await getDoc(postRef);
                 if (postSnapshot.exists()) {
@@ -1001,6 +1028,12 @@
                 dislikeButton.disabled = true;
 
                 localStorage.setItem(`dislike_${postId}`, 'true');
+
+                // Adicionar interação
+                const user = auth.currentUser;
+                if (user) {
+                    await addInteraction(user.uid, "dislike", postId, user.displayName, user.photoURL);
+                }
 
                 // Adicionar notificação
                 const postSnapshot = await getDoc(postRef);
@@ -1070,6 +1103,12 @@
                 document.getElementById(`commentText_${postId}`).value = "";
 
                 showComments(postId);
+
+                // Adicionar interação
+                const user = auth.currentUser;
+                if (user) {
+                    await addInteraction(user.uid, "comment", postId, user.displayName, user.photoURL);
+                }
 
                 // Adicionar notificação
                 const postRef = doc(db, "publicacoes", postId);
@@ -1422,6 +1461,22 @@
                 });
             } catch (error) {
                 console.error("Erro ao obter notificações:", error);
+            }
+        }
+
+        // Função para adicionar uma interação
+        window.addInteraction = async function (userId, actionType, postId, fullName, photoURL) {
+            try {
+                await addDoc(collection(db, "interactions"), {
+                    userId: userId,
+                    actionType: actionType, // ex: "like", "dislike", "comment"
+                    postId: postId,
+                    fullName: fullName,
+                    photoURL: photoURL,
+                    timestamp: serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Erro ao adicionar interação:", error);
             }
         }
 

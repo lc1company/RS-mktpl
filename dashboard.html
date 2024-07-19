@@ -1209,34 +1209,24 @@
             try {
                 const commentText = document.getElementById(`commentText_${postId}`).value;
 
+                // Verificar se o texto do comentário está vazio
                 if (!commentText) {
                     alert("Por favor, digite seu comentário.");
                     return;
                 }
 
+                // Adicionar um novo documento a coleção
                 const comentarioRef = await addDoc(collection(db, `publicacoes/${postId}/comentarios`), {
                     texto: commentText,
                     userId: auth.currentUser.uid,
                     timestamp: serverTimestamp()
                 });
 
+                // Limpar o campo do texto do comentário após adicionar o comentário
                 document.getElementById(`commentText_${postId}`).value = "";
 
+                // Exibir os comentários atualizados
                 showComments(postId);
-
-                // Adicionar interação
-                const user = auth.currentUser;
-                if (user) {
-                    await addInteraction(user.uid, "comment", postId, user.displayName, user.photoURL);
-                }
-
-                // Adicionar notificação
-                const postRef = doc(db, "publicacoes", postId);
-                const postSnapshot = await getDoc(postRef);
-                if (postSnapshot.exists()) {
-                    const postData = postSnapshot.data();
-                    await addNotification(postData.userId, `comentou em sua publicação`, postId);
-                }
             } catch (error) {
                 console.error("Erro ao adicionar comentário:", error);
             }
@@ -1519,85 +1509,6 @@
             // Ocultar a tela de perfil do usuário
             const userProfileContainer = document.getElementById("userProfileContainer");
             userProfileContainer.style.display = "none";
-        }
-
-        window.addNotification = async function (userId, message, postId) {
-            try {
-                // Obter informações do usuário que interagiu
-                const userDoc = await getDoc(doc(db, "users", userId));
-                const userData = userDoc.data();
-
-                // Verificar se encontrou os dados do usuário
-                if (userData) {
-                    // Salvar a notificação com nome e foto do usuário
-                    await addDoc(collection(db, "notificacoes"), {
-                        userId: userId,
-                        message: message,
-                        postId: postId,
-                        fullName: userData.fullName,
-                        photoURL: userData.photoURL,
-                        timestamp: serverTimestamp(),
-                        read: false
-                    });
-                } else {
-                    throw new Error("Dados do usuário não encontrados.");
-                }
-            } catch (error) {
-                console.error("Erro ao adicionar notificação:", error);
-            }
-        }
-
-        window.getUserNotifications = async function (userId) {
-            try {
-                const notificationsRef = collection(db, "notificacoes");
-                const q = query(notificationsRef, where("userId", "==", userId), orderBy("timestamp", "desc"));
-                const querySnapshot = await getDocs(q);
-
-                const notificationsList = document.getElementById("notificationsList");
-                notificationsList.innerHTML = "";
-
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const notificationItem = document.createElement("li");
-                    notificationItem.classList.add("notification-item");
-
-                    // Criar elementos para mostrar as informações da notificação
-                    const userPhoto = document.createElement("img");
-                    userPhoto.src = data.photoURL; // Usar photoURL da notificação
-                    userPhoto.alt = "Foto de perfil do usuário";
-
-                    const userName = document.createElement("span");
-                    userName.textContent = data.fullName; // Usar fullName da notificação
-
-                    const notificationText = document.createElement("span");
-                    notificationText.textContent = `${data.message} em ${data.timestamp.toDate().toLocaleString()}`;
-
-                    // Adicionar elementos à lista de notificações
-                    notificationItem.appendChild(userPhoto);
-                    notificationItem.appendChild(userName);
-                    notificationItem.appendChild(notificationText);
-
-                    notificationsList.appendChild(notificationItem);
-                });
-            } catch (error) {
-                console.error("Erro ao obter notificações:", error);
-            }
-        }
-
-        // Função para adicionar uma interação
-        window.addInteraction = async function (userId, actionType, postId, fullName, photoURL) {
-            try {
-                await addDoc(collection(db, "interactions"), {
-                    userId: userId,
-                    actionType: actionType, // ex: "like", "dislike", "comment"
-                    postId: postId,
-                    fullName: fullName,
-                    photoURL: photoURL,
-                    timestamp: serverTimestamp()
-                });
-            } catch (error) {
-                console.error("Erro ao adicionar interação:", error);
-            }
         }
 
     </script>

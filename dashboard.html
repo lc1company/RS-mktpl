@@ -37,7 +37,6 @@
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             font-family: 'Arial', sans-serif;
-            /* Mudar a fonte para Arial */
         }
 
         .tab {
@@ -45,9 +44,10 @@
             text-align: center;
             padding: 10px 0;
             cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
             font-size: 0.9em;
-            /* Reduzir o tamanho da fonte */
+            perspective: 1000px;
+            /* Adiciona perspectiva para o efeito 3D */
         }
 
         .tab:hover {
@@ -57,13 +57,20 @@
         .tab i {
             display: block;
             font-size: 1.5em;
-            /* Aumentar o tamanho dos ícones */
             margin-bottom: 3px;
+            transition: transform 0.3s ease;
         }
 
         .tab span {
             font-size: 0.8em;
-            /* Ajustar o tamanho da fonte do texto */
+            transition: transform 0.3s ease;
+            /* Adiciona transição ao texto */
+        }
+
+        .tab:active i,
+        .tab:active span {
+            transform: translateZ(20px);
+            /* Movimento 3D para ícone e texto */
         }
 
         .tab-content {
@@ -230,6 +237,7 @@
             bottom: 0;
             width: auto;
             min-width: 100%;
+            margin-bottom: 7%;
         }
 
         .user-profile-container {
@@ -346,6 +354,7 @@
             <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i><span>Configurações</span></div>
         </div>
 
+
         <div id="userInfo" class="tab-content">
             <h2>Informações do Usuário</h2>
             <p id="userFullName"></p>
@@ -430,14 +439,14 @@
             </div>
         </div>
 
-    </div>
+        <footer>
+            <p>&copy; 2024 LC Company</p>
+            <a href="PoliticaPrivacidade.html" target="_blank" style="color: rgb(0, 0, 0); margin-right: 4%;">Política de
+                Privacidade</a>
+            <a href="TermosDeUso.html" target="_blank" style="color: rgb(0, 0, 0);">Termos de Uso</a>
+        </footer>
 
-    <footer>
-        <p>&copy; 2024 LC Company</p>
-        <a href="PoliticaPrivacidade.html" target="_blank" style="color: rgb(0, 0, 0); margin-right: 4%;">Política de
-            Privacidade</a>
-        <a href="TermosDeUso.html" target="_blank" style="color: rgb(0, 0, 0);">Termos de Uso</a>
-    </footer>
+    </div>
 
     <!--bibliotecas do Firebase -->
     <script type="module">

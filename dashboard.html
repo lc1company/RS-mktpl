@@ -1235,81 +1235,105 @@
         window.showComments = async function (postId) {
             try {
                 const commentsDiv = document.getElementById(`comments_${postId}`);
-                // Verificar se os comentários já estão visíveis
                 const isVisible = commentsDiv.style.display === "block";
 
-                // Se os comentários estiverem visíveis, oculte-os; caso contrário, exiba-os
                 if (isVisible) {
                     commentsDiv.style.display = "none";
                 } else {
-                    // Limpar os comentários antes de exibir os novos
                     commentsDiv.innerHTML = "";
 
                     const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
                     const querySnapshot = await getDocs(comentariosRef);
 
-                    // Verificar se há comentários antes de exibir
                     if (querySnapshot.empty) {
-                        return; // Se não houver comentários, saia da função
+                        return;
                     }
 
                     querySnapshot.forEach(async (doc) => {
                         const comentario = doc.data();
                         const user = await getUserData(comentario.userId);
 
-                        // Criar um contêiner para o comentário
-                        const commentContainer = document.createElement("div");
-                        commentContainer.style.backgroundColor = "#DFDEDE";
-                        commentContainer.style.padding = "10px";
-                        commentContainer.style.borderRadius = "4px";
-                        commentContainer.style.marginTop = "10px";
-                        commentContainer.style.marginBottom = "3%";
-                        commentContainer.style.display = "flex"; // Exibir em linha
-                        commentContainer.style.alignItems = "center"; // Alinhar itens ao centro
+                        // Criação do elemento li para cada comentário
+                        const li = document.createElement("li");
+                        li.classList.add("timeline-item");
+                        li.style.backgroundColor = "#f0f0f0";
+                        li.style.padding = "10px";
+                        li.style.borderRadius = "4px";
+                        li.style.marginBottom = "15%";
+                        li.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
+                        li.style.transition = "all 0.3s ease";
+                        li.style.transform = "translateY(0)";
 
-                        // Adicionar a foto do usuário ao contêiner
+                        function applyHoverStyles() {
+                            li.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.5)";
+                            li.style.transform = "translateY(-10px)";
+                        }
+
+                        function removeHoverStyles() {
+                            li.style.boxShadow = "0 10px 20px rgba(0, 0, 0, 0.3)";
+                            li.style.transform = "translateY(0)";
+                        }
+
+                        li.addEventListener("mouseover", applyHoverStyles);
+                        li.addEventListener("mouseout", removeHoverStyles);
+                        li.addEventListener("touchstart", applyHoverStyles, { passive: true });
+                        li.addEventListener("touchend", removeHoverStyles, { passive: true });
+
+                        const userInfoContainer = document.createElement("div");
+                        userInfoContainer.style.display = "flex";
+                        userInfoContainer.style.alignItems = "center";
+                        userInfoContainer.style.marginBottom = "10px";
+
                         const userImg = document.createElement("img");
                         userImg.src = user.photoURL;
                         userImg.alt = "Foto do usuário";
-                        userImg.style.width = "11%";
-                        userImg.style.height = "10%";
-                        userImg.style.marginTop = "-15%";
+                        userImg.style.width = "60px";
+                        userImg.style.height = "60px";
                         userImg.style.borderRadius = "50%";
-                        commentContainer.appendChild(userImg);
+                        userImg.style.marginRight = "15px";
+                        userImg.style.cursor = "pointer";
+                        userImg.style.border = "2px solid #ddd";
+                        userImg.onclick = () => showUserProfile(user.userId);
+                        userInfoContainer.appendChild(userImg);
 
-                        // Criar um contêiner para o nome de usuário e o texto do comentário
-                        const userInfoContainer = document.createElement("div");
-                        userInfoContainer.style.marginLeft = "10px"; // Adicionar margem à esquerda
-                        commentContainer.appendChild(userInfoContainer);
-
-                        // Adicionar o nome do usuário ao contêiner
                         const userName = document.createElement("p");
                         userName.textContent = user.fullName;
+                        userName.style.fontWeight = "bold";
+                        userName.style.cursor = "pointer";
+                        userName.onclick = () => showUserProfile(user.userId);
                         userInfoContainer.appendChild(userName);
 
-                        // Adicionar o texto do comentário ao contêiner
+                        li.appendChild(userInfoContainer);
+
                         const commentText = document.createElement("p");
                         commentText.textContent = comentario.texto;
-                        userInfoContainer.appendChild(commentText);
+                        commentText.style.marginBottom = "10px";
+                        commentText.style.fontSize = "16px";
+                        li.appendChild(commentText);
 
-                        // Adicionar a data e hora do comentário
                         const timestamp = comentario.timestamp.toDate();
-                        const dataFormatada = `${timestamp.getDate()}/${timestamp.getMonth() + 1}/${timestamp.getFullYear()} ${timestamp.getHours()}:${timestamp.getMinutes()}`;
+                        const dia = String(timestamp.getDate()).padStart(2, '0');
+                        const mes = String(timestamp.getMonth() + 1).padStart(2, '0');
+                        const ano = timestamp.getFullYear();
+                        const horas = String(timestamp.getHours()).padStart(2, '0');
+                        const minutos = String(timestamp.getMinutes()).padStart(2, '0');
+                        const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+
                         const commentTime = document.createElement("p");
                         commentTime.textContent = `Data e Hora: ${dataFormatada}`;
-                        userInfoContainer.appendChild(commentTime);
+                        commentTime.style.fontSize = "12px";
+                        commentTime.style.color = "#999";
+                        li.appendChild(commentTime);
 
-                        // Adicionar o contêiner de comentário à lista de comentários
-                        commentsDiv.appendChild(commentContainer);
+                        commentsDiv.appendChild(li);
                     });
 
-                    // Exibir os comentários
                     commentsDiv.style.display = "block";
                 }
             } catch (error) {
                 console.error("Erro ao exibir ou ocultar comentários:", error);
             }
-        }
+        };
 
         // Função para obter informações do usuário com base no userId
         async function getUserData(userId) {

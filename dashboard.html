@@ -381,8 +381,8 @@
             <div class="tab" onclick="showTab('notificacoes')"><i class="fas fa-bell"></i><span>Notificações</span>
             </div>
             <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i><span>Configurações</span></div>
-            <div class="tab" onclick="showTab('Adm')" style="display: none;"><i class="fas fa-lock"></i><span>Adm</span></div>
         </div>
+
 
         <div id="userInfo" class="tab-content">
             <h2>Informações do Usuário</h2>
@@ -426,10 +426,6 @@
                     style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;" loading="lazy">
                 <p id="userProfileName"></p>
             </div>
-        </div>
-
-        <div id="Adm" class="tab-content">
-            <h2>Area do Administrador</h2>
         </div>
 
         <div id="Produtor" class="tab-content">
@@ -654,36 +650,21 @@
                 return;
             }
 
-            try {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-
-                    // Verificação do papel "Produtor"
-                    if (userData.role === "Produtor") {
-                        document.getElementById("formPublicacao").style.display = "block";
-                    } else {
-                        console.log("Usuário não é um Produtor.");
-                        document.getElementById("avisoNaoProdutor").style.display = "block";
-                    }
-
-                    // Verificação do papel "Admin"
-                    if (userData.role === "Admin") {
-                        document.getElementById("Adm").style.display = "block";
-                        document.querySelector('.tab[onclick="showTab(\'Adm\')"]').style.display = "block";
-                    } else {
-                        document.getElementById("Adm").style.display = "none";
-                        document.querySelector('.tab[onclick="showTab(\'Adm\')"]').style.display = "none";
-                    }
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                if (userData.role === "Produtor") {
+                    document.getElementById("formPublicacao").style.display = "block";
                 } else {
-                    console.log("Documento do usuário não encontrado.");
+                    console.log("Usuário não é um Produtor.");
+                    document.getElementById("avisoNaoProdutor").style.display = "block";
                 }
-            } catch (error) {
-                console.error("Erro ao buscar documento do usuário:", error);
+            } else {
+                console.log("Documento do usuário não encontrado.");
             }
         }
 
-        // Chama a função para verificar o papel do usuário ao carregar a página
+        // Chame a função para verificar o papel do usuário ao carregar a página
         window.onload = checkUserRole;
 
         // Função para comprimir a imagem

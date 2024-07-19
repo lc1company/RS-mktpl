@@ -1293,14 +1293,12 @@
                         userImg.style.marginRight = "15px";
                         userImg.style.cursor = "pointer";
                         userImg.style.border = "2px solid #ddd";
-                        userImg.onclick = () => showUserProfile(user.userId);
                         userInfoContainer.appendChild(userImg);
 
                         const userName = document.createElement("p");
                         userName.textContent = user.fullName;
                         userName.style.fontWeight = "bold";
                         userName.style.cursor = "pointer";
-                        userName.onclick = () => showUserProfile(user.userId);
                         userInfoContainer.appendChild(userName);
 
                         li.appendChild(userInfoContainer);

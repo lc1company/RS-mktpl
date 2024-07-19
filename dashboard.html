@@ -26,7 +26,7 @@
 
         .tabs {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             background-color: #0056b3;
             color: #fff;
             width: 100%;
@@ -36,6 +36,8 @@
             border-top: 1px solid #ccc;
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
             z-index: 1000;
+            font-family: 'Arial', sans-serif;
+            /* Mudar a fonte para Arial */
         }
 
         .tab {
@@ -44,6 +46,8 @@
             padding: 10px 0;
             cursor: pointer;
             transition: background-color 0.3s ease, color 0.3s ease;
+            font-size: 0.9em;
+            /* Reduzir o tamanho da fonte */
         }
 
         .tab:hover {
@@ -52,8 +56,14 @@
 
         .tab i {
             display: block;
-            font-size: 20px;
-            margin-bottom: 5px;
+            font-size: 1.5em;
+            /* Aumentar o tamanho dos ícones */
+            margin-bottom: 3px;
+        }
+
+        .tab span {
+            font-size: 0.8em;
+            /* Ajustar o tamanho da fonte do texto */
         }
 
         .tab-content {
@@ -326,11 +336,14 @@
     <div class="container">
 
         <div class="tabs">
-            <div class="tab" onclick="showTab('timeline')"><i class="fas fa-stream"></i>Linha do Tempo</div>
-            <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-calendar-plus"></i>Produzir Evento</div>
-            <div class="tab" onclick="showTab('meuPerfil')"><i class="fas fa-user"></i>Meu Perfil</div>
-            <div class="tab" onclick="showTab('notificacoes')"><i class="fas fa-bell"></i>Notificações</div>
-            <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i>Configurações</div>
+            <div class="tab" onclick="showTab('timeline')"><i class="fas fa-stream"></i><span>Linha do Tempo</span>
+            </div>
+            <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-calendar-plus"></i><span>Produzir
+                    Evento</span></div>
+            <div class="tab" onclick="showTab('meuPerfil')"><i class="fas fa-user"></i><span>Meu Perfil</span></div>
+            <div class="tab" onclick="showTab('notificacoes')"><i class="fas fa-bell"></i><span>Notificações</span>
+            </div>
+            <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i><span>Configurações</span></div>
         </div>
 
         <div id="userInfo" class="tab-content">

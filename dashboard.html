@@ -494,6 +494,9 @@
         <div id="notificacoes" class="tab-content" style="margin-top: 15%; text-align: center;">
             <h2>Notificações</h2>
             <!-- Adicionar esta seção no seu HTML -->
+            <div id="chatList" style="margin-bottom: 20px;">
+                <!-- Lista de chats será exibida aqui -->
+            </div>
             <div id="chatModal"
                 style="display: none; position: fixed; top: 10%; left: 50%; transform: translate(-50%, 0); width: 80%; max-width: 600px; background-color: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 20px; z-index: 1000;">
                 <div id="chatHeader"
@@ -587,7 +590,7 @@
         // Importar as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, orderBy, where, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, orderBy, where, arrayUnion, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -619,6 +622,7 @@
                 getAllUserTimeline();
                 exibirPerfilUsuario(user.uid);
                 checkUserRole();
+                loadChats(user.uid);
             } else {
                 window.location.href = "login.html"
                 console.log("Usuário não autenticado.");
@@ -1105,9 +1109,12 @@
             }
         }
 
+        let currentChatId = null;
+
+        // Função para iniciar a compra e criar um novo chat
         async function iniciarCompra(vendedorId, compradorId, produto) {
             try {
-                // Criar o documento do chat sem mensagens inicialmente
+                // Criar o documento do chat
                 const chatRef = await addDoc(collection(db, "chats"), {
                     vendedorId: vendedorId,
                     compradorId: compradorId,
@@ -1117,10 +1124,8 @@
                 });
                 console.log("Chat criado com sucesso:", chatRef.id);
 
-                // Obter o timestamp separado
-                const timestamp = new Date();
-
                 // Adicionar a mensagem inicial separadamente
+                const timestamp = new Date();
                 await updateDoc(chatRef, {
                     mensagens: arrayUnion({
                         sender: "vendedor",
@@ -1136,35 +1141,102 @@
             }
         }
 
+        // Função para carregar chats do usuário
+        async function loadChats(userId) {
+            try {
+                const vendedorQuery = query(
+                    collection(db, "chats"),
+                    where("vendedorId", "==", userId)
+                );
+
+                const compradorQuery = query(
+                    collection(db, "chats"),
+                    where("compradorId", "==", userId)
+                );
+
+                const [vendedorSnapshot, compradorSnapshot] = await Promise.all([
+                    getDocs(vendedorQuery),
+                    getDocs(compradorQuery)
+                ]);
+
+                const chatListContainer = document.getElementById("chatList");
+                chatListContainer.innerHTML = ""; // Limpar lista anterior
+
+                vendedorSnapshot.forEach((doc) => {
+                    const chatData = doc.data();
+                    const chatElement = document.createElement("div");
+                    chatElement.style.marginBottom = "10px";
+                    chatElement.innerHTML = `
+                <div>
+                    <strong>Produto:</strong> ${chatData.produto.descricao}
+                    <button data-chat-id="${doc.id}" data-produto-descricao="${chatData.produto.descricao}" onclick="openChatFromButton(this)">Abrir Chat</button>
+                </div>
+            `;
+                    chatListContainer.appendChild(chatElement);
+                });
+
+                compradorSnapshot.forEach((doc) => {
+                    const chatData = doc.data();
+                    const chatElement = document.createElement("div");
+                    chatElement.style.marginBottom = "10px";
+                    chatElement.innerHTML = `
+                <div>
+                    <strong>Produto:</strong> ${chatData.produto.descricao}
+                    <button data-chat-id="${doc.id}" data-produto-descricao="${chatData.produto.descricao}" onclick="openChatFromButton(this)">Abrir Chat</button>
+                </div>
+            `;
+                    chatListContainer.appendChild(chatElement);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar chats:", error);
+            }
+        }
+
+        window.openChatFromButton = function(button) {
+            const chatId = button.dataset.chatId;
+            const produtoDescricao = button.dataset.produtoDescricao;
+            openChat(chatId, produtoDescricao);
+        }
+
+        // Função para abrir o chat
         function openChat(chatId, produtoDescricao) {
+            currentChatId = chatId; // Define o ID do chat atual
             const chatModal = document.getElementById("chatModal");
             chatModal.style.display = "block";
             document.getElementById("chatTitle").textContent = `Chat sobre ${produtoDescricao}`;
-            loadChatMessages(chatId);
+            loadChatMessages(chatId); // Carrega as mensagens do chat
+
+            const chatRef = doc(db, "chats", chatId);
+            onSnapshot(chatRef, (doc) => {
+                if (doc.exists()) {
+                    loadChatMessages(chatId); // Atualiza as mensagens em tempo real
+                }
+            });
         }
 
+        // Função para fechar o chat
         function closeChat() {
-            const chatModal = document.getElementById("chatModal");
-            chatModal.style.display = "none";
+            document.getElementById("chatModal").style.display = "none";
+            currentChatId = null;
         }
 
+        // Função para carregar mensagens do chat
         async function loadChatMessages(chatId) {
             try {
                 const chatDoc = await getDoc(doc(db, "chats", chatId));
                 if (chatDoc.exists()) {
                     const chatData = chatDoc.data();
                     const chatMessagesContainer = document.getElementById("chatMessages");
-                    chatMessagesContainer.innerHTML = ""; // Limpar mensagens anteriores
+                    chatMessagesContainer.innerHTML = "";
 
                     chatData.mensagens.forEach((mensagem) => {
                         const messageElement = document.createElement("div");
                         messageElement.style.marginBottom = "10px";
-                        messageElement.textContent = `${mensagem.sender}: ${mensagem.texto} (${mensagem.timestamp.toDate().toLocaleString()})`;
+                        messageElement.innerHTML = `<strong>${mensagem.sender}:</strong> ${mensagem.texto} <small>(${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()})</small>`;
                         chatMessagesContainer.appendChild(messageElement);
                     });
 
-                    // Guardar o chatId globalmente para enviar mensagens posteriormente
-                    window.currentChatId = chatId;
+                    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
                 } else {
                     console.log("Nenhum chat encontrado com esse ID:", chatId);
                 }
@@ -1173,29 +1245,26 @@
             }
         }
 
+        // Função para enviar uma mensagem
         window.sendMessage = async function () {
             const chatInput = document.getElementById("chatInput");
             const messageText = chatInput.value.trim();
 
-            if (messageText === "") return;
+            if (messageText === "" || currentChatId === null) return;
 
             try {
-                const chatRef = doc(db, "chats", window.currentChatId);
-
-                // Obter o timestamp separado
+                const chatRef = doc(db, "chats", currentChatId);
                 const timestamp = new Date();
 
                 await updateDoc(chatRef, {
                     mensagens: arrayUnion({
-                        sender: "cliente",
+                        sender: "cliente", // Ou "vendedor", dependendo do usuário que está enviando
                         texto: messageText,
                         timestamp: timestamp,
                     })
                 });
 
-                // Atualizar a exibição do chat
-                loadChatMessages(window.currentChatId);
-                chatInput.value = ""; // Limpar o campo de entrada
+                chatInput.value = "";
             } catch (error) {
                 console.error("Erro ao enviar mensagem:", error);
             }

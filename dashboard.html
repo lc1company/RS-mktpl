@@ -999,7 +999,7 @@
                     // Adicionar botão de dislike
                     const dislikeButton = document.createElement("button");
                     dislikeButton.innerHTML = '<i class="fa fa-thumbs-down"></i>';
-                    dislikeButton.style.backgroundColor = "#e67e22";
+                    dislikeButton.style.backgroundColor = "#e74c3c";
                     dislikeButton.style.border = "none";
                     dislikeButton.style.color = "#fff";
                     dislikeButton.style.padding = "8px 12px";
@@ -1039,6 +1039,20 @@
                     commentCount.style.color = "#333";
                     commentCount.id = `commentCount_${doc.id}`;
                     li.appendChild(commentCount);
+
+                    // botão de Mensagem
+                    const comprarButton = document.createElement("button");
+                    comprarButton.innerHTML = '<i class="fas fa-envelope"></i>';
+                    comprarButton.style.backgroundColor = "#e67e22";
+                    comprarButton.style.border = "none";
+                    comprarButton.style.color = "#fff";
+                    comprarButton.style.padding = "8px 12px";
+                    comprarButton.style.borderRadius = "4px";
+                    comprarButton.style.cursor = "pointer";
+                    comprarButton.style.fontSize = "14px";
+                    comprarButton.style.marginLeft = "10px";
+                    comprarButton.onclick = () => iniciarCompra(data.userId, auth.currentUser.uid, data);
+                    li.appendChild(comprarButton);
 
                     // Div para exibir os comentários
                     const commentsDiv = document.createElement("div");
@@ -1089,20 +1103,6 @@
                     reportButton.onclick = () => reportPost(doc.id);
                     li.appendChild(reportButton);
 
-                    // Adicionar botão de Comprar
-                    const comprarButton = document.createElement("button");
-                    comprarButton.innerHTML = 'Comprar';
-                    comprarButton.style.backgroundColor = "#1abc9c";
-                    comprarButton.style.border = "none";
-                    comprarButton.style.color = "#fff";
-                    comprarButton.style.padding = "8px 12px";
-                    comprarButton.style.borderRadius = "4px";
-                    comprarButton.style.cursor = "pointer";
-                    comprarButton.style.fontSize = "14px";
-                    comprarButton.style.marginLeft = "10px";
-                    comprarButton.onclick = () => iniciarCompra(data.userId, auth.currentUser.uid, data);
-                    li.appendChild(comprarButton);
-
                     // Adiciona um evento de clique para exibir o perfil do usuário ao clicar na foto ou no nome
                     userImg.onclick = () => showUserProfile(data.userId);
                     userName.onclick = () => showUserProfile(data.userId);
@@ -1132,7 +1132,7 @@
                 await updateDoc(chatRef, {
                     mensagens: arrayUnion({
                         sender: "vendedor",
-                        texto: `Olá! Você está interessado em ${produto.descricao}. O preço é R$ ${produto.preco}.`,
+                        texto: `${produto.descricao}. O preço é R$ ${produto.preco}.`,
                         timestamp: timestamp,
                     })
                 });
@@ -1147,6 +1147,7 @@
         // Função para carregar chats do usuário
         async function loadChats(userId) {
             try {
+                // Consultas para chats onde o usuário é o vendedor ou comprador
                 const vendedorQuery = query(
                     collection(db, "chats"),
                     where("vendedorId", "==", userId)
@@ -1157,37 +1158,64 @@
                     where("compradorId", "==", userId)
                 );
 
+                // Recuperar dados de chats
                 const [vendedorSnapshot, compradorSnapshot] = await Promise.all([
                     getDocs(vendedorQuery),
                     getDocs(compradorQuery)
                 ]);
 
+                // Selecionar o container onde os chats serão exibidos
                 const chatListContainer = document.getElementById("chatList");
                 chatListContainer.innerHTML = ""; // Limpar lista anterior
 
+                // Função para criar o elemento do chat
+                const createChatElement = (chatData, chatId) => {
+                    const chatElement = document.createElement("div");
+                    chatElement.style.marginBottom = "15px";
+                    chatElement.style.padding = "10px";
+                    chatElement.style.border = "1px solid #ddd";
+                    chatElement.style.borderRadius = "5px";
+                    chatElement.style.display = "flex";
+                    chatElement.style.alignItems = "center";
+                    chatElement.style.backgroundColor = "#f9f9f9";
+
+                    // Verificar se o título do produto está dentro de mensagens
+                    let tituloProduto = "Título não disponível";
+                    if (chatData.mensagens && chatData.mensagens.length > 0) {
+                        // Supondo que o título possa estar na primeira mensagem
+                        const primeiraMensagem = chatData.mensagens[0];
+                        if (primeiraMensagem && primeiraMensagem.texto) {
+                            tituloProduto = primeiraMensagem.texto;
+                        }
+                    }
+
+                    const produto = chatData.produto || {};
+                    const imagemUrl = produto.imagemUrl || "default-image-url.jpg"; // Certifique-se de ter uma imagem padrão
+                    const descricaoProduto = produto.descricao || "Descrição não disponível";
+
+                    chatElement.innerHTML = `
+                <img src="${imagemUrl}" alt="${tituloProduto}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                <div style="flex: 1;">
+                    <strong>${tituloProduto}</strong>
+                    <br>
+                    <button data-chat-id="${chatId}" data-produto-descricao="${descricaoProduto}" onclick="openChatFromButton(this)" style="margin-top: 5px; padding: 5px 10px; border: none; background-color: #007bff; color: white; border-radius: 3px; cursor: pointer;">Abrir Chat</button>
+                </div>`;
+
+                    return chatElement;
+                };
+
+                // Adicionar chats de vendedor à lista
                 vendedorSnapshot.forEach((doc) => {
                     const chatData = doc.data();
-                    const chatElement = document.createElement("div");
-                    chatElement.style.marginBottom = "10px";
-                    chatElement.innerHTML = `
-                <div>
-                    <strong>Produto:</strong> ${chatData.produto.descricao}
-                    <button data-chat-id="${doc.id}" data-produto-descricao="${chatData.produto.descricao}" onclick="openChatFromButton(this)">Abrir Chat</button>
-                </div>
-            `;
+                    console.log("Vendedor Chat Data:", chatData); // Debug: Verifique os dados recuperados
+                    const chatElement = createChatElement(chatData, doc.id);
                     chatListContainer.appendChild(chatElement);
                 });
 
+                // Adicionar chats de comprador à lista
                 compradorSnapshot.forEach((doc) => {
                     const chatData = doc.data();
-                    const chatElement = document.createElement("div");
-                    chatElement.style.marginBottom = "10px";
-                    chatElement.innerHTML = `
-                <div>
-                    <strong>Produto:</strong> ${chatData.produto.descricao}
-                    <button data-chat-id="${doc.id}" data-produto-descricao="${chatData.produto.descricao}" onclick="openChatFromButton(this)">Abrir Chat</button>
-                </div>
-            `;
+                    const chatElement = createChatElement(chatData, doc.id);
                     chatListContainer.appendChild(chatElement);
                 });
             } catch (error) {

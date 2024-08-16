@@ -1172,17 +1172,37 @@
                 const createChatElement = (chatData, chatId) => {
                     const chatElement = document.createElement("div");
                     chatElement.style.marginBottom = "15px";
-                    chatElement.style.padding = "10px";
+                    chatElement.style.padding = "15px";
                     chatElement.style.border = "1px solid #ddd";
-                    chatElement.style.borderRadius = "5px";
+                    chatElement.style.borderRadius = "8px";
                     chatElement.style.display = "flex";
                     chatElement.style.alignItems = "center";
-                    chatElement.style.backgroundColor = "#f9f9f9";
+                    chatElement.style.backgroundColor = "#ffffff";
+                    chatElement.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.2)";
+                    chatElement.style.transition = "all 0.3s ease";
+                    chatElement.style.transform = "translateY(0)";
+
+                    // Função para aplicar o estilo de hover/touch
+                    function applyHoverStyles() {
+                        chatElement.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.4)";
+                        chatElement.style.transform = "translateY(-8px)";
+                    }
+
+                    // Função para remover o estilo de hover/touch
+                    function removeHoverStyles() {
+                        chatElement.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.2)";
+                        chatElement.style.transform = "translateY(0)";
+                    }
+
+                    // Adiciona os eventos de mouse e toque
+                    chatElement.addEventListener("mouseover", applyHoverStyles);
+                    chatElement.addEventListener("mouseout", removeHoverStyles);
+                    chatElement.addEventListener("touchstart", applyHoverStyles, { passive: true });
+                    chatElement.addEventListener("touchend", removeHoverStyles, { passive: true });
 
                     // Verificar se o título do produto está dentro de mensagens
                     let tituloProduto = "Título não disponível";
                     if (chatData.mensagens && chatData.mensagens.length > 0) {
-                        // Supondo que o título possa estar na primeira mensagem
                         const primeiraMensagem = chatData.mensagens[0];
                         if (primeiraMensagem && primeiraMensagem.texto) {
                             tituloProduto = primeiraMensagem.texto;
@@ -1190,15 +1210,14 @@
                     }
 
                     const produto = chatData.produto || {};
-                    const imagemUrl = produto.imagemUrl || "default-image-url.jpg"; // Certifique-se de ter uma imagem padrão
+                    const imagemUrl = produto.imagemUrl || "default-image-url.jpg";
                     const descricaoProduto = produto.descricao || "Descrição não disponível";
 
                     chatElement.innerHTML = `
-                <img src="${imagemUrl}" alt="${tituloProduto}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                <img src="${imagemUrl}" alt="${tituloProduto}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 15px;">
                 <div style="flex: 1;">
-                    <strong>${tituloProduto}</strong>
-                    <br>
-                    <button data-chat-id="${chatId}" data-produto-descricao="${descricaoProduto}" onclick="openChatFromButton(this)" style="margin-top: 5px; padding: 5px 10px; border: none; background-color: #007bff; color: white; border-radius: 3px; cursor: pointer;">Abrir Chat</button>
+                    <strong style="display: block; margin-bottom: 5px;">${tituloProduto}</strong>
+                    <button data-chat-id="${chatId}" data-produto-descricao="${descricaoProduto}" onclick="openChatFromButton(this)" style="padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Abrir Chat</button>
                 </div>`;
 
                     return chatElement;
@@ -1207,7 +1226,6 @@
                 // Adicionar chats de vendedor à lista
                 vendedorSnapshot.forEach((doc) => {
                     const chatData = doc.data();
-                    console.log("Vendedor Chat Data:", chatData); // Debug: Verifique os dados recuperados
                     const chatElement = createChatElement(chatData, doc.id);
                     chatListContainer.appendChild(chatElement);
                 });

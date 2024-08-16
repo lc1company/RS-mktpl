@@ -613,6 +613,8 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
+        const user = auth.currentUser;
+
         // Verificar se o usuário está autenticado
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -623,6 +625,7 @@
                 exibirPerfilUsuario(user.uid);
                 checkUserRole();
                 loadChats(user.uid);
+                const userId = user.uid;
             } else {
                 window.location.href = "login.html"
                 console.log("Usuário não autenticado.");
@@ -1192,7 +1195,7 @@
             }
         }
 
-        window.openChatFromButton = function(button) {
+        window.openChatFromButton = function (button) {
             const chatId = button.dataset.chatId;
             const produtoDescricao = button.dataset.produtoDescricao;
             openChat(chatId, produtoDescricao);
@@ -1215,7 +1218,7 @@
         }
 
         // Função para fechar o chat
-        function closeChat() {
+        window.closeChat = function () {
             document.getElementById("chatModal").style.display = "none";
             currentChatId = null;
         }
@@ -1245,7 +1248,6 @@
             }
         }
 
-        // Função para enviar uma mensagem
         window.sendMessage = async function () {
             const chatInput = document.getElementById("chatInput");
             const messageText = chatInput.value.trim();
@@ -1253,18 +1255,43 @@
             if (messageText === "" || currentChatId === null) return;
 
             try {
+                const user = auth.currentUser;
+
+                if (!user) {
+                    console.error("Usuário não autenticado.");
+                    return;
+                }
+
+                const userId = user.uid;
                 const chatRef = doc(db, "chats", currentChatId);
-                const timestamp = new Date();
+                const chatDoc = await getDoc(chatRef);
 
-                await updateDoc(chatRef, {
-                    mensagens: arrayUnion({
-                        sender: "cliente", // Ou "vendedor", dependendo do usuário que está enviando
-                        texto: messageText,
-                        timestamp: timestamp,
-                    })
-                });
+                if (chatDoc.exists()) {
+                    const chatData = chatDoc.data();
+                    const timestamp = new Date();
+                    let senderType = "";
 
-                chatInput.value = "";
+                    if (userId === chatData.vendedorId) {
+                        senderType = "vendedor";
+                    } else if (userId === chatData.compradorId) {
+                        senderType = "cliente";
+                    } else {
+                        console.error("Erro: ID do usuário não corresponde ao vendedor nem ao comprador.");
+                        return;
+                    }
+
+                    await updateDoc(chatRef, {
+                        mensagens: arrayUnion({
+                            sender: senderType,
+                            texto: messageText,
+                            timestamp: timestamp,
+                        })
+                    });
+
+                    chatInput.value = "";
+                } else {
+                    console.error("Erro: Documento do chat não encontrado.");
+                }
             } catch (error) {
                 console.error("Erro ao enviar mensagem:", error);
             }

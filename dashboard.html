@@ -444,6 +444,145 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+
+        .chat-modal {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            max-width: 400px;
+            height: 40%;
+            max-height: 400px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-title {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-title-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 0 5px;
+        }
+
+        .negotiation-icon {
+            font-size: 20px;
+            margin: 0 10px;
+        }
+
+        .chat-title-names {
+            display: flex;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background-color: #e9ecef;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #chatInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .send-button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0px 4px 6px rgba(0, 123, 255, 0.3);
+            transition: background-color 0.3s ease;
+        }
+
+        .send-button:hover {
+            background-color: #0056b3;
+        }
+
+        .message-container {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .message-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .message-container.me {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.3);
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .message-content {
+            max-width: 70%;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .message-text {
+            word-wrap: break-word;
+        }
+
+        .message-time {
+            font-size: 0.85em;
+            color: #000000;
+            margin-top: 5px;
+        }
     </style>
 </head>
 
@@ -812,7 +951,7 @@
                         // Converter o canvas de volta para Blob
                         canvas.toBlob((blob) => {
                             resolve(blob);
-                        }, 'image/jpeg', 0.8); // Comprimir para JPEG com 80% de qualidade
+                        }, 'image/png', 0.9); // Comprimir para PNG com 90% de qualidade
                     };
 
                     img.src = event.target.result;
@@ -1270,21 +1409,82 @@
         }
 
         // Função para carregar mensagens do chat
+        let userCache = {}; // Cache para armazenar dados dos usuários
+
+        let lastMessageTimestamp = null; // Variável para armazenar o timestamp da última mensagem carregada
+
+        // Função para carregar mensagens do chat
         async function loadChatMessages(chatId) {
             try {
                 const chatDoc = await getDoc(doc(db, "chats", chatId));
                 if (chatDoc.exists()) {
                     const chatData = chatDoc.data();
                     const chatMessagesContainer = document.getElementById("chatMessages");
-                    chatMessagesContainer.innerHTML = "";
 
-                    chatData.mensagens.forEach((mensagem) => {
+                    // Carrega dados do comprador e do vendedor
+                    const compradorData = await getUserData(chatData.compradorId);
+                    const vendedorData = await getUserData(chatData.vendedorId);
+
+                    // Atualiza o título do chat
+                    const chatTitle = document.getElementById("chatTitle");
+                    chatTitle.innerHTML = `
+                <div class="chat-title-content">
+                    <img src="${vendedorData.photoURL || 'default-photo-url.png'}" alt="${vendedorData.fullName}" class="user-avatar">
+                    <span class="negotiation-icon">⚔️</span>
+                    <img src="${compradorData.photoURL || 'default-photo-url.png'}" alt="${compradorData.fullName}" class="user-avatar">
+                </div>
+                <div class="chat-title-names">
+                    <div>${vendedorData.fullName}</div>
+                    <div style="margin-left: 3%;"
+                    <div>${compradorData.fullName}</div>
+                </div>`;
+
+                    // Filtra apenas as mensagens que são novas
+                    const newMessages = chatData.mensagens.filter(mensagem => {
+                        return !lastMessageTimestamp || mensagem.timestamp.seconds > lastMessageTimestamp;
+                    });
+
+                    // Atualiza o timestamp da última mensagem carregada
+                    if (newMessages.length > 0) {
+                        lastMessageTimestamp = newMessages[newMessages.length - 1].timestamp.seconds;
+                    }
+
+                    newMessages.forEach((mensagem) => {
                         const messageElement = document.createElement("div");
-                        messageElement.style.marginBottom = "10px";
-                        messageElement.innerHTML = `<strong>${mensagem.sender}:</strong> ${mensagem.texto} <small>(${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()})</small>`;
+                        messageElement.classList.add("message-container");
+
+                        let senderData = null;
+                        if (mensagem.sender === "vendedor") {
+                            senderData = vendedorData;
+                            messageElement.classList.add("me");
+                        } else if (mensagem.sender === "cliente") {
+                            senderData = compradorData;
+                        }
+
+                        if (senderData) {
+                            const senderName = senderData.fullName || "Usuário";
+                            const senderPhoto = senderData.photoURL || "default-photo-url.png";
+
+                            messageElement.innerHTML = `
+                        <img src="${senderPhoto}" alt="${senderName}" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-sender">${senderName}</div>
+                            <div class="message-text">${mensagem.texto}</div>
+                            <div class="message-time">${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()}</div>
+                        </div>
+                    `;
+                        } else {
+                            messageElement.innerHTML = `
+                        <div class="message-content">
+                            <strong>Desconhecido:</strong> ${mensagem.texto} 
+                            <small>(${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()})</small>
+                        </div>`;
+                        }
+
                         chatMessagesContainer.appendChild(messageElement);
                     });
 
+                    // Rolagem automática para a última mensagem
                     chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
                 } else {
                     console.log("Nenhum chat encontrado com esse ID:", chatId);

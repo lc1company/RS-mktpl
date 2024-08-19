@@ -1408,24 +1408,20 @@
             currentChatId = null;
         }
 
-        // Função para carregar mensagens do chat
-        let userCache = {}; // Cache para armazenar dados dos usuários
-
-        let lastMessageTimestamp = null; // Variável para armazenar o timestamp da última mensagem carregada
-
-        // Função para carregar mensagens do chat
         async function loadChatMessages(chatId) {
             try {
+                // Obter o documento do chat
                 const chatDoc = await getDoc(doc(db, "chats", chatId));
+
                 if (chatDoc.exists()) {
                     const chatData = chatDoc.data();
                     const chatMessagesContainer = document.getElementById("chatMessages");
 
-                    // Carrega dados do comprador e do vendedor
+                    // Carregar dados do comprador e do vendedor
                     const compradorData = await getUserData(chatData.compradorId);
                     const vendedorData = await getUserData(chatData.vendedorId);
 
-                    // Atualiza o título do chat
+                    // Atualizar o título do chat
                     const chatTitle = document.getElementById("chatTitle");
                     chatTitle.innerHTML = `
                 <div class="chat-title-content">
@@ -1435,21 +1431,15 @@
                 </div>
                 <div class="chat-title-names">
                     <div>${vendedorData.fullName}</div>
-                    <div style="margin-left: 3%;"
+                    <div style="margin-left: 3%;"></div>
                     <div>${compradorData.fullName}</div>
                 </div>`;
 
-                    // Filtra apenas as mensagens que são novas
-                    const newMessages = chatData.mensagens.filter(mensagem => {
-                        return !lastMessageTimestamp || mensagem.timestamp.seconds > lastMessageTimestamp;
-                    });
+                    // Limpar mensagens antigas
+                    chatMessagesContainer.innerHTML = "";
 
-                    // Atualiza o timestamp da última mensagem carregada
-                    if (newMessages.length > 0) {
-                        lastMessageTimestamp = newMessages[newMessages.length - 1].timestamp.seconds;
-                    }
-
-                    newMessages.forEach((mensagem) => {
+                    // Iterar sobre as mensagens e adicioná-las ao container
+                    chatData.mensagens.forEach((mensagem) => {
                         const messageElement = document.createElement("div");
                         messageElement.classList.add("message-container");
 
@@ -1478,7 +1468,8 @@
                         <div class="message-content">
                             <strong>Desconhecido:</strong> ${mensagem.texto} 
                             <small>(${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()})</small>
-                        </div>`;
+                        </div>
+                    `;
                         }
 
                         chatMessagesContainer.appendChild(messageElement);
@@ -1492,6 +1483,17 @@
             } catch (error) {
                 console.error("Erro ao carregar mensagens do chat:", error);
             }
+        }
+
+        // Atualiza o chat em tempo real
+        function setupRealTimeChatUpdates(chatId) {
+            const chatRef = doc(db, "chats", chatId);
+
+            onSnapshot(chatRef, (doc) => {
+                if (doc.exists()) {
+                    loadChatMessages(chatId); // Atualiza as mensagens em tempo real
+                }
+            });
         }
 
         window.sendMessage = async function () {

@@ -1391,7 +1391,6 @@
             currentChatId = chatId; // Define o ID do chat atual
             const chatModal = document.getElementById("chatModal");
             chatModal.style.display = "block";
-            document.getElementById("chatTitle").textContent = `Chat sobre ${produtoDescricao}`;
             loadChatMessages(chatId); // Carrega as mensagens do chat
 
             const chatRef = doc(db, "chats", chatId);

@@ -1307,8 +1307,17 @@
                 const chatListContainer = document.getElementById("chatList");
                 chatListContainer.innerHTML = ""; // Limpar lista anterior
 
+                // Função para buscar os dados do usuário (nome e foto)
+                const getUserData = async (userId) => {
+                    const userDoc = await getDoc(doc(db, "users", userId));
+                    return userDoc.exists() ? userDoc.data() : null;
+                };
+
                 // Função para criar o elemento do chat
-                const createChatElement = (chatData, chatId) => {
+                const createChatElement = async (chatData, chatId) => {
+                    const compradorData = await getUserData(chatData.compradorId);
+                    const vendedorData = await getUserData(chatData.vendedorId);
+
                     const chatElement = document.createElement("div");
                     chatElement.style.marginBottom = "15px";
                     chatElement.style.padding = "15px";
@@ -1339,42 +1348,43 @@
                     chatElement.addEventListener("touchstart", applyHoverStyles, { passive: true });
                     chatElement.addEventListener("touchend", removeHoverStyles, { passive: true });
 
-                    // Verificar se o título do produto está dentro de mensagens
-                    let tituloProduto = "Título não disponível";
-                    if (chatData.mensagens && chatData.mensagens.length > 0) {
-                        const primeiraMensagem = chatData.mensagens[0];
-                        if (primeiraMensagem && primeiraMensagem.texto) {
-                            tituloProduto = primeiraMensagem.texto;
-                        }
-                    }
-
                     const produto = chatData.produto || {};
-                    const imagemUrl = produto.imagemUrl || "default-image-url.jpg";
+                    const imagemUrlProduto = produto.imagemUrl || "default-image-url.jpg";
                     const descricaoProduto = produto.descricao || "Descrição não disponível";
+                    const nomeComprador = compradorData?.fullName || "Comprador";
+                    const nomeVendedor = vendedorData?.fullName || "Vendedor";
+                    const fotoComprador = compradorData?.photoURL || "default-user-image.jpg";
+                    const fotoVendedor = vendedorData?.photoURL || "default-user-image.jpg";
 
                     chatElement.innerHTML = `
-                <img src="${imagemUrl}" alt="${tituloProduto}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 15px;">
-                <div style="flex: 1;">
-                    <strong style="display: block; margin-bottom: 5px;">${tituloProduto}</strong>
-                    <button data-chat-id="${chatId}" data-produto-descricao="${descricaoProduto}" onclick="openChatFromButton(this)" style="padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Abrir Chat</button>
+                <div style="display: flex; align-items: center; position: relative;">
+                    <img src="${imagemUrlProduto}" alt="${descricaoProduto}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 15px; position: relative;">
+                    <div style="position: absolute; bottom: -10px; left: 10px; display: flex; align-items: center;">
+                        <img src="${fotoComprador}" alt="${nomeComprador}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white; margin-right: -10px;">
+                        <img src="${fotoVendedor}" alt="${nomeVendedor}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white;">
+                    </div>
+                    <div style="flex: 1;">
+                        <strong style="display: block; margin-bottom: 5px;">${nomeComprador} iniciou um chat sobre ${descricaoProduto}</strong>
+                        <button data-chat-id="${chatId}" data-produto-descricao="${descricaoProduto}" onclick="openChatFromButton(this)" style="padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Abrir Chat</button>
+                    </div>
                 </div>`;
 
                     return chatElement;
                 };
 
                 // Adicionar chats de vendedor à lista
-                vendedorSnapshot.forEach((doc) => {
+                for (const doc of vendedorSnapshot.docs) {
                     const chatData = doc.data();
-                    const chatElement = createChatElement(chatData, doc.id);
+                    const chatElement = await createChatElement(chatData, doc.id);
                     chatListContainer.appendChild(chatElement);
-                });
+                }
 
                 // Adicionar chats de comprador à lista
-                compradorSnapshot.forEach((doc) => {
+                for (const doc of compradorSnapshot.docs) {
                     const chatData = doc.data();
-                    const chatElement = createChatElement(chatData, doc.id);
+                    const chatElement = await createChatElement(chatData, doc.id);
                     chatListContainer.appendChild(chatElement);
-                });
+                }
             } catch (error) {
                 console.error("Erro ao carregar chats:", error);
             }

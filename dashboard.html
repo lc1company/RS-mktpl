@@ -583,6 +583,21 @@
             color: #000000;
             margin-top: 5px;
         }
+
+        .notification-counter {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
     </style>
 </head>
 
@@ -608,7 +623,9 @@
             <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-calendar-plus"></i><span>Produzir
                     Evento</span></div>
             <div class="tab" onclick="showTab('meuPerfil')"><i class="fas fa-user"></i><span>Meu Perfil</span></div>
-            <div class="tab" onclick="showTab('notificacoes')"><i class="fas fa-bell"></i><span>Notificações</span>
+            <div class="tab" onclick="showTab('notificacoes')" id="notificationsTab">
+                <i class="fas fa-bell"></i><span>Notificações</span>
+                <span id="notificationCounter" class="notification-counter"></span>
             </div>
             <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i><span>Configurações</span></div>
         </div>
@@ -764,6 +781,8 @@
                 exibirPerfilUsuario(user.uid);
                 checkUserRole();
                 loadChats(user.uid);
+                monitorChats(user.uid);
+                restoreNotificationCounter();
                 const userId = user.uid;
             } else {
                 window.location.href = "login.html"
@@ -969,6 +988,10 @@
             });
             const selectedTab = document.getElementById(tabId);
             selectedTab.classList.add("active");
+
+            if (tabId === 'notificacoes') {
+                resetNotificationCounter(); // Zerando o contador ao abrir a aba de notificações
+            }
         }
 
         // Função para obter a linha do tempo de todos os usuários
@@ -1470,15 +1493,13 @@
                             <div class="message-sender">${senderName}</div>
                             <div class="message-text">${mensagem.texto}</div>
                             <div class="message-time">${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()}</div>
-                        </div>
-                    `;
+                        </div>`;
                         } else {
                             messageElement.innerHTML = `
                         <div class="message-content">
                             <strong>Desconhecido:</strong> ${mensagem.texto} 
                             <small>(${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()})</small>
-                        </div>
-                    `;
+                        </div>`;
                         }
 
                         chatMessagesContainer.appendChild(messageElement);
@@ -1551,6 +1572,64 @@
                 }
             } catch (error) {
                 console.error("Erro ao enviar mensagem:", error);
+            }
+        }
+
+        let unreadMessagesCount = 0;
+
+        // Função para atualizar o contador de notificações
+        function updateNotificationCounter(count) {
+            const counterElement = document.getElementById("notificationCounter");
+            counterElement.textContent = count > 0 ? count : '';
+            counterElement.style.display = count > 0 ? 'flex' : 'none';
+        }
+
+        // Monitorar alterações nos chats
+        async function monitorChats(userId) {
+            const chatsRef = collection(db, "chats");
+
+            // Consultas para obter chats onde o usuário é comprador ou vendedor
+            const compradorQuery = query(chatsRef, where("compradorId", "==", userId));
+            const vendedorQuery = query(chatsRef, where("vendedorId", "==", userId));
+
+            // Função para lidar com alterações nas mensagens
+            function handleSnapshot(snapshot) {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "modified") {
+                        const chatData = change.doc.data();
+                        const isVendedor = chatData.vendedorId === userId;
+                        const messages = chatData.mensagens || [];
+                        const lastMessage = messages[messages.length - 1];
+
+                        if (lastMessage &&
+                            ((isVendedor && lastMessage.sender !== "vendedor") ||
+                                (!isVendedor && lastMessage.sender !== "comprador"))) {
+                            unreadMessagesCount += 1;
+                        }
+                    }
+                });
+
+                updateNotificationCounter(unreadMessagesCount);
+            }
+
+            // Monitorar as consultas
+            onSnapshot(compradorQuery, handleSnapshot);
+            onSnapshot(vendedorQuery, handleSnapshot);
+        }
+
+        // Função para zerar o contador quando as notificações são abertas
+        function resetNotificationCounter() {
+            unreadMessagesCount = 0;
+            updateNotificationCounter(0);
+            localStorage.setItem('unreadMessagesCount', '0'); // Guardar no localStorage
+        }
+
+        // Restaurar contador após atualizar a página
+        function restoreNotificationCounter() {
+            const savedCount = localStorage.getItem('unreadMessagesCount');
+            if (savedCount !== null) {
+                unreadMessagesCount = parseInt(savedCount, 10);
+                updateNotificationCounter(unreadMessagesCount);
             }
         }
 

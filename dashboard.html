@@ -872,11 +872,19 @@
 
             const mensagem = document.getElementById("inputMensagem").value;
             const descricao = document.getElementById("inputDescricao").value;
-            const preco = document.getElementById("inputPreco").value;
+            const precoInput = document.getElementById("inputPreco").value;
             const imagem = document.getElementById("inputImagem").files[0];
 
             if (!imagem) {
                 alert("Por favor, selecione uma imagem.");
+                return;
+            }
+
+            // Remove caracteres não numéricos, substitui vírgulas por pontos e converte para número
+            const preco = parseFloat(precoInput.replace(/[^\d,]/g, '').replace(',', '.'));
+
+            if (isNaN(preco)) {
+                alert("Por favor, insira um preço válido.");
                 return;
             }
 
@@ -888,7 +896,7 @@
             await addDoc(collection(db, "publicacoes"), {
                 mensagem: mensagem,
                 descricao: descricao,
-                preco: preco,
+                preco: preco, // Armazenar como número
                 imagemUrl: imagemUrl,
                 timestamp: serverTimestamp(),
                 userId: auth.currentUser.uid,
@@ -1090,12 +1098,22 @@
                     li.appendChild(descricao);
 
                     // Adicionar o preço do produto
-                    const preco = document.createElement("p");
-                    preco.textContent = `Preço: R$ ${data.preco}`;
-                    preco.style.fontSize = "16px";
-                    preco.style.fontWeight = "bold";
-                    preco.style.color = "#333";
-                    li.appendChild(preco);
+                    const preco = data.preco; // O valor recuperado do banco de dados
+
+                    // Verificar se o valor é um número válido
+                    if (!isNaN(preco)) {
+                        // Formatar o preço como moeda BRL
+                        const precoFormatado = parseFloat(preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                        const precoElemento = document.createElement("p");
+                        precoElemento.textContent = `Preço: ${precoFormatado}`;
+                        precoElemento.style.fontSize = "16px";
+                        precoElemento.style.fontWeight = "bold";
+                        precoElemento.style.color = "#333";
+                        li.appendChild(precoElemento);
+                    } else {
+                        console.error("O preço recuperado não é um número válido.");
+                    }
 
                     // Adicionar data e hora da publicação
                     const dataHora = document.createElement("p");

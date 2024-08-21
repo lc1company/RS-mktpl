@@ -872,24 +872,13 @@
 
             const mensagem = document.getElementById("inputMensagem").value;
             const descricao = document.getElementById("inputDescricao").value;
-            const precoInput = document.getElementById("inputPreco").value;
+            const preco = document.getElementById("inputPreco").value;
             const imagem = document.getElementById("inputImagem").files[0];
 
             if (!imagem) {
                 alert("Por favor, selecione uma imagem.");
                 return;
             }
-
-            // Converter o valor para número
-            const preco = parseFloat(precoInput);
-
-            if (isNaN(preco)) {
-                alert("Por favor, insira um preço válido.");
-                return;
-            }
-
-            // Formatar o preço como moeda BRL
-            const precoFormatado = preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
             const compressedBlob = await compressImage(imagem);
             const storageRef = ref(storage, `imagens/${imagem.name}`);
@@ -899,7 +888,7 @@
             await addDoc(collection(db, "publicacoes"), {
                 mensagem: mensagem,
                 descricao: descricao,
-                preco: precoFormatado,
+                preco: preco,
                 imagemUrl: imagemUrl,
                 timestamp: serverTimestamp(),
                 userId: auth.currentUser.uid,
@@ -1102,7 +1091,7 @@
 
                     // Adicionar o preço do produto
                     const preco = document.createElement("p");
-                    preco.textContent = `Preço: ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    preco.textContent = `Preço: R$ ${data.preco}`;
                     preco.style.fontSize = "16px";
                     preco.style.fontWeight = "bold";
                     preco.style.color = "#333";

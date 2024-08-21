@@ -696,6 +696,18 @@
             </div>
         </div>
 
+        <!--Preview do Anúncio-->
+        <div id="previewContainer"
+            style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 20%; text-align: center;">
+            <p>Pré-visualização do anúncio:</p>
+            <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
+            <p id="descricaoPreview" style="margin-top: 10px; font-style: italic;"></p>
+            <p id="precoPreview" style="margin-top: 10px; font-weight: bold;"></p>
+            <div style="display: flex; justify-content: center;">
+                <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
+            </div>
+        </div>
+
         <div id="Produtor" class="tab-content">
             <h2>Área do Produtor</h2>
             <form id="formPublicacao" style="display: none;">
@@ -716,17 +728,6 @@
                 </p>
             </div>
 
-            <!--Preview do Anúncio-->
-            <div id="previewContainer"
-                style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 20px; text-align: center;">
-                <p>Pré-visualização do anúncio:</p>
-                <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
-                <p id="descricaoPreview" style="margin-top: 10px; font-style: italic;"></p>
-                <p id="precoPreview" style="margin-top: 10px; font-weight: bold;"></p>
-                <div style="display: flex; justify-content: center;">
-                    <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
-                </div>
-            </div>
         </div>
 
         <footer>
@@ -2091,6 +2092,20 @@
             document.getElementById('mensagemPreview').textContent = mensagem;
         });
 
+        // Função para formatar o preço
+        function formatarPreco(preco) {
+            const precoNumero = parseFloat(preco.replace(/[^\d,]/g, '').replace(',', '.'));
+            if (isNaN(precoNumero)) return 'Preço inválido';
+            return precoNumero.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Adicione ouvintes de eventos para detectar mudanças no input de mensagem
+        document.getElementById('inputMensagem').addEventListener('input', function () {
+            // Atualize a mensagem na pré-visualização
+            const mensagem = this.value;
+            document.getElementById('mensagemPreview').textContent = mensagem;
+        });
+
         // Adicione ouvintes de eventos para detectar mudanças no input de descrição
         document.getElementById('inputDescricao').addEventListener('input', function () {
             // Atualize a descrição na pré-visualização
@@ -2102,7 +2117,8 @@
         document.getElementById('inputPreco').addEventListener('input', function () {
             // Atualize o preço na pré-visualização
             const preco = this.value;
-            document.getElementById('precoPreview').textContent = `Preço: R$ ${preco}`;
+            const precoFormatado = formatarPreco(preco);
+            document.getElementById('precoPreview').textContent = `Preço: ${precoFormatado}`;
         });
 
         // Adicione um ouvinte de eventos para detectar mudanças no input de arquivo

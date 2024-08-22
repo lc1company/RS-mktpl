@@ -598,6 +598,32 @@
             justify-content: center;
             font-size: 12px;
         }
+
+        .skeleton {
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-text {
+            width: 80%;
+            height: 16px;
+            background-color: #ddd;
+            margin: 10px 0;
+        }
+
+        .skeleton-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 15px;
+        }
+
+        .skeleton-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 
@@ -1005,10 +1031,31 @@
 
         // Função para obter a linha do tempo de todos os usuários
         window.getAllUserTimeline = async function () {
+            const userTimeline = document.getElementById("userTimeline");
+
+            // Mostrar Skeleton Loader antes de carregar os dados
+            for (let i = 0; i < 5; i++) {
+                const skeletonLi = document.createElement("li");
+                skeletonLi.classList.add("timeline-item");
+
+                const skeletonContainer = document.createElement("div");
+                skeletonContainer.classList.add("skeleton-container");
+
+                const skeletonImg = document.createElement("div");
+                skeletonImg.classList.add("skeleton", "skeleton-img");
+                skeletonContainer.appendChild(skeletonImg);
+
+                const skeletonText = document.createElement("div");
+                skeletonText.classList.add("skeleton", "skeleton-text");
+                skeletonContainer.appendChild(skeletonText);
+
+                skeletonLi.appendChild(skeletonContainer);
+                userTimeline.appendChild(skeletonLi);
+            }
+
             try {
                 const publicacoesRef = collection(db, "publicacoes");
                 const querySnapshot = await getDocs(query(publicacoesRef, orderBy("timestamp", "desc")));
-                const userTimeline = document.getElementById("userTimeline");
                 userTimeline.innerHTML = ""; // Limpar a linha do tempo antes de adicionar novos itens
 
                 querySnapshot.forEach(async (doc) => {

@@ -1123,7 +1123,7 @@
                     dataHora.style.color = "#999";
                     li.appendChild(dataHora);
 
-                    // Adicionar a imagem da publicação, se existir
+                    // Adicionar a imagem da publicação
                     if (data.imagemUrl) {
                         const imagem = document.createElement("img");
                         imagem.src = data.imagemUrl;
@@ -1132,7 +1132,20 @@
                         imagem.style.height = "auto";
                         imagem.style.borderRadius = "4px";
                         imagem.style.marginTop = "10px";
+                        imagem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+                        imagem.style.transition = "transform 0.5s ease";  // Transição suave
+                        imagem.style.transform = "perspective(1000px) translateZ(0px) scale(1)";
                         imagem.loading = "lazy";
+
+                        // Efeito de "hover" para que a imagem "saia para fora" e aumente de tamanho
+                        imagem.addEventListener("mouseenter", () => {
+                            imagem.style.transform = "perspective(1000px) translateZ(50px) scale(1.1)";
+                        });
+
+                        imagem.addEventListener("mouseleave", () => {
+                            imagem.style.transform = "perspective(1000px) translateZ(0px) scale(1)";
+                        });
+
                         li.appendChild(imagem);
                     }
 

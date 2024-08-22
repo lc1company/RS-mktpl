@@ -624,6 +624,16 @@
             display: flex;
             align-items: center;
         }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -675,7 +685,6 @@
 
         <div id="notificacoes" class="tab-content" style="margin-top: 15%; text-align: center;">
             <h2>Notificações</h2>
-            <!-- Adicionar esta seção no seu HTML -->
             <div id="chatList" style="margin-bottom: 20px;">
                 <!-- Lista de chats será exibida aqui -->
             </div>
@@ -735,6 +744,11 @@
         </div>
 
         <div id="Produtor" class="tab-content">
+            <div id="loadingBar" style="display: none; text-align: center; margin-top: 20px;">
+                <div
+                    style="display: inline-block; width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;">
+                </div>
+            </div>
             <h2>Novo Anúncio</h2>
             <form id="formPublicacao" style="display: none;">
                 <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
@@ -897,6 +911,9 @@
         document.getElementById("formPublicacao").addEventListener("submit", async (e) => {
             e.preventDefault();
 
+            // Mostrar a barra de loading
+            document.getElementById("loadingBar").style.display = "block";
+
             const mensagem = document.getElementById("inputMensagem").value;
             const descricao = document.getElementById("inputDescricao").value;
             const precoInput = document.getElementById("inputPreco").value;
@@ -904,6 +921,7 @@
 
             if (!imagem) {
                 alert("Por favor, selecione uma imagem.");
+                document.getElementById("loadingBar").style.display = "none"; // Ocultar a barra de loading se houver erro
                 return;
             }
 
@@ -912,31 +930,41 @@
 
             if (isNaN(preco)) {
                 alert("Por favor, insira um preço válido.");
+                document.getElementById("loadingBar").style.display = "none"; // Ocultar a barra de loading se houver erro
                 return;
             }
 
-            const compressedBlob = await compressImage(imagem);
-            const storageRef = ref(storage, `imagens/${imagem.name}`);
-            const snapshot = await uploadBytes(storageRef, compressedBlob);
-            const imagemUrl = await getDownloadURL(snapshot.ref);
+            try {
+                const compressedBlob = await compressImage(imagem);
+                const storageRef = ref(storage, `imagens/${imagem.name}`);
+                const snapshot = await uploadBytes(storageRef, compressedBlob);
+                const imagemUrl = await getDownloadURL(snapshot.ref);
 
-            await addDoc(collection(db, "publicacoes"), {
-                mensagem: mensagem,
-                descricao: descricao,
-                preco: preco, // Armazenar como número
-                imagemUrl: imagemUrl,
-                timestamp: serverTimestamp(),
-                userId: auth.currentUser.uid,
-            });
+                await addDoc(collection(db, "publicacoes"), {
+                    mensagem: mensagem,
+                    descricao: descricao,
+                    preco: preco, // Armazenar como número
+                    imagemUrl: imagemUrl,
+                    timestamp: serverTimestamp(),
+                    userId: auth.currentUser.uid,
+                });
 
-            getUserTimeline(auth.currentUser.uid);
+                // Limpar os campos do formulário
+                document.getElementById("inputMensagem").value = "";
+                document.getElementById("inputDescricao").value = "";
+                document.getElementById("inputPreco").value = "";
+                document.getElementById("inputImagem").value = "";
 
-            document.getElementById("inputMensagem").value = "";
-            document.getElementById("inputDescricao").value = "";
-            document.getElementById("inputPreco").value = "";
-            document.getElementById("inputImagem").value = "";
+                // Recarregar a página para atualizar a linha do tempo
+                location.reload();
 
-            location.reload(); // Recarregar a página para atualizar a linha do tempo
+            } catch (error) {
+                console.error("Erro ao publicar anúncio: ", error);
+                alert("Ocorreu um erro ao publicar o anúncio. Tente novamente.");
+            } finally {
+                // Ocultar a barra de loading após a publicação ou em caso de erro
+                document.getElementById("loadingBar").style.display = "none";
+            }
         });
 
         // Função para verificar o papel do usuário

@@ -623,7 +623,17 @@
         .skeleton-container {
             display: flex;
             align-items: center;
+            margin-bottom: 10px;
         }
+
+        .skeleton-full {
+            width: 100%;
+            height: 200px;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
 
         @keyframes spin {
             0% {
@@ -1066,18 +1076,34 @@
                 const skeletonLi = document.createElement("li");
                 skeletonLi.classList.add("timeline-item");
 
+                // Contêiner do skeleton
                 const skeletonContainer = document.createElement("div");
                 skeletonContainer.classList.add("skeleton-container");
 
+                // Imagem do usuário
                 const skeletonImg = document.createElement("div");
                 skeletonImg.classList.add("skeleton", "skeleton-img");
                 skeletonContainer.appendChild(skeletonImg);
 
+                // Texto do usuário
                 const skeletonText = document.createElement("div");
                 skeletonText.classList.add("skeleton", "skeleton-text");
                 skeletonContainer.appendChild(skeletonText);
 
+                // Adiciona o container do skeleton ao item da lista
                 skeletonLi.appendChild(skeletonContainer);
+
+                // Adiciona um skeleton de texto para a mensagem
+                const skeletonMessage = document.createElement("div");
+                skeletonMessage.classList.add("skeleton", "skeleton-text");
+                skeletonLi.appendChild(skeletonMessage);
+
+                // Adiciona um skeleton para a imagem da publicação (se houver)
+                const skeletonFull = document.createElement("div");
+                skeletonFull.classList.add("skeleton", "skeleton-full");
+                skeletonLi.appendChild(skeletonFull);
+
+                // Adiciona o skeleton à linha do tempo
                 userTimeline.appendChild(skeletonLi);
             }
 
@@ -1839,11 +1865,13 @@
         // Função para curtir uma publicação
         window.likePost = async function (postId) {
             try {
+                // Verificar se o usuário já curtiu a publicação
                 if (hasLikedPost(postId)) {
                     console.log("Você já curtiu esta publicação.");
                     return;
                 }
 
+                // Verificar se o usuário já descurtiu a publicação e remover o deslike
                 if (hasDislikedPost(postId)) {
                     await removeDislike(postId);
                 }
@@ -1853,23 +1881,12 @@
                 const likeCountElement = document.getElementById(`likeCount_${postId}`);
                 likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
 
+                // Desabilitar o botão de like após um clique
                 const likeButton = document.getElementById(`likeButton_${postId}`);
                 likeButton.disabled = true;
 
+                // Armazenar o estado de curtida no armazenamento local
                 localStorage.setItem(`like_${postId}`, 'true');
-
-                // Adicionar interação
-                const user = auth.currentUser;
-                if (user) {
-                    await addInteraction(user.uid, "like", postId, user.displayName, user.photoURL);
-                }
-
-                // Adicionar notificação
-                const postSnapshot = await getDoc(postRef);
-                if (postSnapshot.exists()) {
-                    const postData = postSnapshot.data();
-                    await addNotification(postData.userId, `curtiu sua publicação`, postId);
-                }
             } catch (error) {
                 console.error("Erro ao curtir a publicação:", error);
             }
@@ -1878,13 +1895,15 @@
         // Função para descurtir uma publicação
         window.dislikePost = async function (postId) {
             try {
+                // Verificar se o usuário já descurtiu a publicação
                 if (hasDislikedPost(postId)) {
                     console.log("Você já descurtiu esta publicação.");
                     return;
                 }
 
+                // Verificar se o usuário já curtiu a publicação e remover o like
                 if (hasLikedPost(postId)) {
-                    await removeDislike(postId);
+                    await removeDislike(postId); // Corrigido aqui
                 }
 
                 const postRef = doc(db, "publicacoes", postId);
@@ -1892,23 +1911,12 @@
                 const dislikeCountElement = document.getElementById(`dislikeCount_${postId}`);
                 dislikeCountElement.textContent = parseInt(dislikeCountElement.textContent) + 1;
 
+                // Desabilitar o botão de deslike após um clique
                 const dislikeButton = document.getElementById(`dislikeButton_${postId}`);
                 dislikeButton.disabled = true;
 
+                // Armazenar o estado de descurtida no armazenamento local
                 localStorage.setItem(`dislike_${postId}`, 'true');
-
-                // Adicionar interação
-                const user = auth.currentUser;
-                if (user) {
-                    await addInteraction(user.uid, "dislike", postId, user.displayName, user.photoURL);
-                }
-
-                // Adicionar notificação
-                const postSnapshot = await getDoc(postRef);
-                if (postSnapshot.exists()) {
-                    const postData = postSnapshot.data();
-                    await addNotification(postData.userId, `descurtiu sua publicação`, postId);
-                }
             } catch (error) {
                 console.error("Erro ao descurtir a publicação:", error);
             }

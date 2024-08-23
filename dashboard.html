@@ -644,6 +644,44 @@
                 transform: rotate(360deg);
             }
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            margin-top: 20%;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -691,6 +729,16 @@
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
+        </div>
+
+        <!-- Modal para ver mais detalhes do anuncio -->
+        <div id="modalDetalhes" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeModal">&times;</span>
+                <div id="detalhesAnuncio">
+                    <!-- Informações detalhadas serão inseridas dinamicamente aqui -->
+                </div>
+            </div>
         </div>
 
         <div id="notificacoes" class="tab-content" style="margin-top: 15%; text-align: center;">
@@ -1349,6 +1397,18 @@
                     comprarButton.onclick = () => iniciarCompra(data.userId, auth.currentUser.uid, data);
                     li.appendChild(comprarButton);
 
+                    const verMaisButton = document.createElement("button");
+                    verMaisButton.textContent = "Ver Mais";
+                    verMaisButton.style.backgroundColor = "#3498db";
+                    verMaisButton.style.color = "#fff";
+                    verMaisButton.style.border = "none";
+                    verMaisButton.style.padding = "8px 12px";
+                    verMaisButton.style.borderRadius = "4px";
+                    verMaisButton.style.cursor = "pointer";
+                    verMaisButton.style.marginTop = "10px";
+                    verMaisButton.onclick = () => showDetalhesAnuncio(data);
+                    li.appendChild(verMaisButton);
+
                     // Div para exibir os comentários
                     const commentsDiv = document.createElement("div");
                     commentsDiv.id = `comments_${doc.id}`;
@@ -1406,6 +1466,51 @@
                 console.error("Erro ao obter a linha do tempo:", error);
             }
         }
+
+        function showDetalhesAnuncio(data) {
+            const modal = document.getElementById("modalDetalhes");
+            const detalhesAnuncio = document.getElementById("detalhesAnuncio");
+
+            // Limpar conteúdo anterior
+            detalhesAnuncio.innerHTML = "";
+
+            // Adicionar conteúdo ao modal
+            const titulo = document.createElement("h2");
+            titulo.textContent = data.mensagem;
+            detalhesAnuncio.appendChild(titulo);
+
+            const descricao = document.createElement("p");
+            descricao.textContent = `Descrição: ${data.descricao}`;
+            detalhesAnuncio.appendChild(descricao);
+
+            const precoElemento = document.createElement("p");
+            precoElemento.textContent = `Preço: ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+            detalhesAnuncio.appendChild(precoElemento);
+
+            if (data.imagemUrl) {
+                const imagem = document.createElement("img");
+                imagem.src = data.imagemUrl;
+                imagem.style.width = "100%";
+                imagem.style.marginTop = "10px";
+                detalhesAnuncio.appendChild(imagem);
+            }
+
+            // Exibir o modal
+            modal.style.display = "block";
+        }
+
+        // Fechar o modal quando o usuário clicar no botão de fechar
+        document.getElementById("closeModal").onclick = function () {
+            document.getElementById("modalDetalhes").style.display = "none";
+        };
+
+        // Fechar o modal quando o usuário clicar fora do modal
+        window.onclick = function (event) {
+            const modal = document.getElementById("modalDetalhes");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
 
         let currentChatId = null;
 

@@ -660,13 +660,15 @@
 
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto;
+            margin: 5% auto;
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
-            max-width: 600px;
+            max-width: 900px;
+            /* Aumentado para acomodar melhor imagens lado a lado */
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
 
         .close {
@@ -674,12 +676,44 @@
             float: right;
             font-size: 28px;
             font-weight: bold;
+            cursor: pointer;
         }
 
         .close:hover,
         .close:focus {
             color: black;
             text-decoration: none;
+        }
+
+        #detalhesAnuncio {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #detalhesAnuncio img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+
+        .imagens-adicionais {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .imagens-adicionais img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .imagens-adicionais img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
             cursor: pointer;
         }
     </style>
@@ -809,8 +843,12 @@
             </div>
             <h2>Novo Anúncio</h2>
             <form id="formPublicacao" style="display: none;">
-                <button type="button" id="btnEscolherArquivo">Upload Imagem</button>
+                <button type="button" id="btnEscolherArquivo">Upload Imagem Principal</button>
                 <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
+
+                <button type="button" id="btnEscolherImagensAdicionais">Upload Imagens Adicionais</button>
+                <input type="file" accept="image/*" id="inputImagensAdicionais" multiple style="display: none;">
+
                 <input type="text" maxlength="200" placeholder="Nome do Produto" id="inputMensagem" required>
                 <input type="text" maxlength="200" placeholder="Descrição do Produto" id="inputDescricao" required>
                 <input type="number" placeholder="Preço do Produto" id="inputPreco" step="0.01" required>
@@ -966,63 +1004,78 @@
         }
 
         // Função para publicar uma nova publicação
+
         document.getElementById("formPublicacao").addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            // Mostrar a barra de loading
             document.getElementById("loadingBar").style.display = "block";
 
             const mensagem = document.getElementById("inputMensagem").value;
             const descricao = document.getElementById("inputDescricao").value;
             const precoInput = document.getElementById("inputPreco").value;
-            const imagem = document.getElementById("inputImagem").files[0];
+            const imagemPrincipal = document.getElementById("inputImagem").files[0];
+            const imagensAdicionais = document.getElementById("inputImagensAdicionais").files;
 
-            if (!imagem) {
-                alert("Por favor, selecione uma imagem.");
-                document.getElementById("loadingBar").style.display = "none"; // Ocultar a barra de loading se houver erro
+            if (!imagemPrincipal) {
+                alert("Por favor, selecione uma imagem principal.");
+                document.getElementById("loadingBar").style.display = "none";
                 return;
             }
 
-            // Remove caracteres não numéricos, substitui vírgulas por pontos e converte para número
             const preco = parseFloat(precoInput.replace(/[^\d,]/g, '').replace(',', '.'));
 
             if (isNaN(preco)) {
                 alert("Por favor, insira um preço válido.");
-                document.getElementById("loadingBar").style.display = "none"; // Ocultar a barra de loading se houver erro
+                document.getElementById("loadingBar").style.display = "none";
                 return;
             }
 
             try {
-                const compressedBlob = await compressImage(imagem);
-                const storageRef = ref(storage, `imagens/${imagem.name}`);
-                const snapshot = await uploadBytes(storageRef, compressedBlob);
-                const imagemUrl = await getDownloadURL(snapshot.ref);
+                // Upload da imagem principal
+                const compressedBlobPrincipal = await compressImage(imagemPrincipal);
+                const storageRefPrincipal = ref(storage, `imagens/${imagemPrincipal.name}`);
+                const snapshotPrincipal = await uploadBytes(storageRefPrincipal, compressedBlobPrincipal);
+                const imagemPrincipalUrl = await getDownloadURL(snapshotPrincipal.ref);
+
+                // Upload das imagens adicionais
+                const imagensAdicionaisUrls = [];
+                for (let i = 0; i < imagensAdicionais.length; i++) {
+                    const imagemAdicional = imagensAdicionais[i];
+                    const compressedBlobAdicional = await compressImage(imagemAdicional);
+                    const storageRefAdicional = ref(storage, `imagens/adicionais/${imagemAdicional.name}`);
+                    const snapshotAdicional = await uploadBytes(storageRefAdicional, compressedBlobAdicional);
+                    const imagemAdicionalUrl = await getDownloadURL(snapshotAdicional.ref);
+                    imagensAdicionaisUrls.push(imagemAdicionalUrl);
+                }
 
                 await addDoc(collection(db, "publicacoes"), {
                     mensagem: mensagem,
                     descricao: descricao,
-                    preco: preco, // Armazenar como número
-                    imagemUrl: imagemUrl,
+                    preco: preco,
+                    imagemUrl: imagemPrincipalUrl, // Nome da imagem principal permanece o mesmo
+                    imagensAdicionaisUrls: imagensAdicionaisUrls,
                     timestamp: serverTimestamp(),
                     userId: auth.currentUser.uid,
                 });
 
-                // Limpar os campos do formulário
                 document.getElementById("inputMensagem").value = "";
                 document.getElementById("inputDescricao").value = "";
                 document.getElementById("inputPreco").value = "";
                 document.getElementById("inputImagem").value = "";
+                document.getElementById("inputImagensAdicionais").value = "";
 
-                // Recarregar a página para atualizar a linha do tempo
                 location.reload();
 
             } catch (error) {
                 console.error("Erro ao publicar anúncio: ", error);
                 alert("Ocorreu um erro ao publicar o anúncio. Tente novamente.");
             } finally {
-                // Ocultar a barra de loading após a publicação ou em caso de erro
                 document.getElementById("loadingBar").style.display = "none";
             }
+        });
+
+        document.getElementById("btnEscolherImagensAdicionais").addEventListener("click", () => {
+            document.getElementById("inputImagensAdicionais").click();
         });
 
         // Função para verificar o papel do usuário
@@ -1471,10 +1524,8 @@
             const modal = document.getElementById("modalDetalhes");
             const detalhesAnuncio = document.getElementById("detalhesAnuncio");
 
-            // Limpar conteúdo anterior
             detalhesAnuncio.innerHTML = "";
 
-            // Adicionar conteúdo ao modal
             const titulo = document.createElement("h2");
             titulo.textContent = data.mensagem;
             detalhesAnuncio.appendChild(titulo);
@@ -1487,15 +1538,26 @@
             precoElemento.textContent = `Preço: ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
             detalhesAnuncio.appendChild(precoElemento);
 
-            if (data.imagemUrl) {
-                const imagem = document.createElement("img");
-                imagem.src = data.imagemUrl;
-                imagem.style.width = "100%";
-                imagem.style.marginTop = "10px";
-                detalhesAnuncio.appendChild(imagem);
+            if (data.imagemPrincipalUrl) {
+                const imagemPrincipal = document.createElement("img");
+                imagemPrincipal.src = data.imagemPrincipalUrl;
+                imagemPrincipal.style.marginTop = "10px";
+                detalhesAnuncio.appendChild(imagemPrincipal);
             }
 
-            // Exibir o modal
+            if (data.imagensAdicionaisUrls && data.imagensAdicionaisUrls.length > 0) {
+                const containerImagensAdicionais = document.createElement("div");
+                containerImagensAdicionais.className = "imagens-adicionais";
+
+                data.imagensAdicionaisUrls.forEach(url => {
+                    const imagemAdicional = document.createElement("img");
+                    imagemAdicional.src = url;
+                    containerImagensAdicionais.appendChild(imagemAdicional);
+                });
+
+                detalhesAnuncio.appendChild(containerImagensAdicionais);
+            }
+
             modal.style.display = "block";
         }
 
@@ -2229,14 +2291,25 @@
                     await deleteDoc(doc.ref);
                 });
 
-                // Excluir a imagem associada à publicação no Storage
+                // Obter os dados da publicação para acessar as URLs das imagens
                 const postDoc = await getDoc(doc(db, "publicacoes", postId));
                 if (postDoc.exists()) {
                     const postData = postDoc.data();
+
+                    // Excluir a imagem principal associada à publicação no Storage
                     if (postData.imagemUrl) {
                         const imageRef = ref(storage, postData.imagemUrl);
                         await deleteObject(imageRef);
-                        console.log("Imagem associada à publicação excluída com sucesso.");
+                        console.log("Imagem principal associada à publicação excluída com sucesso.");
+                    }
+
+                    // Excluir as imagens adicionais associadas à publicação no Storage
+                    if (postData.imagensAdicionaisUrls && postData.imagensAdicionaisUrls.length > 0) {
+                        for (const url of postData.imagensAdicionaisUrls) {
+                            const imageRef = ref(storage, url);
+                            await deleteObject(imageRef);
+                            console.log("Imagem adicional associada à publicação excluída com sucesso.");
+                        }
                     }
                 }
 

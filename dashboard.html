@@ -665,7 +665,6 @@
             border: 1px solid #888;
             width: 80%;
             max-width: 900px;
-            /* Aumentado para acomodar melhor imagens lado a lado */
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             position: relative;
@@ -691,30 +690,75 @@
             align-items: center;
         }
 
-        #detalhesAnuncio img {
-            max-width: 100%;
-            height: auto;
-            margin-top: 10px;
-        }
-
         .imagens-adicionais {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            display: flex;
+            overflow-x: auto;
             gap: 10px;
             margin-top: 10px;
+            width: 100%;
+            padding-bottom: 10px;
         }
 
         .imagens-adicionais img {
-            width: 100%;
+            width: 150px;
             height: auto;
             object-fit: cover;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
         }
 
         .imagens-adicionais img:hover {
             transform: scale(1.1);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
             cursor: pointer;
+        }
+
+        .imagem-container {
+            position: relative;
+        }
+
+        .imagem-container img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .fullscreen-btn:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .imagem-fullscreen {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+
+        .imagem-fullscreen img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
         }
     </style>
 </head>
@@ -773,6 +817,11 @@
                     <!-- Informações detalhadas serão inseridas dinamicamente aqui -->
                 </div>
             </div>
+        </div>
+
+        <!-- Imagem em tela cheia -->
+        <div id="imagemFullscreen" class="imagem-fullscreen">
+            <img id="imagemFullscreenSrc" src="" alt="Imagem em Tela Cheia">
         </div>
 
         <div id="notificacoes" class="tab-content" style="margin-top: 15%; text-align: center;">
@@ -1550,15 +1599,37 @@
                 containerImagensAdicionais.className = "imagens-adicionais";
 
                 data.imagensAdicionaisUrls.forEach(url => {
+                    const imagemContainer = document.createElement("div");
+                    imagemContainer.className = "imagem-container";
+
                     const imagemAdicional = document.createElement("img");
                     imagemAdicional.src = url;
-                    containerImagensAdicionais.appendChild(imagemAdicional);
+
+                    const fullscreenBtn = document.createElement("button");
+                    fullscreenBtn.className = "fullscreen-btn";
+                    fullscreenBtn.innerHTML = "&#x26F6;"; // Ícone de tela cheia
+                    fullscreenBtn.onclick = function (event) {
+                        event.stopPropagation(); // Impede o zoom 3D ao clicar no botão de tela cheia
+                        openFullscreen(url);
+                    };
+
+                    imagemContainer.appendChild(imagemAdicional);
+                    imagemContainer.appendChild(fullscreenBtn);
+                    containerImagensAdicionais.appendChild(imagemContainer);
                 });
 
                 detalhesAnuncio.appendChild(containerImagensAdicionais);
             }
 
             modal.style.display = "block";
+        }
+
+        function openFullscreen(url) {
+            const fullscreenDiv = document.getElementById("imagemFullscreen");
+            const fullscreenImg = document.getElementById("imagemFullscreenSrc");
+
+            fullscreenImg.src = url;
+            fullscreenDiv.style.display = "flex";
         }
 
         // Fechar o modal quando o usuário clicar no botão de fechar
@@ -1573,6 +1644,11 @@
                 modal.style.display = "none";
             }
         };
+
+        // Fechar a visualização em tela cheia ao clicar fora da imagem
+        document.getElementById("imagemFullscreen").onclick = function () {
+            this.style.display = "none";
+        }
 
         let currentChatId = null;
 

@@ -645,6 +645,7 @@
             }
         }
 
+        /* Modal */
         .modal {
             margin-top: 20%;
             display: none;
@@ -656,24 +657,25 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.7);
+            margin-bottom: 20%;
         }
 
         .modal-content {
-            background-color: #fefefe;
+            background-color: #fff;
             margin: 5% auto;
             padding: 20px;
-            border: 1px solid #888;
+            border: 1px solid #ddd;
             width: 100%;
             max-width: 900px;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             position: relative;
             max-height: 80%;
-            overflow: hidden;
+            overflow-y: auto;
         }
 
         .close {
-            color: #ff0000;
+            color: #ff6f61;
             float: right;
             font-size: 28px;
             font-weight: bold;
@@ -682,22 +684,57 @@
 
         .close:hover,
         .close:focus {
-            color: black;
+            color: #e74c3c;
             text-decoration: none;
         }
 
+        /* Detalhes do Anúncio */
         #detalhesAnuncio {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
+        .modal-titulo {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .info-adicional {
+            margin-top: 10px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f5f5f5;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            color: #333;
+        }
+
+        .info-adicional i {
+            color: #3498db;
+            margin-right: 10px;
+        }
+
+        /* Imagem Principal */
+        .imagem-principal {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Imagens Adicionais */
         .imagens-adicionais {
             display: flex;
             overflow-x: auto;
             overflow-y: hidden;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 20px;
             gap: 10px;
             padding: 10px;
             scroll-behavior: smooth;
@@ -716,28 +753,24 @@
             background-color: #555;
         }
 
-        .imagens-adicionais img {
+        .imagem-container {
+            display: inline-block;
+            position: relative;
+            width: 150px;
+        }
+
+        .imagem-adicional {
             height: 150px;
+            width: 100%;
             object-fit: cover;
             border-radius: 8px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .imagens-adicionais img:hover {
+        .imagem-adicional:hover {
             transform: scale(1.1);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
             cursor: pointer;
-        }
-
-        .imagem-container {
-            position: relative;
-            width: 100%;
-        }
-
-        .imagem-container img {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
         }
 
         .fullscreen-btn {
@@ -757,6 +790,7 @@
             background-color: rgba(0, 0, 0, 0.7);
         }
 
+        /* Imagem em Tela Cheia */
         .imagem-fullscreen {
             display: none;
             position: fixed;
@@ -775,29 +809,7 @@
             max-width: 90%;
             max-height: 90%;
             object-fit: contain;
-            border-radius: 8px;
-        }
-
-        .info-adicional {
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            width: 100%;
-            max-width: 900px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .info-adicional p {
-            margin: 5px 0;
-            font-size: 16px;
-            color: #333;
-        }
-
-        .info-adicional i {
-            color: #007bff;
-            margin-right: 5px;
+            border-radius: 12px;
         }
     </style>
 </head>
@@ -1644,58 +1656,74 @@
 
             detalhesAnuncio.innerHTML = "";
 
-            // Adiciona as informações principais
+            // Adiciona o título
             const titulo = document.createElement("h2");
             titulo.textContent = data.mensagem;
+            titulo.className = "modal-titulo";
             detalhesAnuncio.appendChild(titulo);
 
+            // Adiciona a descrição
             const descricao = document.createElement("p");
             descricao.textContent = `Descrição: ${data.descricao}`;
+            descricao.className = "info-adicional";
             detalhesAnuncio.appendChild(descricao);
 
+            // Adiciona o preço
             const precoElemento = document.createElement("p");
             precoElemento.textContent = `Preço: ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+            precoElemento.className = "info-adicional";
             detalhesAnuncio.appendChild(precoElemento);
 
+            // Adiciona a localização
             const localizacaoElemento = document.createElement("p");
             localizacaoElemento.innerHTML = `<i class="fa fa-map-marker-alt"></i> Localização: ${data.localizacao}`;
+            localizacaoElemento.className = "info-adicional";
             detalhesAnuncio.appendChild(localizacaoElemento);
 
+            // Adiciona o tipo de transação
             const tipoTransacaoElemento = document.createElement("p");
             tipoTransacaoElemento.innerHTML = `<i class="fa fa-exchange-alt"></i> Tipo de Transação: ${data.tipoTransacao}`;
+            tipoTransacaoElemento.className = "info-adicional";
             detalhesAnuncio.appendChild(tipoTransacaoElemento);
 
+            // Adiciona os quartos
             const quartosElemento = document.createElement("p");
             quartosElemento.innerHTML = `<i class="fa fa-bed"></i> Quartos: ${data.quartos}`;
+            quartosElemento.className = "info-adicional";
             detalhesAnuncio.appendChild(quartosElemento);
 
+            // Adiciona os banheiros
             const banheirosElemento = document.createElement("p");
             banheirosElemento.innerHTML = `<i class="fa fa-bath"></i> Banheiros: ${data.banheiros}`;
+            banheirosElemento.className = "info-adicional";
             detalhesAnuncio.appendChild(banheirosElemento);
 
+            // Adiciona os metros quadrados
             const metrosQuadradosElemento = document.createElement("p");
             metrosQuadradosElemento.innerHTML = `<i class="fa fa-ruler-combined"></i> Metros Quadrados: ${data.metrosQuadrados}`;
+            metrosQuadradosElemento.className = "info-adicional";
             detalhesAnuncio.appendChild(metrosQuadradosElemento);
 
-            // Adiciona a imagem principal, se existir
+            // Adiciona a imagem principal
             if (data.imagemPrincipalUrl) {
                 const imgPrincipal = document.createElement("img");
                 imgPrincipal.src = data.imagemPrincipalUrl;
-                imgPrincipal.style.marginTop = "10px";
+                imgPrincipal.className = "imagem-principal";
                 detalhesAnuncio.appendChild(imgPrincipal);
             }
 
-            // Adiciona imagens adicionais, se existirem
+            // Adiciona imagens adicionais
             if (data.imagensAdicionaisUrls && data.imagensAdicionaisUrls.length > 0) {
                 const containerImagensAdicionais = document.createElement("div");
                 containerImagensAdicionais.className = "imagens-adicionais";
 
                 data.imagensAdicionaisUrls.forEach(url => {
                     const containerImagem = document.createElement("div");
-                    containerImagem.style.position = "relative";
+                    containerImagem.className = "imagem-container";
 
                     const imagemAdicional = document.createElement("img");
                     imagemAdicional.src = url;
+                    imagemAdicional.className = "imagem-adicional";
 
                     const fullscreenBtn = document.createElement("button");
                     fullscreenBtn.className = "fullscreen-btn";

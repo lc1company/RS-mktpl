@@ -646,6 +646,7 @@
         }
 
         .modal {
+            margin-top: 20%;
             display: none;
             position: fixed;
             z-index: 1;
@@ -655,7 +656,6 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.7);
-            margin-top: 20%;
         }
 
         .modal-content {
@@ -664,15 +664,16 @@
             padding: 20px;
             border: 1px solid #888;
             width: 100%;
-            height: 70%;
             max-width: 900px;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             position: relative;
+            max-height: 80%;
+            overflow: hidden;
         }
 
         .close {
-            color: #aaa;
+            color: #ff0000;
             float: right;
             font-size: 28px;
             font-weight: bold;
@@ -698,13 +699,28 @@
             width: 100%;
             margin-top: 10px;
             gap: 10px;
+            padding: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .imagens-adicionais::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .imagens-adicionais::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 4px;
+        }
+
+        .imagens-adicionais::-webkit-scrollbar-thumb:hover {
+            background-color: #555;
         }
 
         .imagens-adicionais img {
             height: 150px;
             object-fit: cover;
+            border-radius: 8px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
         }
 
         .imagens-adicionais img:hover {
@@ -715,13 +731,13 @@
 
         .imagem-container {
             position: relative;
+            width: 100%;
         }
 
         .imagem-container img {
             width: 100%;
             height: auto;
             object-fit: cover;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .fullscreen-btn {
@@ -759,6 +775,29 @@
             max-width: 90%;
             max-height: 90%;
             object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .info-adicional {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-adicional p {
+            margin: 5px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .info-adicional i {
+            color: #007bff;
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -822,6 +861,7 @@
         <!-- Imagem em tela cheia -->
         <div id="imagemFullscreen" class="imagem-fullscreen">
             <img id="imagemFullscreenSrc" src="" alt="Imagem em Tela Cheia">
+            <span id="closeFullscreen" class="close-fullscreen"><i class="fas fa-times"></i></span>
         </div>
 
         <div id="notificacoes" class="tab-content" style="margin-top: 15%; text-align: center;">
@@ -901,6 +941,18 @@
                 <input type="text" maxlength="200" placeholder="Nome do Produto" id="inputMensagem" required>
                 <input type="text" maxlength="200" placeholder="Descrição do Produto" id="inputDescricao" required>
                 <input type="number" placeholder="Preço do Produto" id="inputPreco" step="0.01" required>
+
+                <!-- Campos adicionais -->
+                <input type="text" maxlength="200" placeholder="Localização" id="inputLocalizacao" required>
+                <select id="inputTipoTransacao" required>
+                    <option value="" disabled selected>Selecione o Tipo de Transação</option>
+                    <option value="Venda">Venda</option>
+                    <option value="Locação">Locação</option>
+                </select>
+                <input type="number" placeholder="Quantidade de Quartos" id="inputQuartos" required>
+                <input type="number" placeholder="Quantidade de Banheiros" id="inputBanheiros" required>
+                <input type="number" placeholder="Metros Quadrados" id="inputMetrosQuadrados" required>
+
                 <button
                     style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
                     type="submit">Publicar</button>
@@ -1053,7 +1105,6 @@
         }
 
         // Função para publicar uma nova publicação
-
         document.getElementById("formPublicacao").addEventListener("submit", async (e) => {
             e.preventDefault();
 
@@ -1064,6 +1115,13 @@
             const precoInput = document.getElementById("inputPreco").value;
             const imagemPrincipal = document.getElementById("inputImagem").files[0];
             const imagensAdicionais = document.getElementById("inputImagensAdicionais").files;
+
+            // Novos campos
+            const localizacao = document.getElementById("inputLocalizacao").value;
+            const tipoTransacao = document.getElementById("inputTipoTransacao").value;
+            const quartos = parseInt(document.getElementById("inputQuartos").value);
+            const banheiros = parseInt(document.getElementById("inputBanheiros").value);
+            const metrosQuadrados = parseInt(document.getElementById("inputMetrosQuadrados").value);
 
             if (!imagemPrincipal) {
                 alert("Por favor, selecione uma imagem principal.");
@@ -1101,17 +1159,28 @@
                     mensagem: mensagem,
                     descricao: descricao,
                     preco: preco,
-                    imagemUrl: imagemPrincipalUrl, // Nome da imagem principal permanece o mesmo
+                    imagemUrl: imagemPrincipalUrl,
                     imagensAdicionaisUrls: imagensAdicionaisUrls,
+                    localizacao: localizacao,
+                    tipoTransacao: tipoTransacao,
+                    quartos: quartos,
+                    banheiros: banheiros,
+                    metrosQuadrados: metrosQuadrados,
                     timestamp: serverTimestamp(),
                     userId: auth.currentUser.uid,
                 });
 
+                // Limpar os campos do formulário
                 document.getElementById("inputMensagem").value = "";
                 document.getElementById("inputDescricao").value = "";
                 document.getElementById("inputPreco").value = "";
                 document.getElementById("inputImagem").value = "";
                 document.getElementById("inputImagensAdicionais").value = "";
+                document.getElementById("inputLocalizacao").value = "";
+                document.getElementById("inputTipoTransacao").value = "";
+                document.getElementById("inputQuartos").value = "";
+                document.getElementById("inputBanheiros").value = "";
+                document.getElementById("inputMetrosQuadrados").value = "";
 
                 location.reload();
 
@@ -1575,6 +1644,7 @@
 
             detalhesAnuncio.innerHTML = "";
 
+            // Adiciona as informações principais
             const titulo = document.createElement("h2");
             titulo.textContent = data.mensagem;
             detalhesAnuncio.appendChild(titulo);
@@ -1587,13 +1657,35 @@
             precoElemento.textContent = `Preço: ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
             detalhesAnuncio.appendChild(precoElemento);
 
+            const localizacaoElemento = document.createElement("p");
+            localizacaoElemento.innerHTML = `<i class="fa fa-map-marker-alt"></i> Localização: ${data.localizacao}`;
+            detalhesAnuncio.appendChild(localizacaoElemento);
+
+            const tipoTransacaoElemento = document.createElement("p");
+            tipoTransacaoElemento.innerHTML = `<i class="fa fa-exchange-alt"></i> Tipo de Transação: ${data.tipoTransacao}`;
+            detalhesAnuncio.appendChild(tipoTransacaoElemento);
+
+            const quartosElemento = document.createElement("p");
+            quartosElemento.innerHTML = `<i class="fa fa-bed"></i> Quartos: ${data.quartos}`;
+            detalhesAnuncio.appendChild(quartosElemento);
+
+            const banheirosElemento = document.createElement("p");
+            banheirosElemento.innerHTML = `<i class="fa fa-bath"></i> Banheiros: ${data.banheiros}`;
+            detalhesAnuncio.appendChild(banheirosElemento);
+
+            const metrosQuadradosElemento = document.createElement("p");
+            metrosQuadradosElemento.innerHTML = `<i class="fa fa-ruler-combined"></i> Metros Quadrados: ${data.metrosQuadrados}`;
+            detalhesAnuncio.appendChild(metrosQuadradosElemento);
+
+            // Adiciona a imagem principal, se existir
             if (data.imagemPrincipalUrl) {
-                const imagemPrincipal = document.createElement("img");
-                imagemPrincipal.src = data.imagemPrincipalUrl;
-                imagemPrincipal.style.marginTop = "10px";
-                detalhesAnuncio.appendChild(imagemPrincipal);
+                const imgPrincipal = document.createElement("img");
+                imgPrincipal.src = data.imagemPrincipalUrl;
+                imgPrincipal.style.marginTop = "10px";
+                detalhesAnuncio.appendChild(imgPrincipal);
             }
 
+            // Adiciona imagens adicionais, se existirem
             if (data.imagensAdicionaisUrls && data.imagensAdicionaisUrls.length > 0) {
                 const containerImagensAdicionais = document.createElement("div");
                 containerImagensAdicionais.className = "imagens-adicionais";

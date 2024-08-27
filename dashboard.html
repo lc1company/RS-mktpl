@@ -647,7 +647,7 @@
 
         /* Modal */
         .modal {
-            margin-top: 20%;
+            margin-top: 22%;
             display: none;
             position: fixed;
             z-index: 1;
@@ -657,12 +657,13 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.7);
-            margin-bottom: 20%;
+            padding-bottom: 20%;
+            margin-bottom: 22%;
         }
 
         .modal-content {
             background-color: #fff;
-            margin: 5% auto;
+            margin: 0 auto;
             padding: 20px;
             border: 1px solid #ddd;
             width: 100%;
@@ -670,109 +671,43 @@
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             position: relative;
-            max-height: 80%;
+            max-height: 100%;
             overflow-y: auto;
         }
 
-        .close {
-            color: #ff6f61;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: #e74c3c;
-            text-decoration: none;
-        }
-
-        /* Detalhes do Anúncio */
-        #detalhesAnuncio {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .modal-titulo {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        .info-adicional {
-            margin-top: 10px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background-color: #f5f5f5;
-            width: 100%;
-            max-width: 900px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            font-size: 16px;
-            color: #333;
-        }
-
-        .info-adicional i {
-            color: #3498db;
-            margin-right: 10px;
-        }
-
-        /* Imagem Principal */
-        .imagem-principal {
-            width: 100%;
-            height: auto;
-            border-radius: 12px;
-            margin-top: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Imagens Adicionais */
+        /* Carrossel de Imagens */
         .imagens-adicionais {
             display: flex;
-            overflow-x: auto;
-            overflow-y: hidden;
-            width: 100%;
+            justify-content: center;
+            align-items: center;
             margin-top: 20px;
-            gap: 10px;
             padding: 10px;
-            scroll-behavior: smooth;
-        }
-
-        .imagens-adicionais::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .imagens-adicionais::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 4px;
-        }
-
-        .imagens-adicionais::-webkit-scrollbar-thumb:hover {
-            background-color: #555;
+            gap: 10px;
+            width: 100%;
         }
 
         .imagem-container {
             display: inline-block;
             position: relative;
-            width: 150px;
-        }
-
-        .imagem-adicional {
-            height: 150px;
-            width: 100%;
-            object-fit: cover;
-            border-radius: 8px;
+            width: 200px;
+            height: 200px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .imagem-adicional:hover {
-            transform: scale(1.1);
+        .imagem-container:hover {
+            transform: translateY(-10px);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .imagem-adicional {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+            border-radius: 8px;
             cursor: pointer;
         }
 
+        /* Botão de Tela Cheia */
         .fullscreen-btn {
             position: absolute;
             top: 10px;
@@ -802,7 +737,7 @@
             background-color: rgba(0, 0, 0, 0.9);
             justify-content: center;
             align-items: center;
-            cursor: zoom-out;
+            cursor: pointer;
         }
 
         .imagem-fullscreen img {
@@ -810,6 +745,93 @@
             max-height: 90%;
             object-fit: contain;
             border-radius: 12px;
+        }
+
+        .imagem-fullscreen .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .imagem-fullscreen .nav-btn.left {
+            left: 20px;
+        }
+
+        .imagem-fullscreen .nav-btn.right {
+            right: 20px;
+        }
+
+        .imagem-fullscreen .nav-btn:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        /* Detalhes do Anúncio */
+        #detalhesAnuncio {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-titulo {
+            color: #333;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+
+        .info-adicional {
+            margin-top: 10px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f5f5f5;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            color: #333;
+        }
+
+        .info-adicional i {
+            color: #3498db;
+            margin-right: 10px;
+        }
+
+        /* Imagem Principal */
+        .imagem-principal {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-btn:hover {
+            background-color: darkred;
         }
     </style>
 </head>
@@ -1656,11 +1678,53 @@
 
             detalhesAnuncio.innerHTML = "";
 
+            // Adiciona o botão de fechar
+            const closeBtn = document.createElement("button");
+            closeBtn.className = "close-btn";
+            closeBtn.innerHTML = "&times;"; // Unicode para o "X"
+            closeBtn.onclick = function () {
+                modal.style.display = "none";
+            };
+            modal.appendChild(closeBtn);
+
             // Adiciona o título
             const titulo = document.createElement("h2");
             titulo.textContent = data.mensagem;
             titulo.className = "modal-titulo";
             detalhesAnuncio.appendChild(titulo);
+
+            // Adiciona o carrossel de imagens acima da descrição
+            if (data.imagensAdicionaisUrls && data.imagensAdicionaisUrls.length > 0) {
+                const containerImagensAdicionais = document.createElement("div");
+                containerImagensAdicionais.className = "imagens-adicionais";
+
+                data.imagensAdicionaisUrls.forEach((url, index) => {
+                    const containerImagem = document.createElement("div");
+                    containerImagem.className = "imagem-container";
+
+                    const imagemAdicional = document.createElement("img");
+                    imagemAdicional.src = url;
+                    imagemAdicional.className = "imagem-adicional";
+                    imagemAdicional.onclick = function () {
+                        openFullscreen(url, data.imagensAdicionaisUrls, index);
+                    };
+
+                    const fullscreenBtn = document.createElement("button");
+                    fullscreenBtn.className = "fullscreen-btn";
+                    fullscreenBtn.innerHTML = "&#x26F6;"; // Unicode de tela cheia
+
+                    fullscreenBtn.onclick = function (e) {
+                        e.stopPropagation();
+                        openFullscreen(url, data.imagensAdicionaisUrls, index);
+                    };
+
+                    containerImagem.appendChild(imagemAdicional);
+                    containerImagem.appendChild(fullscreenBtn);
+                    containerImagensAdicionais.appendChild(containerImagem);
+                });
+
+                detalhesAnuncio.appendChild(containerImagensAdicionais);
+            }
 
             // Adiciona a descrição
             const descricao = document.createElement("p");
@@ -1712,46 +1776,55 @@
                 detalhesAnuncio.appendChild(imgPrincipal);
             }
 
-            // Adiciona imagens adicionais
-            if (data.imagensAdicionaisUrls && data.imagensAdicionaisUrls.length > 0) {
-                const containerImagensAdicionais = document.createElement("div");
-                containerImagensAdicionais.className = "imagens-adicionais";
-
-                data.imagensAdicionaisUrls.forEach(url => {
-                    const containerImagem = document.createElement("div");
-                    containerImagem.className = "imagem-container";
-
-                    const imagemAdicional = document.createElement("img");
-                    imagemAdicional.src = url;
-                    imagemAdicional.className = "imagem-adicional";
-
-                    const fullscreenBtn = document.createElement("button");
-                    fullscreenBtn.className = "fullscreen-btn";
-                    fullscreenBtn.innerHTML = "&#x26F6;"; // Unicode de tela cheia
-
-                    fullscreenBtn.onclick = function (e) {
-                        e.stopPropagation();
-                        openFullscreen(url);
-                    };
-
-                    containerImagem.appendChild(imagemAdicional);
-                    containerImagem.appendChild(fullscreenBtn);
-                    containerImagensAdicionais.appendChild(containerImagem);
-                });
-
-                detalhesAnuncio.appendChild(containerImagensAdicionais);
-            }
-
             modal.style.display = "block";
         }
 
-        function openFullscreen(url) {
-            const fullscreenDiv = document.getElementById("imagemFullscreen");
-            const fullscreenImg = document.getElementById("imagemFullscreenSrc");
+        function openFullscreen(currentImageUrl, imageUrls, currentIndex) {
+            const fullscreenContainer = document.createElement("div");
+            fullscreenContainer.className = "imagem-fullscreen";
+            fullscreenContainer.style.display = "flex";
 
-            fullscreenImg.src = url;
-            fullscreenDiv.style.display = "flex";
+            const img = document.createElement("img");
+            img.src = currentImageUrl;
+            fullscreenContainer.appendChild(img);
+
+            document.body.appendChild(fullscreenContainer);
+
+            fullscreenContainer.onclick = function () {
+                fullscreenContainer.remove();
+            };
+
+            // Botões de navegação
+            const prevBtn = document.createElement("button");
+            prevBtn.className = "nav-btn left";
+            prevBtn.innerHTML = "&#10094;"; // Unicode para seta à esquerda
+            fullscreenContainer.appendChild(prevBtn);
+
+            const nextBtn = document.createElement("button");
+            nextBtn.className = "nav-btn right";
+            nextBtn.innerHTML = "&#10095;"; // Unicode para seta à direita
+            fullscreenContainer.appendChild(nextBtn);
+
+            // Navegação entre imagens
+            prevBtn.onclick = function (e) {
+                e.stopPropagation();
+                currentIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
+                img.src = imageUrls[currentIndex];
+            };
+
+            nextBtn.onclick = function (e) {
+                e.stopPropagation();
+                currentIndex = (currentIndex + 1) % imageUrls.length;
+                img.src = imageUrls[currentIndex];
+            };
         }
+
+        window.onclick = function (event) {
+            const modal = document.getElementById("modalDetalhes");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
 
         // Fechar o modal quando o usuário clicar no botão de fechar
         document.getElementById("closeModal").onclick = function () {

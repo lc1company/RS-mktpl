@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
     <title>Dashboard</title>
 
     <style>
@@ -877,7 +878,7 @@
         <div id="timeline" class="tab-content active">
             <h2>Linha do Tempo</h2>
             <input type="text" id="searchInput" placeholder="digite um endereço..." oninput="filterPosts()"
-            style="margin-bottom: 20px; margin-top: 20%; padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ddd;" />
+                style="margin-bottom: 20px; margin-top: 20%; padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ddd;" />
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
@@ -1325,20 +1326,59 @@
             }
         }
 
+        function initializeAutocomplete() {
+            const input = document.getElementById('searchInput');
+            const options = {
+                componentRestrictions: { country: 'br' },  // Restringir sugestões ao Brasil
+                fields: ['address_components', 'geometry', 'icon', 'name'],  // Limitar os campos retornados
+            };
+
+            // Inicializar o autocomplete
+            const autocomplete = new google.maps.places.Autocomplete(input, options);
+
+            // Ouvinte de eventos quando o usuário seleciona uma sugestão
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeAutocomplete();
+        });
+
         window.filterPosts = function () {
             const searchInput = document.getElementById("searchInput").value.toLowerCase();
-            const timelineItems = document.querySelectorAll("#userTimeline .timeline-item");
+            const timelineItems = Array.from(document.querySelectorAll("#userTimeline .timeline-item"));
 
-            timelineItems.forEach(item => {
-                const message = item.dataset.message || "";  // Define como string vazia se undefined
-                const description = item.dataset.description || "";  // Define como string vazia se undefined
-                const location = item.dataset.location || "";  // Define como string vazia se undefined
+            // Extrai os dados de todos os itens de timeline para pesquisa
+            const data = timelineItems.map(item => ({
+                element: item,
+                message: item.dataset.message.toLowerCase(),
+                description: item.dataset.description.toLowerCase(),
+                location: item.dataset.location.toLowerCase()
+            }));
 
-                if (message.includes(searchInput) || description.includes(searchInput) || location.includes(searchInput)) {
-                    item.style.display = "block";
-                } else {
-                    item.style.display = "none";
-                }
+            // Configuração do Fuse.js para pesquisa aproximada
+            const fuse = new Fuse(data, {
+                keys: ['message', 'description', 'location'],
+                threshold: 0.3  // Ajusta a sensibilidade da pesquisa (0.0 = precisa, 1.0 = ampla)
+            });
+
+            let results;
+            if (searchInput.trim() === "") {
+                // Se o campo de pesquisa estiver vazio, mostra todos os itens
+                results = data.map(item => ({ item }));
+            } else {
+                // Realiza a pesquisa aproximada com Fuse.js
+                results = fuse.search(searchInput);
+            }
+
+            // Oculta todos os itens
+            timelineItems.forEach(item => item.style.display = "none");
+
+            // Mostra apenas os itens correspondentes
+            results.forEach(result => {
+                result.item.element.style.display = "block";
             });
         }
 

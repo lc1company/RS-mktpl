@@ -1325,27 +1325,7 @@
                 resetNotificationCounter(); // Zerando o contador ao abrir a aba de notificações
             }
         }
-
-        function initializeAutocomplete() {
-            const input = document.getElementById('searchInput');
-            const options = {
-                componentRestrictions: { country: 'br' },  // Restringir sugestões ao Brasil
-                fields: ['address_components', 'geometry', 'icon', 'name'],  // Limitar os campos retornados
-            };
-
-            // Inicializar o autocomplete
-            const autocomplete = new google.maps.places.Autocomplete(input, options);
-
-            // Ouvinte de eventos quando o usuário seleciona uma sugestão
-            autocomplete.addListener('place_changed', () => {
-                const place = autocomplete.getPlace();
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            initializeAutocomplete();
-        });
-
+        
         window.filterPosts = function () {
             const searchInput = document.getElementById("searchInput").value.toLowerCase();
             const timelineItems = Array.from(document.querySelectorAll("#userTimeline .timeline-item"));

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.8/purify.min.js"></script>
     <title>Dashboard</title>
 
     <style>
@@ -1068,6 +1069,27 @@
             }
         });
 
+        document.addEventListener('DOMContentLoaded', () => {
+            // Captura todos os elementos de entrada relevantes na página
+            const inputs = document.querySelectorAll('input, textarea, select, [contenteditable="true"]');
+
+            inputs.forEach(input => {
+                input.addEventListener('input', (event) => {
+                    // Verificar o tipo de entrada
+                    if (event.target.tagName === 'INPUT' && event.target.type !== 'file') {
+                        // Aplicar sanitização no valor
+                        event.target.value = DOMPurify.sanitize(event.target.value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+                    } else if (event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+                        // Aplicar sanitização no valor
+                        event.target.value = DOMPurify.sanitize(event.target.value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+                    } else if (event.target.getAttribute('contenteditable') === 'true') {
+                        // Para elementos contenteditable, sanitizar o innerHTML
+                        event.target.innerHTML = DOMPurify.sanitize(event.target.innerHTML, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+                    }
+                });
+            });
+        });
+
         // Função para obter informações do usuário
         async function getUserInfo(uid) {
             const userDoc = await getDocs(collection(db, "users"));
@@ -1325,7 +1347,7 @@
                 resetNotificationCounter(); // Zerando o contador ao abrir a aba de notificações
             }
         }
-        
+
         window.filterPosts = function () {
             const searchInput = document.getElementById("searchInput").value.toLowerCase();
             const timelineItems = Array.from(document.querySelectorAll("#userTimeline .timeline-item"));
@@ -2108,18 +2130,18 @@
                             const senderPhoto = senderData.photoURL || "default-photo-url.png";
 
                             messageElement.innerHTML = `
-                        <img src="${senderPhoto}" alt="${senderName}" class="message-avatar">
-                        <div class="message-content">
-                            <div class="message-sender">${senderName}</div>
-                            <div class="message-text">${mensagem.texto}</div>
-                            <div class="message-time">${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()}</div>
-                        </div>`;
+                    <img src="${senderPhoto}" alt="${senderName}" class="message-avatar">
+                    <div class="message-content">
+                        <div class="message-sender">${sanitizeHTML(senderName)}</div>
+                        <div class="message-text">${sanitizeHTML(mensagem.texto)}</div>
+                        <div class="message-time">${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()}</div>
+                    </div>`;
                         } else {
                             messageElement.innerHTML = `
-                        <div class="message-content">
-                            <strong>Desconhecido:</strong> ${mensagem.texto} 
-                            <small>(${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()})</small>
-                        </div>`;
+                    <div class="message-content">
+                        <strong>Desconhecido:</strong> ${sanitizeHTML(mensagem.texto)} 
+                        <small>(${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()})</small>
+                    </div>`;
                         }
 
                         chatMessagesContainer.appendChild(messageElement);
@@ -2135,22 +2157,14 @@
             }
         }
 
-        // Atualiza o chat em tempo real
-        function setupRealTimeChatUpdates(chatId) {
-            const chatRef = doc(db, "chats", chatId);
-
-            onSnapshot(chatRef, (doc) => {
-                if (doc.exists()) {
-                    loadChatMessages(chatId); // Atualiza as mensagens em tempo real
-                }
-            });
-        }
-
         window.sendMessage = async function () {
             const chatInput = document.getElementById("chatInput");
-            const messageText = chatInput.value.trim();
+            let messageText = chatInput.value.trim();
 
             if (messageText === "" || currentChatId === null) return;
+
+            // Sanitizar o texto da mensagem
+            messageText = sanitizeHTML(messageText);
 
             try {
                 const user = auth.currentUser;
@@ -2181,19 +2195,17 @@
                     await updateDoc(chatRef, {
                         mensagens: arrayUnion({
                             sender: senderType,
-                            texto: messageText,
+                            texto: messageText, // Texto sanitizado
                             timestamp: timestamp,
                         })
                     });
 
                     chatInput.value = "";
-                } else {
-                    console.error("Erro: Documento do chat não encontrado.");
                 }
             } catch (error) {
                 console.error("Erro ao enviar mensagem:", error);
             }
-        }
+        };
 
         let unreadMessagesCount = 0;
 
@@ -2267,6 +2279,12 @@
             if (file) {
                 compressAndUploadProfilePicture(file);
             }
+        }
+
+        function sanitizeHTML(str) {
+            const temp = document.createElement("div");
+            temp.textContent = str;
+            return temp.innerHTML;
         }
 
         // Função para comprimir e enviar a foto de perfil para o armazenamento
@@ -2458,7 +2476,7 @@
                     return;
                 }
 
-                // Adicionar um novo documento a coleção
+                // Adicionar um novo documento à coleção
                 const comentarioRef = await addDoc(collection(db, `publicacoes/${postId}/comentarios`), {
                     texto: commentText,
                     userId: auth.currentUser.uid,
@@ -2468,8 +2486,10 @@
                 // Limpar o campo do texto do comentário após adicionar o comentário
                 document.getElementById(`commentText_${postId}`).value = "";
 
-                // Exibir os comentários atualizados
-                showComments(postId);
+                // Verificar o estado atual da aba de comentários e exibir a lista de comentários
+                const commentsDiv = document.getElementById(`comments_${postId}`);
+                const isVisible = commentsDiv.style.display === "block";
+                showComments(postId, isVisible);
             } catch (error) {
                 console.error("Erro ao adicionar comentário:", error);
             }
@@ -2477,23 +2497,36 @@
 
         let commentsVisible = false;
 
+        let commentListeners = {}; // Objeto para armazenar os listeners por postId
+
         // Função para exibir ou ocultar os comentários de uma publicação
-        window.showComments = async function (postId) {
+        window.showComments = function (postId, keepOpen = false) {
             try {
                 const commentsDiv = document.getElementById(`comments_${postId}`);
                 const isVisible = commentsDiv.style.display === "block";
 
-                if (isVisible) {
-                    commentsDiv.style.display = "none";
-                } else {
+                if (keepOpen && isVisible) {
+                    // Se a aba já está aberta e deve permanecer aberta, apenas limpe o conteúdo e continue
                     commentsDiv.innerHTML = "";
-
-                    const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
-                    const querySnapshot = await getDocs(comentariosRef);
-
-                    if (querySnapshot.empty) {
-                        return;
+                } else {
+                    // Se a aba está fechada, alternar visibilidade
+                    if (isVisible) {
+                        commentsDiv.style.display = "none";
+                        return; // Se a aba está fechada, não faça nada mais
+                    } else {
+                        commentsDiv.style.display = "block";
                     }
+                }
+
+                // Adicionar ou atualizar o listener em tempo real para a coleção de comentários
+                if (commentListeners[postId]) {
+                    commentListeners[postId](); // Remover o listener existente, se houver
+                }
+
+                const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
+
+                const unsubscribe = onSnapshot(comentariosRef, (querySnapshot) => {
+                    commentsDiv.innerHTML = ""; // Limpar a lista de comentários
 
                     querySnapshot.forEach(async (doc) => {
                         const comentario = doc.data();
@@ -2542,7 +2575,7 @@
                         userInfoContainer.appendChild(userImg);
 
                         const userName = document.createElement("p");
-                        userName.textContent = user.fullName;
+                        userName.textContent = DOMPurify.sanitize(user.fullName); // Sanitiza a saída
                         userName.style.fontWeight = "bold";
                         userName.style.cursor = "pointer";
                         userInfoContainer.appendChild(userName);
@@ -2550,30 +2583,43 @@
                         li.appendChild(userInfoContainer);
 
                         const commentText = document.createElement("p");
-                        commentText.textContent = comentario.texto;
+                        commentText.textContent = DOMPurify.sanitize(comentario.texto); // Sanitiza a saída
                         commentText.style.marginBottom = "10px";
                         commentText.style.fontSize = "16px";
                         li.appendChild(commentText);
 
-                        const timestamp = comentario.timestamp.toDate();
-                        const dia = String(timestamp.getDate()).padStart(2, '0');
-                        const mes = String(timestamp.getMonth() + 1).padStart(2, '0');
-                        const ano = timestamp.getFullYear();
-                        const horas = String(timestamp.getHours()).padStart(2, '0');
-                        const minutos = String(timestamp.getMinutes()).padStart(2, '0');
-                        const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+                        // Verificar se timestamp é válido antes de formatar
+                        const timestamp = comentario.timestamp;
+                        if (timestamp && timestamp.toDate) {
+                            const date = timestamp.toDate();
+                            const dia = String(date.getDate()).padStart(2, '0');
+                            const mes = String(date.getMonth() + 1).padStart(2, '0');
+                            const ano = date.getFullYear();
+                            const horas = String(date.getHours()).padStart(2, '0');
+                            const minutos = String(date.getMinutes()).padStart(2, '0');
+                            const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
 
-                        const commentTime = document.createElement("p");
-                        commentTime.textContent = `Data e Hora: ${dataFormatada}`;
-                        commentTime.style.fontSize = "12px";
-                        commentTime.style.color = "#999";
-                        li.appendChild(commentTime);
+                            const commentTime = document.createElement("p");
+                            commentTime.textContent = `Data e Hora: ${dataFormatada}`;
+                            commentTime.style.fontSize = "12px";
+                            commentTime.style.color = "#999";
+                            li.appendChild(commentTime);
+                        } else {
+                            // Se timestamp não for válido, exibir uma mensagem padrão ou nada
+                            const commentTime = document.createElement("p");
+                            commentTime.textContent = "Data e Hora: Não disponível";
+                            commentTime.style.fontSize = "12px";
+                            commentTime.style.color = "#999";
+                            li.appendChild(commentTime);
+                        }
 
                         commentsDiv.appendChild(li);
                     });
+                });
 
-                    commentsDiv.style.display = "block";
-                }
+                // Armazenar o unsubscribe no objeto para poder removê-lo mais tarde
+                commentListeners[postId] = unsubscribe;
+
             } catch (error) {
                 console.error("Erro ao exibir ou ocultar comentários:", error);
             }

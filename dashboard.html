@@ -1363,7 +1363,7 @@
             // Configuração do Fuse.js para pesquisa aproximada
             const fuse = new Fuse(data, {
                 keys: ['message', 'description', 'location'],
-                threshold: 0.3  // Ajusta a sensibilidade da pesquisa (0.0 = precisa, 1.0 = ampla)
+                threshold: 0.6  // Ajusta a sensibilidade da pesquisa (0.0 = precisa, 1.0 = ampla)
             });
 
             let results;

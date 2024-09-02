@@ -4,55 +4,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rede Social - Página Inicial</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.8/purify.min.js"></script>
+    <title>Tela de Login</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            color: #333;
         }
 
         .container {
-            text-align: center;
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
         }
 
-        h1 {
-            color: #333;
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input[type="submit"],
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            margin-bottom: 15px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            color: #007bff;
+            text-align: center;
+            font-family: 'Playfair Display', serif;
             margin-bottom: 20px;
         }
 
-        .button {
-            display: inline-block;
-            background-color: #007bff;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
+        form label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #666;
         }
 
-        .button:hover {
-            background-color: #0056b3;
+        form a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        form a:hover {
+            text-decoration: underline;
+        }
+
+        p#message {
+            text-align: center;
+            color: #007bff;
+        }
+
+        /* Estilos para destacar botões ativos */
+        .active-button {
+            background-color: #0056b3 !important;
+        }
+
+        .section-label {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #007bff;
         }
     </style>
 </head>
 
 <body>
+
     <div class="container">
-        <h1>Bem-vindo à Nossa Comunidade</h1>
-        <a href="dashboard.html" class="button">Fazer Parte da Comunidade</a>
+        <h2>Tela de Login ou Registro</h2>
+        <button id="registerBtn" onclick="showRegisterForm(event)" class="active-button">Registro</button>
+        <button id="loginBtn" onclick="showLoginForm(event)">Login</button>
+
+        <form id="registerForm" style="display:none;" onsubmit="registerUser(event)">
+            <div class="section-label">Registro</div>
+            <input type="text" placeholder="Nome Completo" id="fullName">
+            <input type="email" placeholder="Email" id="email">
+            <input type="password" placeholder="Senha" id="password">
+            <label for="termsCheckbox">
+                <input type="checkbox" id="termsCheckbox" required> Confirmo que tenho mais de 18 anos e aceito os
+                <a href="TermosDeUso.html">Termos de Uso</a>
+            </label>
+            <input type="submit" value="Salvar">
+        </form>
+
+        <form id="loginForm" style="display:none;" onsubmit="loginUser(event)">
+            <div class="section-label">Login</div>
+            <input type="email" placeholder="Email" id="loginEmail" required>
+            <input type="password" placeholder="Senha" id="loginPassword" required>
+            <input type="submit" value="Entrar">
+            <button type="button" onclick="showForgotPasswordForm(event)">Esqueci minha senha</button>
+        </form>
+
+        <form id="forgotPasswordForm" style="display:none;" onsubmit="resetPassword(event)">
+            <div class="section-label">Recuperação de Senha</div>
+            <input type="email" placeholder="Email" id="resetEmail" required>
+            <input type="submit" value="Enviar email de recuperação">
+        </form>
+
+        <p id="message" style="display:none;"></p>
     </div>
 
-    <script>
-        // JavaScript
+    <!-- Adicione as bibliotecas do Firebase -->
+    <script type="module">
+        // Importar as bibliotecas do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Configurações do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyATKjtf2xqjdVtZFHSdrZOcA0Taa3J4gao",
+            authDomain: "redesocialmarktplace.firebaseapp.com",
+            projectId: "redesocialmarktplace",
+            storageBucket: "redesocialmarktplace.appspot.com",
+            messagingSenderId: "389449887892",
+            appId: "1:389449887892:web:e87a07a73c04b2ad9d8481",
+            measurementId: "G-KQ8Q4LZVB1"
+        };
+
+        // Inicializar o Firebase
+        const app = initializeApp(firebaseConfig);
+        console.log("Firebase inicializado com sucesso!");
+
+        const auth = getAuth(app);
+        console.log("Auth inicializado com sucesso!");
+
+        const db = getFirestore(app);
+        console.log("Firestore inicializado com sucesso!");
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Captura todos os elementos de entrada relevantes na página
+            const inputs = document.querySelectorAll('input, textarea, select, [contenteditable="true"]');
+
+            inputs.forEach(input => {
+                input.addEventListener('input', (event) => {
+                    // Verificar o tipo de entrada
+                    if (event.target.tagName === 'INPUT' && event.target.type !== 'file') {
+                        // Aplicar sanitização no valor
+                        event.target.value = DOMPurify.sanitize(event.target.value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+                    } else if (event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+                        // Aplicar sanitização no valor
+                        event.target.value = DOMPurify.sanitize(event.target.value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+                    } else if (event.target.getAttribute('contenteditable') === 'true') {
+                        // Para elementos contenteditable, sanitizar o innerHTML
+                        event.target.innerHTML = DOMPurify.sanitize(event.target.innerHTML, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+                    }
+                });
+            });
+        });
+
+        window.showRegisterForm = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            document.getElementById("registerForm").style.display = "block";
+            document.getElementById("registerBtn").classList.add("active-button");
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("loginBtn").classList.remove("active-button");
+            document.getElementById("forgotPasswordForm").style.display = "none";
+            document.getElementById("message").style.display = "none";
+        }
+
+        window.showLoginForm = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            document.getElementById("loginForm").style.display = "block";
+            document.getElementById("loginBtn").classList.add("active-button");
+            document.getElementById("registerForm").style.display = "none";
+            document.getElementById("registerBtn").classList.remove("active-button");
+            document.getElementById("forgotPasswordForm").style.display = "none";
+            document.getElementById("message").style.display = "none";
+        }
+
+        window.showForgotPasswordForm = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            document.getElementById("forgotPasswordForm").style.display = "block";
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("loginBtn").classList.remove("active-button");
+            document.getElementById("registerForm").style.display = "none";
+            document.getElementById("registerBtn").classList.remove("active-button");
+            document.getElementById("message").style.display = "none";
+        }
+
+        window.registerUser = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            console.log("Registrando usuário...");
+
+            const fullName = document.getElementById("fullName").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const photoURL = "https://firebasestorage.googleapis.com/v0/b/redesocialmarktplace.appspot.com/o/perfil%2FfotoPadrao.png?alt=media&token=4d3dc8df-34ff-4768-8fc7-d16cc7afa1fc";
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    console.log("Usuário registrado com sucesso!");
+
+                    const userUid = userCredential.user.uid;
+                    const userData = {
+                        fullName: fullName,
+                        email: email,
+                        photoURL: photoURL,
+                    };
+
+                    setDoc(doc(db, "users", userUid), userData)
+                        .then(() => {
+                            console.log("Dados do usuário salvos no Firestore com sucesso!");
+
+                            document.getElementById("registerForm").reset();
+                            document.getElementById("message").innerHTML = "Usuário registrado com sucesso!";
+                            document.getElementById("message").style.display = "block";
+                        })
+                        .catch((error) => {
+                            console.error("Erro ao salvar dados do usuário no Firestore: ", error);
+                        });
+                })
+                .catch((error) => {
+                    console.error("Erro ao registrar usuário: ", error);
+                    document.getElementById("message").textContent = "Erro ao registrar usuário. Verifique os dados informados.";
+                    document.getElementById("message").style.display =
+                        "block";
+                });
+        }
+
+        window.loginUser = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            console.log("Autenticando usuário...");
+
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    console.log("Usuário autenticado com sucesso!");
+                    window.location.href = "dashboard.html";
+
+                    document.getElementById("loginForm").reset();
+                    document.getElementById("message").innerHTML = "Usuário autenticado com sucesso!";
+                    document.getElementById("message").style.display = "block";
+                })
+                .catch((error) => {
+                    console.error("Erro ao autenticar usuário: ", error);
+                    document.getElementById("message").textContent = "Erro ao autenticar usuário. Verifique os dados informados.";
+                    document.getElementById("message").style.display = "block";
+                });
+        }
+
+        window.resetPassword = function (event) {
+            event.preventDefault(); // Evita a atualização da página
+            console.log("Enviando email de recuperação...");
+
+            const email = document.getElementById("resetEmail").value;
+
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    console.log("Email de recuperação enviado com sucesso!");
+
+                    document.getElementById("forgotPasswordForm").reset();
+                    document.getElementById("message").innerHTML = "Email de recuperação enviado com sucesso!";
+                    document.getElementById("message").style.display = "block";
+                })
+                .catch((error) => {
+                    console.error("Erro ao enviar email de recuperação: ", error);
+                    document.getElementById("message").textContent = "Erro ao enviar email de recuperação. Verifique o email informado.";
+                    document.getElementById("message").style.display = "block";
+                });
+        }
     </script>
 </body>
 

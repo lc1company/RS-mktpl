@@ -1355,15 +1355,15 @@
             // Extrai os dados de todos os itens de timeline para pesquisa
             const data = timelineItems.map(item => ({
                 element: item,
-                message: item.dataset.message.toLowerCase(),
-                description: item.dataset.description.toLowerCase(),
-                location: item.dataset.location.toLowerCase()
+                message: (item.dataset.message || '').toLowerCase(),
+                description: (item.dataset.description || '').toLowerCase(),
+                location: (item.dataset.location || '').toLowerCase()
             }));
 
             // Configuração do Fuse.js para pesquisa aproximada
             const fuse = new Fuse(data, {
                 keys: ['message', 'description', 'location'],
-                threshold: 0.6  // Ajusta a sensibilidade da pesquisa (0.0 = precisa, 1.0 = ampla)
+                threshold: 0.3  // Ajusta a sensibilidade da pesquisa (0.0 = precisa, 1.0 = ampla)
             });
 
             let results;
@@ -1382,7 +1382,7 @@
             results.forEach(result => {
                 result.item.element.style.display = "block";
             });
-        }
+        };
 
         // Função para obter a linha do tempo de todos os usuários
         window.getAllUserTimeline = async function () {

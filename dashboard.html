@@ -2465,7 +2465,6 @@
             }
         }
 
-        // Função para adicionar um comentário a uma publicação
         window.addComment = async function (postId) {
             try {
                 const commentText = document.getElementById(`commentText_${postId}`).value;
@@ -2476,7 +2475,7 @@
                     return;
                 }
 
-                // Adicionar um novo documento à coleção
+                // Adicionar um novo documento a coleção
                 const comentarioRef = await addDoc(collection(db, `publicacoes/${postId}/comentarios`), {
                     texto: commentText,
                     userId: auth.currentUser.uid,
@@ -2486,10 +2485,8 @@
                 // Limpar o campo do texto do comentário após adicionar o comentário
                 document.getElementById(`commentText_${postId}`).value = "";
 
-                // Verificar o estado atual da aba de comentários e exibir a lista de comentários
-                const commentsDiv = document.getElementById(`comments_${postId}`);
-                const isVisible = commentsDiv.style.display === "block";
-                showComments(postId, isVisible);
+                // Exibir os comentários atualizados
+                showComments(postId);
             } catch (error) {
                 console.error("Erro ao adicionar comentário:", error);
             }
@@ -2497,36 +2494,23 @@
 
         let commentsVisible = false;
 
-        let commentListeners = {}; // Objeto para armazenar os listeners por postId
-
         // Função para exibir ou ocultar os comentários de uma publicação
-        window.showComments = function (postId, keepOpen = false) {
+        window.showComments = async function (postId) {
             try {
                 const commentsDiv = document.getElementById(`comments_${postId}`);
                 const isVisible = commentsDiv.style.display === "block";
 
-                if (keepOpen && isVisible) {
-                    // Se a aba já está aberta e deve permanecer aberta, apenas limpe o conteúdo e continue
-                    commentsDiv.innerHTML = "";
+                if (isVisible) {
+                    commentsDiv.style.display = "none";
                 } else {
-                    // Se a aba está fechada, alternar visibilidade
-                    if (isVisible) {
-                        commentsDiv.style.display = "none";
-                        return; // Se a aba está fechada, não faça nada mais
-                    } else {
-                        commentsDiv.style.display = "block";
+                    commentsDiv.innerHTML = "";
+
+                    const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
+                    const querySnapshot = await getDocs(comentariosRef);
+
+                    if (querySnapshot.empty) {
+                        return;
                     }
-                }
-
-                // Adicionar ou atualizar o listener em tempo real para a coleção de comentários
-                if (commentListeners[postId]) {
-                    commentListeners[postId](); // Remover o listener existente, se houver
-                }
-
-                const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
-
-                const unsubscribe = onSnapshot(comentariosRef, (querySnapshot) => {
-                    commentsDiv.innerHTML = ""; // Limpar a lista de comentários
 
                     querySnapshot.forEach(async (doc) => {
                         const comentario = doc.data();
@@ -2588,38 +2572,25 @@
                         commentText.style.fontSize = "16px";
                         li.appendChild(commentText);
 
-                        // Verificar se timestamp é válido antes de formatar
-                        const timestamp = comentario.timestamp;
-                        if (timestamp && timestamp.toDate) {
-                            const date = timestamp.toDate();
-                            const dia = String(date.getDate()).padStart(2, '0');
-                            const mes = String(date.getMonth() + 1).padStart(2, '0');
-                            const ano = date.getFullYear();
-                            const horas = String(date.getHours()).padStart(2, '0');
-                            const minutos = String(date.getMinutes()).padStart(2, '0');
-                            const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+                        const timestamp = comentario.timestamp.toDate();
+                        const dia = String(timestamp.getDate()).padStart(2, '0');
+                        const mes = String(timestamp.getMonth() + 1).padStart(2, '0');
+                        const ano = timestamp.getFullYear();
+                        const horas = String(timestamp.getHours()).padStart(2, '0');
+                        const minutos = String(timestamp.getMinutes()).padStart(2, '0');
+                        const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
 
-                            const commentTime = document.createElement("p");
-                            commentTime.textContent = `Data e Hora: ${dataFormatada}`;
-                            commentTime.style.fontSize = "12px";
-                            commentTime.style.color = "#999";
-                            li.appendChild(commentTime);
-                        } else {
-                            // Se timestamp não for válido, exibir uma mensagem padrão ou nada
-                            const commentTime = document.createElement("p");
-                            commentTime.textContent = "Data e Hora: Não disponível";
-                            commentTime.style.fontSize = "12px";
-                            commentTime.style.color = "#999";
-                            li.appendChild(commentTime);
-                        }
+                        const commentTime = document.createElement("p");
+                        commentTime.textContent = `Data e Hora: ${dataFormatada}`;
+                        commentTime.style.fontSize = "12px";
+                        commentTime.style.color = "#999";
+                        li.appendChild(commentTime);
 
                         commentsDiv.appendChild(li);
                     });
-                });
 
-                // Armazenar o unsubscribe no objeto para poder removê-lo mais tarde
-                commentListeners[postId] = unsubscribe;
-
+                    commentsDiv.style.display = "block";
+                }
             } catch (error) {
                 console.error("Erro ao exibir ou ocultar comentários:", error);
             }

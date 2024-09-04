@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.8/purify.min.js"></script>
     <title>Tela de Login</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
@@ -165,6 +166,27 @@
 
         const db = getFirestore(app);
         console.log("Firestore inicializado com sucesso!");
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Captura todos os elementos de entrada relevantes na página
+            const inputs = document.querySelectorAll('input, textarea, select, [contenteditable="true"]');
+
+            inputs.forEach(input => {
+                input.addEventListener('input', (event) => {
+                    // Verificar o tipo de entrada
+                    if (event.target.tagName === 'INPUT' && event.target.type !== 'file') {
+                        // Aplicar sanitização no valor
+                        event.target.value = DOMPurify.sanitize(event.target.value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+                    } else if (event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+                        // Aplicar sanitização no valor
+                        event.target.value = DOMPurify.sanitize(event.target.value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+                    } else if (event.target.getAttribute('contenteditable') === 'true') {
+                        // Para elementos contenteditable, sanitizar o innerHTML
+                        event.target.innerHTML = DOMPurify.sanitize(event.target.innerHTML, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+                    }
+                });
+            });
+        });
 
         window.showRegisterForm = function (event) {
             event.preventDefault(); // Evita a atualização da página

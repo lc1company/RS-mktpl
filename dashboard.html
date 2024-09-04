@@ -649,7 +649,6 @@
 
         /* Modal */
         .modal {
-            margin-top: 22%;
             display: none;
             position: fixed;
             z-index: 1;
@@ -669,7 +668,7 @@
             padding: 20px;
             border: 1px solid #ddd;
             width: 100%;
-            max-width: 900px;
+            max-width: 1280px;
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             position: relative;
@@ -840,18 +839,6 @@
 
 <body>
 
-    <header class="main-header">
-        <div class="container">
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="dashboard.html"><i class="fas fa-home"></i> Home</a></li>
-                    <li><a href="#"><i class="fas fa-envelope"></i> Contato</a></li>
-                    <li><a href="#"><i class="fas fa-info-circle"></i> Sobre</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
     <div class="container">
 
         <div class="tabs">
@@ -868,7 +855,7 @@
         </div>
 
 
-        <div id="userInfo" class="tab-content" style="margin-top: 15%; text-align: center;">
+        <div id="userInfo" class="tab-content" style="text-align: center;">
             <h2>Informações do Usuário</h2>
             <p id="userFullName"></p>
             <p id="userEmail"></p>
@@ -879,7 +866,7 @@
         <div id="timeline" class="tab-content active">
             <h2>Linha do Tempo</h2>
             <input type="text" id="searchInput" placeholder="digite um endereço..." oninput="filterPosts()"
-                style="margin-bottom: 20px; margin-top: 20%; padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ddd;" />
+                style="margin-bottom: 20px; padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ddd;" />
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
@@ -901,7 +888,7 @@
             <span id="closeFullscreen" class="close-fullscreen"><i class="fas fa-times"></i></span>
         </div>
 
-        <div id="notificacoes" class="tab-content" style="margin-top: 15%; text-align: center;">
+        <div id="notificacoes" class="tab-content" style="text-align: center;">
             <h2>Notificações</h2>
             <div id="chatList" style="margin-bottom: 20px;">
                 <!-- Lista de chats será exibida aqui -->
@@ -927,7 +914,7 @@
             </div>
         </div>
 
-        <div id="meuPerfil" class="tab-content" style="margin-top: 15%; text-align: center;">
+        <div id="meuPerfil" class="tab-content" style="text-align: center;">
             <h2>Meu Perfil</h2>
             <div>
                 <img id="userProfilePicture" src="" alt="Foto de Perfil" loading="lazy">
@@ -951,7 +938,7 @@
 
         <!--Preview do Anúncio-->
         <div id="previewContainer"
-            style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 20%; text-align: center;">
+            style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; text-align: center;">
             <p>Pré-visualização do anúncio:</p>
             <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
             <p id="descricaoPreview" style="margin-top: 10px; font-style: italic;"></p>

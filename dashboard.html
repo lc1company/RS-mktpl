@@ -1595,48 +1595,36 @@
 
                     // Adicionar botão de like
                     const likeButton = document.createElement("button");
+                    likeButton.id = `likeButton_${doc.id}`;
                     likeButton.innerHTML = '<i class="fa fa-thumbs-up"></i>';
                     likeButton.style.backgroundColor = "#3498db";
                     likeButton.style.border = "none";
                     likeButton.style.color = "#fff";
-                    likeButton.style.padding = "8px 12px";
-                    likeButton.style.borderRadius = "4px";
+                    likeButton.style.padding = "10px 16px";
+                    likeButton.style.borderRadius = "6px";
                     likeButton.style.cursor = "pointer";
-                    likeButton.style.fontSize = "14px";
+                    likeButton.style.fontSize = "16px";
                     likeButton.style.marginRight = "10px";
-                    likeButton.id = `likeButton_${doc.id}`;
-                    likeButton.onclick = () => likePost(doc.id);
+                    likeButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                    likeButton.style.transition = "all 0.3s ease";
+                    likeButton.style.position = "relative";
+                    likeButton.onclick = () => {
+                        likePost(doc.id);
+                        likeButton.style.transform = "scale(0.95)";
+                        setTimeout(() => likeButton.style.transform = "scale(1)", 100);
+                    };
                     li.appendChild(likeButton);
 
                     // Exibir contador de likes
                     const likeCount = document.createElement("span");
+                    likeCount.id = `likeCount_${doc.id}`; // Adicionando ID ao likeCount
                     likeCount.textContent = data.likes || 0;
-                    likeCount.style.fontSize = "14px";
+                    likeCount.style.fontSize = "16px";
                     likeCount.style.color = "#333";
-                    likeCount.id = `likeCount_${doc.id}`;
-                    li.appendChild(likeCount);
-
-                    // Adicionar botão de dislike
-                    const dislikeButton = document.createElement("button");
-                    dislikeButton.innerHTML = '<i class="fa fa-thumbs-down"></i>';
-                    dislikeButton.style.backgroundColor = "#e74c3c";
-                    dislikeButton.style.border = "none";
-                    dislikeButton.style.color = "#fff";
-                    dislikeButton.style.padding = "8px 12px";
-                    dislikeButton.style.borderRadius = "4px";
-                    dislikeButton.style.cursor = "pointer";
-                    dislikeButton.style.fontSize = "14px";
-                    dislikeButton.id = `dislikeButton_${doc.id}`;
-                    dislikeButton.onclick = () => dislikePost(doc.id);
-                    li.appendChild(dislikeButton);
-
-                    // Exibir contador de dislikes
-                    const dislikeCount = document.createElement("span");
-                    dislikeCount.textContent = data.dislikes || 0;
-                    dislikeCount.style.fontSize = "14px";
-                    dislikeCount.style.color = "#333";
-                    dislikeCount.id = `dislikeCount_${doc.id}`;
-                    li.appendChild(dislikeCount);
+                    likeCount.style.position = "absolute";
+                    likeCount.style.top = "5px";
+                    likeCount.style.left = "40px"; // Ajustar a posição conforme necessário
+                    likeButton.appendChild(likeCount); // Adicionando como filho do botão de like
 
                     // Adicionar botão de mostrar comentários
                     const showCommentsButton = document.createElement("button");
@@ -1644,53 +1632,78 @@
                     showCommentsButton.style.backgroundColor = "#2ecc71";
                     showCommentsButton.style.border = "none";
                     showCommentsButton.style.color = "#fff";
-                    showCommentsButton.style.padding = "8px 12px";
-                    showCommentsButton.style.borderRadius = "4px";
+                    showCommentsButton.style.padding = "10px 16px";
+                    showCommentsButton.style.borderRadius = "6px";
                     showCommentsButton.style.cursor = "pointer";
-                    showCommentsButton.style.fontSize = "14px";
+                    showCommentsButton.style.fontSize = "16px";
                     showCommentsButton.style.marginLeft = "10px";
-                    showCommentsButton.onclick = () => showComments(doc.id);
+                    showCommentsButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                    showCommentsButton.style.transition = "all 0.3s ease";
+                    showCommentsButton.style.position = "relative";
+                    showCommentsButton.onclick = () => {
+                        showComments(doc.id);
+                        showCommentsButton.style.transform = "scale(0.95)";
+                        setTimeout(() => showCommentsButton.style.transform = "scale(1)", 100);
+                    };
                     li.appendChild(showCommentsButton);
 
                     // Exibir contador de comentários
                     const commentCount = document.createElement("span");
                     commentCount.textContent = data.comments || 0;
-                    commentCount.style.fontSize = "14px";
+                    commentCount.style.fontSize = "16px";
                     commentCount.style.color = "#333";
-                    commentCount.id = `commentCount_${doc.id}`;
-                    li.appendChild(commentCount);
+                    commentCount.style.position = "absolute";
+                    commentCount.style.top = "5px";
+                    commentCount.style.left = "40px"; // Ajustar a posição conforme necessário
+                    showCommentsButton.appendChild(commentCount);
 
-                    // botão de Mensagem
+                    // Botão de Mensagem
                     const comprarButton = document.createElement("button");
-                    comprarButton.innerHTML = '<i class="fas fa-envelope"></i>';
+                    comprarButton.innerHTML = '<i class="fas fa-envelope"></i> Abrir Chat';
                     comprarButton.style.backgroundColor = "#e67e22";
                     comprarButton.style.border = "none";
                     comprarButton.style.color = "#fff";
-                    comprarButton.style.padding = "8px 12px";
-                    comprarButton.style.borderRadius = "4px";
+                    comprarButton.style.padding = "10px 16px";
+                    comprarButton.style.borderRadius = "6px";
                     comprarButton.style.cursor = "pointer";
-                    comprarButton.style.fontSize = "14px";
+                    comprarButton.style.fontSize = "16px";
                     comprarButton.style.marginLeft = "10px";
-                    comprarButton.onclick = () => iniciarCompra(data.userId, auth.currentUser.uid, data);
+                    comprarButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                    comprarButton.style.transition = "all 0.3s ease";
+                    comprarButton.onclick = () => {
+                        iniciarCompra(data.userId, auth.currentUser.uid, data);
+                        comprarButton.style.transform = "scale(0.95)";
+                        setTimeout(() => comprarButton.style.transform = "scale(1)", 100);
+                    };
                     li.appendChild(comprarButton);
 
+                    // Botão Ver Mais
                     const verMaisButton = document.createElement("button");
                     verMaisButton.textContent = "Ver Mais";
                     verMaisButton.style.backgroundColor = "#3498db";
                     verMaisButton.style.color = "#fff";
                     verMaisButton.style.border = "none";
-                    verMaisButton.style.padding = "8px 12px";
-                    verMaisButton.style.borderRadius = "4px";
+                    verMaisButton.style.padding = "10px 16px";
+                    verMaisButton.style.borderRadius = "6px";
                     verMaisButton.style.cursor = "pointer";
+                    verMaisButton.style.fontSize = "16px";
                     verMaisButton.style.marginTop = "10px";
-                    verMaisButton.onclick = () => showDetalhesAnuncio(data);
+                    verMaisButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                    verMaisButton.style.transition = "all 0.3s ease";
+                    verMaisButton.onclick = () => {
+                        showDetalhesAnuncio(data);
+                        verMaisButton.style.transform = "scale(0.95)";
+                        setTimeout(() => verMaisButton.style.transform = "scale(1)", 100);
+                    };
                     li.appendChild(verMaisButton);
 
                     // Div para exibir os comentários
                     const commentsDiv = document.createElement("div");
                     commentsDiv.id = `comments_${doc.id}`;
                     commentsDiv.style.display = "none";
+                    commentsDiv.style.marginTop = "10px";
                     li.appendChild(commentsDiv);
+
 
                     // Textarea para adicionar comentário
                     const commentText = document.createElement("textarea");
@@ -2383,47 +2396,27 @@
 
                 const postRef = doc(db, "publicacoes", postId);
                 await incrementCounter(postRef, 'likes');
+
+                // Atualizar o contador de likes na página
                 const likeCountElement = document.getElementById(`likeCount_${postId}`);
-                likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
+                if (likeCountElement) {
+                    likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
+                } else {
+                    console.error(`Elemento de contagem de likes com ID likeCount_${postId} não encontrado.`);
+                }
 
                 // Desabilitar o botão de like após um clique
                 const likeButton = document.getElementById(`likeButton_${postId}`);
-                likeButton.disabled = true;
+                if (likeButton) {
+                    likeButton.disabled = true;
+                } else {
+                    console.error(`Botão de like com ID likeButton_${postId} não encontrado.`);
+                }
 
                 // Armazenar o estado de curtida no armazenamento local
                 localStorage.setItem(`like_${postId}`, 'true');
             } catch (error) {
                 console.error("Erro ao curtir a publicação:", error);
-            }
-        }
-
-        // Função para descurtir uma publicação
-        window.dislikePost = async function (postId) {
-            try {
-                // Verificar se o usuário já descurtiu a publicação
-                if (hasDislikedPost(postId)) {
-                    console.log("Você já descurtiu esta publicação.");
-                    return;
-                }
-
-                // Verificar se o usuário já curtiu a publicação e remover o like
-                if (hasLikedPost(postId)) {
-                    await removeDislike(postId); // Corrigido aqui
-                }
-
-                const postRef = doc(db, "publicacoes", postId);
-                await incrementCounter(postRef, 'dislikes');
-                const dislikeCountElement = document.getElementById(`dislikeCount_${postId}`);
-                dislikeCountElement.textContent = parseInt(dislikeCountElement.textContent) + 1;
-
-                // Desabilitar o botão de deslike após um clique
-                const dislikeButton = document.getElementById(`dislikeButton_${postId}`);
-                dislikeButton.disabled = true;
-
-                // Armazenar o estado de descurtida no armazenamento local
-                localStorage.setItem(`dislike_${postId}`, 'true');
-            } catch (error) {
-                console.error("Erro ao descurtir a publicação:", error);
             }
         }
 
@@ -2442,26 +2435,6 @@
                 }
             } catch (error) {
                 console.error("Erro ao incrementar o contador:", error);
-            }
-        }
-
-        // Função para remover a marcação de descurtida de uma publicação
-        window.removeDislike = async function (postId) {
-            try {
-                // Remover a marcação de descurtida da publicação do armazenamento local
-                localStorage.removeItem(`dislike_${postId}`);
-
-                // Atualizar o contador de descurtidas na interface do usuário
-                const dislikeCountElement = document.getElementById(`dislikeCount_${postId}`);
-                dislikeCountElement.textContent = parseInt(dislikeCountElement.textContent) - 1;
-
-                // Habilitar o botão de descurtir após remover a descurtida
-                const dislikeButton = document.getElementById(`dislikeButton_${postId}`);
-                dislikeButton.disabled = false;
-
-                console.log("Descurtida removida com sucesso.");
-            } catch (error) {
-                console.error("Erro ao remover a descurtida:", error);
             }
         }
 

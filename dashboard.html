@@ -644,55 +644,78 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.7);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9));
             padding-bottom: 20%;
             margin-bottom: 22%;
+            backdrop-filter: blur(10px);
+            /* Desfocar fundo para um efeito futurista */
+            animation: fadeIn 0.5s ease;
         }
 
         .modal-content {
-            background-color: #fff;
+            background: rgba(255, 255, 255, 0.9);
             margin: 0 auto;
-            padding: 20px;
+            padding: 30px;
             border: 1px solid #ddd;
-            width: 100%;
+            width: 90%;
             max-width: 1280px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
             position: relative;
             max-height: 100%;
             overflow-y: auto;
+            overflow-x: hidden;
+            animation: slideUp 0.4s ease-out;
+            /* Animação de entrada */
+        }
+
+        #modalDetalhes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            z-index: 1000;
         }
 
         /* Carrossel de Imagens */
         .imagens-adicionais {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-            padding: 10px;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .imagem-container {
-            display: inline-block;
             position: relative;
-            width: 200px;
-            height: 200px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow-x: auto;
+            white-space: nowrap;
+            position: relative;
+            margin-top: -1px;
+            /* Ajuste conforme a altura da imagem principal */
+            z-index: 1;
+            /* Faz com que fiquem acima da imagem principal */
         }
 
-        .imagem-container:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-        }
-
+        /* Imagem adicional */
         .imagem-adicional {
-            height: 100%;
-            width: 100%;
+            width: 100px;
+            height: 100px;
             object-fit: cover;
-            border-radius: 8px;
+            margin-right: 10px;
             cursor: pointer;
+            border-radius: 15px;
+        }
+
+        /* Container da imagem adicional */
+        .imagem-container {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .imagem-adicional:hover {
+            filter: brightness(1.2);
+            /* Brilho ao passar o mouse */
         }
 
         /* Botão de Tela Cheia */
@@ -700,17 +723,21 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.7);
             color: white;
             border: none;
-            border-radius: 5px;
-            padding: 5px;
+            border-radius: 50%;
+            padding: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .fullscreen-btn:hover {
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.9);
         }
 
         /* Imagem em Tela Cheia */
@@ -726,38 +753,15 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
+            animation: fadeIn 0.4s ease;
         }
 
         .imagem-fullscreen img {
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 85%;
+            max-height: 85%;
             object-fit: contain;
-            border-radius: 12px;
-        }
-
-        .imagem-fullscreen .nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 20px;
-        }
-
-        .imagem-fullscreen .nav-btn.left {
-            left: 20px;
-        }
-
-        .imagem-fullscreen .nav-btn.right {
-            right: 20px;
-        }
-
-        .imagem-fullscreen .nav-btn:hover {
-            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
         }
 
         /* Detalhes do Anúncio */
@@ -768,58 +772,113 @@
         }
 
         .modal-titulo {
-            color: #333;
-            font-size: 24px;
+            color: #222;
+            font-size: 28px;
             margin-top: 20px;
+            background: linear-gradient(90deg, #f0f, #0ff);
+            -webkit-background-clip: text;
+            /* Para navegadores baseados no WebKit */
+            background-clip: text;
+            /* Para outros navegadores */
+            -webkit-text-fill-color: transparent;
+            /* Mantém o texto transparente para o gradiente aparecer */
+        }
+
+        .info-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
         }
 
         .info-adicional {
             margin-top: 10px;
             padding: 15px;
             border: 1px solid #ddd;
-            border-radius: 10px;
-            background-color: #f5f5f5;
+            border-radius: 15px;
+            background-color: rgba(245, 245, 245, 0.9);
             width: 100%;
             max-width: 900px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             font-size: 16px;
             color: #333;
+            transition: all 0.3s ease;
         }
 
-        .info-adicional i {
-            color: #3498db;
-            margin-right: 10px;
+        .info-adicional:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-descricao {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f4f4f4;
+            border-radius: 5px;
         }
 
         /* Imagem Principal */
         .imagem-principal {
             width: 100%;
             height: auto;
-            border-radius: 12px;
+            border-radius: 16px;
             margin-top: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .imagem-principal:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
         }
 
         .close-btn {
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: red;
+            background-color: rgba(255, 0, 0, 0.8);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease;
         }
 
         .close-btn:hover {
-            background-color: darkred;
+            background-color: rgba(200, 0, 0, 0.9);
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modern-button {
@@ -1115,18 +1174,24 @@
                 <input type="text" maxlength="200" placeholder="Nome do Produto" id="inputMensagem" required>
                 <input type="text" maxlength="200" placeholder="Descrição do Produto" id="inputDescricao" required>
                 <input type="number" placeholder="Preço do Produto" id="inputPreco" step="0.01" required>
-
                 <!-- Campos adicionais -->
                 <!-- Campo de localização modificado para utilizar o Autocomplete do Google Maps -->
-                <input id="inputLocalizacao" type="text" placeholder="Digite o endereço" />
-                <select id="inputTipoTransacao" required>
-                    <option value="" disabled selected>Selecione o Tipo de Transação</option>
-                    <option value="Venda">Venda</option>
-                    <option value="Locação">Locação</option>
+                <input id="inputLocalizacao" type="text" placeholder="Digite sua cidade" />
+                <input type="number" placeholder="Ano" id="inputAno" required>
+                <input type="number" placeholder="Kilometragem Total" id="inputKilometragem" required>
+                <select id="inputTipoCambio" required>
+                    <option value="" disabled selected>Selecione o tipo de câmbio do veículo</option>
+                    <option value="manual">Manual</option>
+                    <option value="automatico">Automático</option>
                 </select>
-                <input type="number" placeholder="Quantidade de Quartos" id="inputQuartos" required>
-                <input type="number" placeholder="Quantidade de Banheiros" id="inputBanheiros" required>
-                <input type="number" placeholder="Metros Quadrados" id="inputMetrosQuadrados" required>
+                <select id="inputTipoCombustivel" required>
+                    <option value="" disabled selected>Selecione o tipo de combustivel do veículo</option>
+                    <option value="Gasolina">Gasolina</option>
+                    <option value="Etanol">Etanol</option>
+                    <option value="Flex">Flex</option>
+                    <option value="Eletrico">Elétrico</option>
+                    <option value="hibrido">Híbrido</option>
+                </select>
 
                 <button
                     style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
@@ -1354,10 +1419,10 @@
             const imagensAdicionais = document.getElementById("inputImagensAdicionais").files;
 
             // Novos campos
-            const tipoTransacao = document.getElementById("inputTipoTransacao").value;
-            const quartos = parseInt(document.getElementById("inputQuartos").value);
-            const banheiros = parseInt(document.getElementById("inputBanheiros").value);
-            const metrosQuadrados = parseInt(document.getElementById("inputMetrosQuadrados").value);
+            const tipoCombustivel = document.getElementById("inputTipoCombustivel").value;
+            const ano = parseInt(document.getElementById("inputAno").value);
+            const kilometragem = parseInt(document.getElementById("inputKilometragem").value);
+            const tipoCambio = document.getElementById("inputTipoCambio").value;  // Corrigido aqui
 
             if (!imagemPrincipal) {
                 alert("Por favor, selecione uma imagem principal.");
@@ -1411,10 +1476,10 @@
                     localizacao: localizacaoFormatada,
                     latitude: latitude,
                     longitude: longitude,
-                    tipoTransacao: tipoTransacao,
-                    quartos: quartos,
-                    banheiros: banheiros,
-                    metrosQuadrados: metrosQuadrados,
+                    tipoCambio: tipoCambio,  // Corrigido aqui
+                    kilometragem: kilometragem,
+                    tipoCombustivel: tipoCombustivel,
+                    ano: ano,
                     timestamp: serverTimestamp(),
                     userId: auth.currentUser.uid,
                 });
@@ -1426,10 +1491,10 @@
                 document.getElementById("inputImagem").value = "";
                 document.getElementById("inputImagensAdicionais").value = "";
                 document.getElementById("inputLocalizacao").value = "";
-                document.getElementById("inputTipoTransacao").value = "";
-                document.getElementById("inputQuartos").value = "";
-                document.getElementById("inputBanheiros").value = "";
-                document.getElementById("inputMetrosQuadrados").value = "";
+                document.getElementById("inputTipoCombustivel").value = "";
+                document.getElementById("inputAno").value = "";
+                document.getElementById("inputKilometragem").value = "";
+                document.getElementById("inputTipoCambio").value = "";
 
                 location.reload();
 
@@ -1953,7 +2018,8 @@
             closeBtn.className = "close-btn";
             closeBtn.innerHTML = "&times;"; // Unicode para o "X"
             closeBtn.onclick = function () {
-                modal.style.display = "none";
+                modal.style.animation = "fadeOut 0.5s ease"; // Animação de saída
+                setTimeout(() => modal.style.display = "none", 500);
             };
             modal.appendChild(closeBtn);
 
@@ -1963,7 +2029,15 @@
             titulo.className = "modal-titulo";
             detalhesAnuncio.appendChild(titulo);
 
-            // Adiciona o carrossel de imagens acima da descrição
+            // Adiciona a imagem principal
+            if (data.imagemUrl) {
+                const imgPrincipal = document.createElement("img");
+                imgPrincipal.src = data.imagemUrl;
+                imgPrincipal.className = "imagem-principal";
+                detalhesAnuncio.appendChild(imgPrincipal);
+            }
+
+            // Adiciona o carrossel de imagens adicionais sobre a imagem principal
             if (data.imagensAdicionaisUrls && data.imagensAdicionaisUrls.length > 0) {
                 const containerImagensAdicionais = document.createElement("div");
                 containerImagensAdicionais.className = "imagens-adicionais";
@@ -1982,7 +2056,6 @@
                     const fullscreenBtn = document.createElement("button");
                     fullscreenBtn.className = "fullscreen-btn";
                     fullscreenBtn.innerHTML = "&#x26F6;"; // Unicode de tela cheia
-
                     fullscreenBtn.onclick = function (e) {
                         e.stopPropagation();
                         openFullscreen(url, data.imagensAdicionaisUrls, index);
@@ -1996,58 +2069,50 @@
                 detalhesAnuncio.appendChild(containerImagensAdicionais);
             }
 
-            // Adiciona a descrição
+            // Adiciona as informações adicionais
+            const infoContainer = document.createElement("div");
+            infoContainer.className = "info-container";
+
             const descricao = document.createElement("p");
             descricao.textContent = `Descrição: ${data.descricao}`;
-            descricao.className = "info-adicional";
-            detalhesAnuncio.appendChild(descricao);
+            descricao.className = "info-descricao";
+            infoContainer.appendChild(descricao);
 
-            // Adiciona o preço
             const precoElemento = document.createElement("p");
             precoElemento.textContent = `Preço: ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
             precoElemento.className = "info-adicional";
-            detalhesAnuncio.appendChild(precoElemento);
+            infoContainer.appendChild(precoElemento);
 
-            // Adiciona a localização
             const localizacaoElemento = document.createElement("p");
             localizacaoElemento.innerHTML = `<i class="fa fa-map-marker-alt"></i> Localização: ${data.localizacao}`;
             localizacaoElemento.className = "info-adicional";
-            detalhesAnuncio.appendChild(localizacaoElemento);
+            infoContainer.appendChild(localizacaoElemento);
 
-            // Adiciona o tipo de transação
-            const tipoTransacaoElemento = document.createElement("p");
-            tipoTransacaoElemento.innerHTML = `<i class="fa fa-exchange-alt"></i> Tipo de Transação: ${data.tipoTransacao}`;
-            tipoTransacaoElemento.className = "info-adicional";
-            detalhesAnuncio.appendChild(tipoTransacaoElemento);
+            const tipoCambioElemento = document.createElement("p");
+            tipoCambioElemento.innerHTML = `<i class="fa fa-cogs"></i> Tipo de Câmbio: ${data.tipoCambio}`;
+            tipoCambioElemento.className = "info-adicional";
+            infoContainer.appendChild(tipoCambioElemento);
 
-            // Adiciona os quartos
-            const quartosElemento = document.createElement("p");
-            quartosElemento.innerHTML = `<i class="fa fa-bed"></i> Quartos: ${data.quartos}`;
-            quartosElemento.className = "info-adicional";
-            detalhesAnuncio.appendChild(quartosElemento);
+            const tipoCombustivelElemento = document.createElement("p");
+            tipoCombustivelElemento.innerHTML = `<i class="fa fa-gas-pump"></i> Tipo de Combustível: ${data.tipoCombustivel}`;
+            tipoCombustivelElemento.className = "info-adicional";
+            infoContainer.appendChild(tipoCombustivelElemento);
 
-            // Adiciona os banheiros
-            const banheirosElemento = document.createElement("p");
-            banheirosElemento.innerHTML = `<i class="fa fa-bath"></i> Banheiros: ${data.banheiros}`;
-            banheirosElemento.className = "info-adicional";
-            detalhesAnuncio.appendChild(banheirosElemento);
+            const anoElemento = document.createElement("p");
+            anoElemento.innerHTML = `<i class="fa fa-calendar-alt"></i> Ano: ${data.ano}`;
+            anoElemento.className = "info-adicional";
+            infoContainer.appendChild(anoElemento);
 
-            // Adiciona os metros quadrados
-            const metrosQuadradosElemento = document.createElement("p");
-            metrosQuadradosElemento.innerHTML = `<i class="fa fa-ruler-combined"></i> Metros Quadrados: ${data.metrosQuadrados}`;
-            metrosQuadradosElemento.className = "info-adicional";
-            detalhesAnuncio.appendChild(metrosQuadradosElemento);
+            const kilometragemElemento = document.createElement("p");
+            kilometragemElemento.innerHTML = `<i class="fa fa-tachometer-alt"></i> Kilometragem Total: ${data.kilometragem.toLocaleString()} km`;
+            kilometragemElemento.className = "info-adicional";
+            infoContainer.appendChild(kilometragemElemento);
 
-            // Adiciona a imagem principal
-            if (data.imagemPrincipalUrl) {
-                const imgPrincipal = document.createElement("img");
-                imgPrincipal.src = data.imagemPrincipalUrl;
-                imgPrincipal.className = "imagem-principal";
-                detalhesAnuncio.appendChild(imgPrincipal);
-            }
+            detalhesAnuncio.appendChild(infoContainer);
 
             modal.style.display = "block";
         }
+
 
         function openFullscreen(currentImageUrl, imageUrls, currentIndex) {
             const fullscreenContainer = document.createElement("div");

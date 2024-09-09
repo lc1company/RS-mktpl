@@ -1390,6 +1390,10 @@
             });
         });
 
+        // Variável global para armazenar a cidade atual
+        let cidadeAtual = '';
+
+        // Função para capturar a localização e armazenar a cidade atual
         window.capturarLocalizacao = function () {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async function (position) {
@@ -1397,16 +1401,16 @@
                     const longitude = position.coords.longitude;
 
                     // Chama a função para converter as coordenadas em nome da cidade
-                    const cidade = await converterCoordenadasParaCidade(latitude, longitude);
+                    cidadeAtual = await converterCoordenadasParaCidade(latitude, longitude);
 
-                    if (cidade) {
-                        console.log(`Localização capturada: Latitude ${latitude}, Longitude ${longitude}, Cidade: ${cidade}`);
+                    if (cidadeAtual) {
+                        console.log(`Localização capturada: Latitude ${latitude}, Longitude ${longitude}, Cidade: ${cidadeAtual}`);
 
                         // Mostra o feedback da cidade na tela
-                        document.getElementById("cityFeedback").textContent = `Exibindo resultados para: ${cidade}`;
+                        document.getElementById("cityFeedback").textContent = `Exibindo resultados para: ${cidadeAtual}`;
 
                         // Chama a função filterPosts() para filtrar com base na cidade capturada
-                        filterPosts(cidade);
+                        filterPosts(cidadeAtual);
                     } else {
                         console.error('Não foi possível determinar a cidade.');
                         document.getElementById("cityFeedback").textContent = 'Não foi possível determinar sua cidade.';
@@ -1421,13 +1425,11 @@
             }
         };
 
+        // Função para converter coordenadas em cidade
         async function converterCoordenadasParaCidade(latitude, longitude) {
             try {
-                // Faz uma requisição para o serviço de geocodificação reversa (Nominatim)
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
                 const data = await response.json();
-
-                // Verifica se a requisição foi bem-sucedida e retorna o nome da cidade
                 if (data && data.address && data.address.city) {
                     return data.address.city;
                 } else {
@@ -1696,11 +1698,11 @@
             }
         }
 
+        // Função para filtrar posts com base na cidade
         window.filterPosts = function (cidade) {
-            const searchInput = cidade.toLowerCase(); // Usa a cidade capturada
+            cidadeAtual = cidade.toLowerCase(); // Atualiza a cidade atual
             const timelineItems = Array.from(document.querySelectorAll("#userTimeline .timeline-item"));
 
-            // Extrai os dados de todos os itens de timeline para pesquisa
             const data = timelineItems.map(item => ({
                 element: item,
                 message: (item.dataset.message || '').toLowerCase(),
@@ -1708,45 +1710,42 @@
                 location: (item.dataset.location || '').toLowerCase()
             }));
 
-            // Configuração do Fuse.js para pesquisa aproximada
             const fuse = new Fuse(data, {
                 keys: ['message', 'description', 'location'],
-                threshold: 0.3  // Ajusta a sensibilidade da pesquisa (0.0 = precisa, 1.0 = ampla)
+                threshold: 0.3
             });
 
             let results;
-            if (searchInput.trim() === "") {
-                // Se o campo de pesquisa estiver vazio, mostra todos os itens
+            if (cidadeAtual.trim() === "") {
                 results = data.map(item => ({ item }));
             } else {
-                // Realiza a pesquisa aproximada com Fuse.js
-                results = fuse.search(searchInput);
+                results = fuse.search(cidadeAtual);
             }
 
-            // Oculta todos os itens
             timelineItems.forEach(item => item.style.display = "none");
-
-            // Mostra apenas os itens correspondentes
             results.forEach(result => {
-                result.item.element.style.display = "block";
+                if (result.item.location.includes(cidadeAtual)) {
+                    result.item.element.style.display = "block";
+                }
             });
         };
 
+        // Função para filtrar posts com base na pesquisa
         window.filterPostsBySearch = function () {
             const searchInputElement = document.querySelector('.search-input');
-            const searchInput = searchInputElement ? searchInputElement.value.toLowerCase() : ''; // Verifica se o elemento existe
+            const searchInput = searchInputElement ? searchInputElement.value.toLowerCase() : '';
 
             const userTimeline = document.getElementById('userTimeline');
-            if (!userTimeline) return; // Verifica se a timeline existe antes de continuar
-            const timelineItems = userTimeline.getElementsByClassName('timeline-item'); // Seleciona todos os elementos de publicação
+            if (!userTimeline) return;
+            const timelineItems = userTimeline.getElementsByClassName('timeline-item');
 
-            // Itera sobre cada item da timeline e verifica se corresponde ao texto de pesquisa
             Array.from(timelineItems).forEach(item => {
-                const message = item.getAttribute('data-message') ? item.getAttribute('data-message').toLowerCase() : ''; // Verifica se o atributo existe
-                const description = item.getAttribute('data-description') ? item.getAttribute('data-description').toLowerCase() : ''; // Verifica se o atributo existe
+                const message = item.getAttribute('data-message') ? item.getAttribute('data-message').toLowerCase() : '';
+                const description = item.getAttribute('data-description') ? item.getAttribute('data-description').toLowerCase() : '';
+                const location = item.getAttribute('data-location') ? item.getAttribute('data-location').toLowerCase() : '';
 
-                // Verifica se o texto de pesquisa está presente no título ou descrição
-                if (message.includes(searchInput) || description.includes(searchInput)) {
+                // Verifica se o texto de pesquisa está presente no título, descrição e cidade
+                if ((message.includes(searchInput) || description.includes(searchInput)) && location.includes(cidadeAtual)) {
                     item.style.display = ''; // Mostra o item se corresponder
                 } else {
                     item.style.display = 'none'; // Esconde o item se não corresponder

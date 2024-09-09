@@ -1136,8 +1136,9 @@
 
     <header class="app-header">
         <div class="search-container">
-            <input type="text" class="search-input" placeholder="Pesquisar anúncios de automóveis..." />
-            <button class="search-button">
+            <input type="text" class="search-input" placeholder="Pesquisar por Nome, Modelo, Marca..."
+                oninput="filterPostsBySearch()" />
+            <button class="search-button" onclick="filterPostsBySearch()">
                 <i class="fas fa-search"></i>
             </button>
         </div>
@@ -1731,7 +1732,29 @@
             });
         };
 
-        // Função para obter a linha do tempo de todos os usuários
+        window.filterPostsBySearch = function () {
+            const searchInputElement = document.querySelector('.search-input');
+            const searchInput = searchInputElement ? searchInputElement.value.toLowerCase() : ''; // Verifica se o elemento existe
+
+            const userTimeline = document.getElementById('userTimeline');
+            if (!userTimeline) return; // Verifica se a timeline existe antes de continuar
+            const timelineItems = userTimeline.getElementsByClassName('timeline-item'); // Seleciona todos os elementos de publicação
+
+            // Itera sobre cada item da timeline e verifica se corresponde ao texto de pesquisa
+            Array.from(timelineItems).forEach(item => {
+                const message = item.getAttribute('data-message') ? item.getAttribute('data-message').toLowerCase() : ''; // Verifica se o atributo existe
+                const description = item.getAttribute('data-description') ? item.getAttribute('data-description').toLowerCase() : ''; // Verifica se o atributo existe
+
+                // Verifica se o texto de pesquisa está presente no título ou descrição
+                if (message.includes(searchInput) || description.includes(searchInput)) {
+                    item.style.display = ''; // Mostra o item se corresponder
+                } else {
+                    item.style.display = 'none'; // Esconde o item se não corresponder
+                }
+            });
+        };
+
+        // Função para obter anuncios dos usuários
         window.getAllUserTimeline = async function () {
             const userTimeline = document.getElementById("userTimeline");
 
@@ -1786,8 +1809,8 @@
                     const horas = String(timestamp.getHours()).padStart(2, '0');
                     const minutos = String(timestamp.getMinutes()).padStart(2, '0');
                     const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
-                    const message = data.message || '';  // Certifique-se de que esses campos estejam no Firestore
-                    const description = data.description || '';
+                    const message = data.mensagem || '';  // Certifique-se de que esses campos estejam no Firestore
+                    const description = data.descricao || '';
                     const location = (data.localizacao || '').toLowerCase();  // Certifique-se de usar toLowerCase()
 
                     const user = await getUserData(data.userId);

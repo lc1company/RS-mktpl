@@ -31,7 +31,7 @@
         .tabs {
             display: flex;
             justify-content: space-around;
-            background: linear-gradient(135deg, #137d97, #17859e);
+            background: linear-gradient(135deg, #1c90aa, #2193b0);
             /* Gradiente semelhante ao botão */
             color: #fff;
             width: 100%;
@@ -313,27 +313,171 @@
             color: #002a5d;
         }
 
+        /* Modal Container */
         .user-profile-container {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            /* Fundo semi-transparente para sobreposição */
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
             justify-content: center;
-            /* Alinhamento central verticalmente */
             align-items: center;
-            /* Alinhamento central horizontalmente */
+            animation: fadeIn 0.5s ease-out;
         }
 
+        /* Modal Content */
         .user-profile-content {
-            background-color: white;
+            background: #fff;
+            border-radius: 15px;
             padding: 20px;
-            border-radius: 10px;
-            max-width: 80%;
-            width: 75%;
+            color: #333;
             text-align: center;
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90%;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        /* Close Button */
+        .close-button {
+            background-color: #007BFF;
+            color: #fff;
+            font-size: 18px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .close-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* User Profile Picture */
+        #userProfilePicturePopUp {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* User Name */
+        #userProfileName {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* Ads Grid */
+        .user-ads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Ad Item */
+        .ad-item {
+            background-color: #fff;
+            color: #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .ad-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Ad Image */
+        .ad-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Ad Details */
+        .ad-details {
+            padding: 10px;
+        }
+
+        .ad-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .ad-description {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .ad-price {
+            font-size: 16px;
+            color: #007BFF;
+            margin: 5px 0;
+        }
+
+        /* WhatsApp Button */
+        .whatsapp-button {
+            background-color: #25D366;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .whatsapp-button:hover {
+            background-color: #1DA851;
+        }
+
+        .whatsapp-button i {
+            margin-right: 8px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+            }
+
+            to {
+                transform: translateY(0);
+            }
         }
 
         #formPublicacao {
@@ -1256,14 +1400,13 @@
             </div>
         </div>
 
-        <div id="userProfileContainer" class="user-profile-container" style="display: none;">
+        <div id="userProfileContainer" class="user-profile-container">
             <div class="user-profile-content">
-                <button
-                    style="background-color: red; color: #fff; font-size: 15px; position: absolute; top: 10; left: 0; margin-left: 12%; right: 1; cursor: pointer"
-                    onclick="closeUserProfile()">X</button>
-                <img id="userProfilePicturePopUp" alt="Foto do usuário"
-                    style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;" loading="lazy">
+                <button class="close-button" onclick="closeUserProfile()">X</button>
+                <img id="userProfilePicturePopUp" alt="Foto do usuário" loading="lazy">
                 <p id="userProfileName"></p>
+                <div id="userAdsGrid" class="user-ads-grid"></div>
+                <ul id="userAdsList"></ul>
             </div>
         </div>
 
@@ -1779,7 +1922,7 @@
 
         // Variáveis de controle de paginação
         let lastVisible = null; // Para armazenar o último documento visível
-        const pageSize = 10; // Número de documentos a serem carregados por página
+        const pageSize = 5; // Número de documentos a serem carregados por página
 
         // Função para obter anuncios dos usuários
         window.getAllUserTimeline = async function (isInitialLoad = true) {
@@ -2781,20 +2924,16 @@
                     const userProfileName = document.getElementById("userProfileName");
                     userProfileName.textContent = userData.fullName || "Nome do usuário não disponível";
 
-                    // Verificar se o usuário possui uma foto de perfil
+                    // Atualizar a foto de perfil do usuário
+                    const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
                     if (userData.photoURL) {
-                        // Se tiver, atualizar a foto de perfil do usuário
-                        const userProfilePicture = document.getElementById("userProfilePicture");
-                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
                         userProfilePicturePopUp.src = userData.photoURL;
-                        userProfilePicture.src = userData.photoURL;
                     } else {
-                        // Se não tiver, usar uma foto de perfil padrão
-                        const userProfilePicture = document.getElementById("userProfilePicture");
-                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
-                        userProfilePicture.src = "perfil/fotoPadrao.png";
                         userProfilePicturePopUp.src = "perfil/fotoPadrao.png";
                     }
+
+                    // Exibir os anúncios do usuário
+                    await carregarAnunciosDoUsuario(uid);
                 } else {
                     console.log("Usuário não encontrado no Firestore");
                 }
@@ -3206,12 +3345,10 @@
 
             // Obter o elemento do perfil do usuário
             const userProfileContainer = document.getElementById("userProfileContainer");
-            const userProfileName = document.getElementById("userProfileName");
-            const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
 
             // Limpar as informações anteriores do perfil do usuário
-            userProfileName.textContent = "";
-            userProfilePicturePopUp.src = "";
+            document.getElementById("userProfileName").textContent = "";
+            document.getElementById("userProfilePicturePopUp").src = "";
 
             // Exibir o perfil do usuário
             exibirPerfilUsuario(userId);
@@ -3227,6 +3364,157 @@
             // Ocultar a tela de perfil do usuário
             const userProfileContainer = document.getElementById("userProfileContainer");
             userProfileContainer.style.display = "none";
+        }
+
+        // Função para obter os anúncios do usuário
+        async function carregarAnunciosDoUsuario(uid) {
+            const userAdsList = document.getElementById("userAdsList");
+            userAdsList.innerHTML = ""; // Limpar a lista antes de carregar
+
+            try {
+                const anunciosQuery = query(collection(db, "publicacoes"), where("userId", "==", uid));
+                const anunciosSnapshot = await getDocs(anunciosQuery);
+
+                anunciosSnapshot.forEach((docSnapshot) => {
+                    const anuncio = docSnapshot.data();
+                    const docId = docSnapshot.id;
+
+                    // Criação do elemento li para cada anúncio
+                    const li = document.createElement("li");
+                    li.classList.add("ad-item");
+                    li.style.backgroundColor = "#fff";
+                    li.style.borderRadius = "8px";
+                    li.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.1)";
+                    li.style.overflow = "hidden";
+                    li.style.margin = "15px";
+                    li.style.padding = "20px";
+                    li.style.position = "relative";
+                    li.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
+                    li.style.cursor = "pointer";
+
+                    // Estilo de hover
+                    li.addEventListener("mouseover", () => {
+                        li.style.transform = "translateY(-10px)";
+                        li.style.boxShadow = "0 16px 32px rgba(0, 0, 0, 0.2)";
+                    });
+                    li.addEventListener("mouseout", () => {
+                        li.style.transform = "translateY(0)";
+                        li.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.1)";
+                    });
+
+                    // Container para imagem
+                    if (anuncio.imagemUrl) {
+                        const imgContainer = document.createElement("div");
+                        imgContainer.style.position = "relative";
+                        imgContainer.style.overflow = "hidden";
+                        imgContainer.style.borderRadius = "8px";
+                        imgContainer.style.marginBottom = "15px";
+
+                        const imagem = document.createElement("img");
+                        imagem.src = anuncio.imagemUrl;
+                        imagem.alt = "Imagem do anúncio";
+                        imagem.style.width = "100%";
+                        imagem.style.height = "auto";
+                        imagem.style.transition = "transform 0.3s ease";
+                        imgContainer.appendChild(imagem);
+
+                        // Efeito de hover para imagem
+                        imgContainer.addEventListener("mouseover", () => {
+                            imagem.style.transform = "scale(1.05)";
+                        });
+                        imgContainer.addEventListener("mouseout", () => {
+                            imagem.style.transform = "scale(1)";
+                        });
+
+                        li.appendChild(imgContainer);
+                    }
+
+                    // Adicionar título e preço
+                    const tituloPreco = document.createElement("div");
+                    tituloPreco.style.marginBottom = "10px";
+                    tituloPreco.style.color = "#333";
+
+                    const titulo = document.createElement("h3");
+                    titulo.textContent = anuncio.descricao;
+                    titulo.style.fontSize = "18px";
+                    titulo.style.fontWeight = "bold";
+                    titulo.style.margin = "0";
+                    tituloPreco.appendChild(titulo);
+
+                    const preco = document.createElement("p");
+                    preco.textContent = `${anuncio.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    preco.style.fontSize = "16px";
+                    preco.style.color = "#e74c3c";
+                    preco.style.margin = "0";
+                    tituloPreco.appendChild(preco);
+
+                    li.appendChild(tituloPreco);
+
+                    // Adicionar data e hora (se disponível)
+                    if (anuncio.dataHora) {
+                        const dataHora = document.createElement("p");
+                        dataHora.textContent = `Data e Hora: ${new Date(anuncio.dataHora).toLocaleString('pt-BR')}`;
+                        dataHora.style.fontSize = "12px";
+                        dataHora.style.color = "#888";
+                        dataHora.style.marginTop = "10px";
+                        li.appendChild(dataHora);
+                    }
+
+                    // Botão de denunciar
+                    const reportButton = document.createElement("button");
+                    reportButton.innerHTML = '<i class="fas fa-flag"></i>';
+                    reportButton.style.backgroundColor = "#e74c3c";
+                    reportButton.style.border = "none";
+                    reportButton.style.color = "#fff";
+                    reportButton.style.padding = "10px";
+                    reportButton.style.borderRadius = "50%";
+                    reportButton.style.position = "absolute";
+                    reportButton.style.top = "15px";
+                    reportButton.style.right = "15px";
+                    reportButton.style.cursor = "pointer";
+                    reportButton.style.fontSize = "16px";
+                    reportButton.onclick = () => reportPost(docId);
+                    li.appendChild(reportButton);
+
+                    // Botão de WhatsApp
+                    const whatsappButton = document.createElement("button");
+                    whatsappButton.innerHTML = '<i class="fab fa-whatsapp"></i>';
+                    whatsappButton.style.backgroundColor = "#25D366";
+                    whatsappButton.style.border = "none";
+                    whatsappButton.style.color = "#fff";
+                    whatsappButton.style.padding = "10px 15px";
+                    whatsappButton.style.borderRadius = "50%";
+                    whatsappButton.style.position = "absolute";
+                    whatsappButton.style.bottom = "15px";
+                    whatsappButton.style.right = "15px";
+                    whatsappButton.style.cursor = "pointer";
+                    whatsappButton.style.fontSize = "16px";
+                    whatsappButton.onclick = () => sendWhatsAppMessage(docId);
+                    li.appendChild(whatsappButton);
+
+                    // Adicionar o li à lista de anúncios do usuário
+                    userAdsList.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar anúncios do usuário:", error);
+            }
+        }
+
+        async function sendWhatsAppMessage(docId) {
+            try {
+                const docSnapshot = await getDoc(doc(db, "publicacoes", docId));
+                const anuncio = docSnapshot.data();
+                const userSnapshot = await getDoc(doc(db, "users", anuncio.userId));
+                const user = userSnapshot.data();
+                const whatsappNumber = user.whatsApp;
+
+                const message = `Olá, tenho interesse em "${anuncio.titulo}"`;
+                const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+                window.open(url, '_blank');
+            } catch (error) {
+                console.error("Erro ao enviar mensagem no WhatsApp:", error);
+            }
         }
 
     </script>

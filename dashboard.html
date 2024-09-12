@@ -31,7 +31,7 @@
         .tabs {
             display: flex;
             justify-content: space-around;
-            background: linear-gradient(135deg, #137d97, #17859e);
+            background: linear-gradient(135deg, #1c90aa, #2193b0);
             /* Gradiente semelhante ao botão */
             color: #fff;
             width: 100%;
@@ -313,27 +313,171 @@
             color: #002a5d;
         }
 
+        /* Modal Container */
         .user-profile-container {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            /* Fundo semi-transparente para sobreposição */
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
             justify-content: center;
-            /* Alinhamento central verticalmente */
             align-items: center;
-            /* Alinhamento central horizontalmente */
+            animation: fadeIn 0.5s ease-out;
         }
 
+        /* Modal Content */
         .user-profile-content {
-            background-color: white;
+            background: #fff;
+            border-radius: 15px;
             padding: 20px;
-            border-radius: 10px;
-            max-width: 80%;
-            width: 75%;
+            color: #333;
             text-align: center;
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90%;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        /* Close Button */
+        .close-button {
+            background-color: #007BFF;
+            color: #fff;
+            font-size: 18px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .close-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* User Profile Picture */
+        #userProfilePicturePopUp {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* User Name */
+        #userProfileName {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* Ads Grid */
+        .user-ads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Ad Item */
+        .ad-item {
+            background-color: #fff;
+            color: #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .ad-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Ad Image */
+        .ad-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Ad Details */
+        .ad-details {
+            padding: 10px;
+        }
+
+        .ad-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .ad-description {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .ad-price {
+            font-size: 16px;
+            color: #007BFF;
+            margin: 5px 0;
+        }
+
+        /* WhatsApp Button */
+        .whatsapp-button {
+            background-color: #25D366;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .whatsapp-button:hover {
+            background-color: #1DA851;
+        }
+
+        .whatsapp-button i {
+            margin-right: 8px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+            }
+
+            to {
+                transform: translateY(0);
+            }
         }
 
         #formPublicacao {
@@ -434,128 +578,137 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        .chat-modal {
+        /* Estilos principais */
+        #chatModal {
+            display: none;
             position: fixed;
-            bottom: 0;
-            right: 0;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 400px;
-            height: 40%;
-            max-height: 400px;
-            background-color: #f9f9f9;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
-            border-radius: 10px 10px 0 0;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        #chatContainer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
+            height: 80%;
+            overflow: hidden;
         }
 
-        .chat-title {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            border-radius: 10px 10px 0 0;
+        #chatHeader {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
+            padding: 15px;
+            background-color: #003366;
+            color: #fff;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
         }
 
-        .chat-title-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin: 0 5px;
-        }
-
-        .negotiation-icon {
-            font-size: 20px;
-            margin: 0 10px;
-        }
-
-        .chat-title-names {
-            display: flex;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        .chat-messages {
+        #chatMessages {
             flex: 1;
-            padding: 10px;
+            padding: 20px;
             overflow-y: auto;
-            background-color: #e9ecef;
-            border-bottom: 1px solid #ddd;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .chat-input-container {
+        #chatInputContainer {
             display: flex;
-            padding: 10px;
-            background-color: #f9f9f9;
+            align-items: center;
+            padding: 15px;
+            background-color: #003366;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
         }
 
         #chatInput {
             flex: 1;
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            outline: none;
-            box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .send-button {
-            padding: 10px 20px;
-            margin-left: 10px;
-            background-color: #007bff;
-            color: white;
             border: none;
             border-radius: 20px;
+            margin-right: 10px;
+            outline: none;
+            background-color: #fff;
+            color: #000;
+        }
+
+        button {
+            background-color: #0066cc;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
             cursor: pointer;
-            box-shadow: 0px 4px 6px rgba(0, 123, 255, 0.3);
             transition: background-color 0.3s ease;
         }
 
-        .send-button:hover {
-            background-color: #0056b3;
+        button:hover {
+            background-color: #005bb5;
         }
 
+        /* Estilos de mensagens */
         .message-container {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 10px;
+            max-width: 80%;
             padding: 10px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             background-color: #fff;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .message-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease forwards;
         }
 
         .message-container.me {
-            background-color: #007bff;
-            color: white;
             align-self: flex-end;
-            box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.3);
+            background-color: #0066cc;
+            color: #fff;
         }
 
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
+        .message-container.me::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            right: -10px;
+            border-width: 10px;
+            border-style: solid;
+            border-color: #0066cc transparent transparent transparent;
+        }
+
+        .message-container.their {
+            align-self: flex-start;
+            background-color: #fff;
+            color: #000;
+        }
+
+        .message-container.their::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: -10px;
+            border-width: 10px;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent;
         }
 
         .message-content {
-            max-width: 70%;
+            max-width: 100%;
+            margin-left: 10px;
         }
 
         .message-sender {
@@ -563,14 +716,46 @@
             margin-bottom: 5px;
         }
 
-        .message-text {
-            word-wrap: break-word;
+        .message-time {
+            font-size: 0.75em;
+            color: #aaa;
+            margin-top: 5px;
         }
 
-        .message-time {
-            font-size: 0.85em;
-            color: #000000;
-            margin-top: 5px;
+        /* Estilos de imagem de perfil */
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+
+        .chat-title-content .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+            border: 2px solid #fff;
+        }
+
+        .chat-title-names {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .notification-counter {
@@ -1129,6 +1314,42 @@
         .search-button i {
             font-size: 18px;
         }
+
+        #loadMoreButton {
+            display: block;
+            /* Garante que o botão ocupe toda a linha */
+            margin: 20px auto;
+            /* Adiciona margem superior e centraliza o botão horizontalmente */
+            padding: 10px 20px;
+            /* Adiciona espaçamento interno ao botão */
+            background-color: #007bff;
+            /* Cor de fundo do botão */
+            color: #fff;
+            /* Cor do texto do botão */
+            border: none;
+            /* Remove a borda padrão */
+            border-radius: 5px;
+            /* Arredonda os cantos do botão */
+            cursor: pointer;
+            /* Muda o cursor para um ponteiro ao passar o mouse */
+        }
+
+        #loadMoreButton:hover {
+            background-color: #0056b3;
+            /* Muda a cor de fundo ao passar o mouse */
+        }
+
+        /* CSS */
+        .negotiation-icon {
+            margin-left: 5%;
+            margin-right: 5%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #FF5722;
+            /* Ajuste a cor conforme necessário */
+        }
     </style>
 </head>
 
@@ -1149,8 +1370,7 @@
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')"><i class="fas fa-stream"></i><span>Linha do Tempo</span>
             </div>
-            <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-calendar-plus"></i><span>Produzir
-                    Evento</span></div>
+            <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-bullhorn"></i><span>Anunciar</span></div>
             <div class="tab" onclick="showTab('meuPerfil')"><i class="fas fa-user"></i><span>Meu Perfil</span></div>
             <div class="tab" onclick="showTab('notificacoes')" id="notificationsTab">
                 <i class="fas fa-bell"></i><span>Notificações</span>
@@ -1201,24 +1421,28 @@
                 <!-- Lista de chats será exibida aqui -->
             </div>
             <div id="chatModal"
-                style="display: none; position: fixed; top: 10%; left: 50%; transform: translate(-50%, 0); width: 80%; max-width: 600px; background-color: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 20px; z-index: 1000;">
-                <div id="chatHeader"
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 id="chatTitle">Chat</h2>
-                    <button onclick="closeChat()"
-                        style="background-color: #e74c3c; color: #fff; border: none; border-radius: 4px; padding: 8px 12px; cursor: pointer;">Fechar</button>
-                </div>
-                <div id="chatMessages"
-                    style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
-                    <!-- Mensagens do chat aparecerão aqui -->
-                </div>
-                <div id="chatInputContainer" style="display: flex; margin-top: 20px;">
-                    <input type="text" id="chatInput" placeholder="Digite sua mensagem..."
-                        style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px;">
-                    <button onclick="sendMessage()"
-                        style="background-color: #3498db; color: #fff; border: none; border-radius: 4px; padding: 10px 20px; cursor: pointer;">Enviar</button>
+                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000;">
+                <div id="chatContainer"
+                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; background-color: #1a1a2e; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); overflow: hidden; display: flex; flex-direction: column; height: 80%;">
+                    <div id="chatHeader"
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: #162447; color: #fff;">
+                        <h2 id="chatTitle">Chat</h2>
+                        <button onclick="closeChat()"
+                            style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">&#10006;</button>
+                    </div>
+                    <div id="chatMessages" style="flex: 1; padding: 20px; overflow-y: auto; background-color: #1f4068;">
+                        <!-- Mensagens do chat aparecerão aqui -->
+                    </div>
+                    <div id="chatInputContainer"
+                        style="display: flex; align-items: center; padding: 15px; background-color: #162447;">
+                        <input type="text" id="chatInput" placeholder="Digite sua mensagem..."
+                            style="flex: 1; padding: 10px; border: none; border-radius: 20px; margin-right: 10px; outline: none;">
+                        <button onclick="sendMessage()"
+                            style="background-color: #e43f5a; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; cursor: pointer;">Enviar</button>
+                    </div>
                 </div>
             </div>
+
         </div>
 
         <div id="meuPerfil" class="tab-content" style="text-align: center;">
@@ -1232,14 +1456,13 @@
             </div>
         </div>
 
-        <div id="userProfileContainer" class="user-profile-container" style="display: none;">
+        <div id="userProfileContainer" class="user-profile-container">
             <div class="user-profile-content">
-                <button
-                    style="background-color: red; color: #fff; font-size: 15px; position: absolute; top: 10; left: 0; margin-left: 12%; right: 1; cursor: pointer"
-                    onclick="closeUserProfile()">X</button>
-                <img id="userProfilePicturePopUp" alt="Foto do usuário"
-                    style="width: 25%; height: 20%; border-radius: 50%; object-fit: cover;" loading="lazy">
+                <button class="close-button" onclick="closeUserProfile()">X</button>
+                <img id="userProfilePicturePopUp" alt="Foto do usuário" loading="lazy">
                 <p id="userProfileName"></p>
+                <div id="userAdsGrid" class="user-ads-grid"></div>
+                <ul id="userAdsList"></ul>
             </div>
         </div>
 
@@ -2140,6 +2363,10 @@
                     // Adiciona um evento de clique para exibir o perfil do usuário ao clicar na foto ou no nome
                     userImg.onclick = () => showUserProfile(data.userId);
                     userName.onclick = () => showUserProfile(data.userId);
+
+                    addLoadMoreButton();
+
+                    filterPostsBySearch();
                 });
 
                 // Verificar se há mais documentos a serem carregados
@@ -2154,15 +2381,17 @@
         // Função para adicionar o botão de "Carregar Mais"
         function addLoadMoreButton() {
             const userTimeline = document.getElementById("userTimeline");
-            const loadMoreButton = document.getElementById("loadMoreButton");
+            let loadMoreButton = document.getElementById("loadMoreButton");
 
             if (!loadMoreButton) {
-                const button = document.createElement("button");
-                button.id = "loadMoreButton";
-                button.textContent = "Carregar Mais";
-                button.onclick = () => getAllUserTimeline(false); // Chama a função para carregar mais
-                userTimeline.appendChild(button);
+                loadMoreButton = document.createElement("button");
+                loadMoreButton.id = "loadMoreButton";
+                loadMoreButton.textContent = "Carregar Mais";
+                loadMoreButton.onclick = () => getAllUserTimeline(false); // Chama a função para carregar mais
             }
+
+            // Move o botão para o final do container
+            userTimeline.appendChild(loadMoreButton);
         }
 
         function showDetalhesAnuncio(data) {
@@ -2503,25 +2732,34 @@
             currentChatId = null;
         }
 
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+        // Substitua toLocaleString por formatTimestamp no código de exibição de mensagens
         async function loadChatMessages(chatId) {
             try {
-                // Obter o documento do chat
                 const chatDoc = await getDoc(doc(db, "chats", chatId));
-
                 if (chatDoc.exists()) {
                     const chatData = chatDoc.data();
                     const chatMessagesContainer = document.getElementById("chatMessages");
 
-                    // Carregar dados do comprador e do vendedor
                     const compradorData = await getUserData(chatData.compradorId);
                     const vendedorData = await getUserData(chatData.vendedorId);
 
-                    // Atualizar o título do chat
                     const chatTitle = document.getElementById("chatTitle");
                     chatTitle.innerHTML = `
                 <div class="chat-title-content">
                     <img src="${vendedorData.photoURL || 'default-photo-url.png'}" alt="${vendedorData.fullName}" class="user-avatar">
-                    <span class="negotiation-icon">⚔️</span>
+                        <span class="negotiation-icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </span>
                     <img src="${compradorData.photoURL || 'default-photo-url.png'}" alt="${compradorData.fullName}" class="user-avatar">
                 </div>
                 <div class="chat-title-names">
@@ -2530,10 +2768,8 @@
                     <div>${compradorData.fullName}</div>
                 </div>`;
 
-                    // Limpar mensagens antigas
                     chatMessagesContainer.innerHTML = "";
 
-                    // Iterar sobre as mensagens e adicioná-las ao container
                     chatData.mensagens.forEach((mensagem) => {
                         const messageElement = document.createElement("div");
                         messageElement.classList.add("message-container");
@@ -2551,30 +2787,29 @@
                             const senderPhoto = senderData.photoURL || "default-photo-url.png";
 
                             messageElement.innerHTML = `
-                    <img src="${senderPhoto}" alt="${senderName}" class="message-avatar">
-                    <div class="message-content">
-                        <div class="message-sender">${sanitizeHTML(senderName)}</div>
-                        <div class="message-text">${sanitizeHTML(mensagem.texto)}</div>
-                        <div class="message-time">${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()}</div>
-                    </div>`;
+                        <img src="${senderPhoto}" alt="${senderName}" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-sender">${sanitizeHTML(senderName)}</div>
+                            <div class="message-text">${sanitizeHTML(mensagem.texto)}</div>
+                            <div class="message-time">${formatTimestamp(mensagem.timestamp.seconds)}</div>
+                        </div>`;
                         } else {
                             messageElement.innerHTML = `
-                    <div class="message-content">
-                        <strong>Desconhecido:</strong> ${sanitizeHTML(mensagem.texto)} 
-                        <small>(${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()})</small>
-                    </div>`;
+                        <div class="message-content">
+                            <strong>Desconhecido:</strong> ${sanitizeHTML(mensagem.texto)} 
+                            <small>(${formatTimestamp(mensagem.timestamp.seconds)})</small>
+                        </div>`;
                         }
 
                         chatMessagesContainer.appendChild(messageElement);
                     });
 
-                    // Rolagem automática para a última mensagem
                     chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
                 } else {
                     console.log("Nenhum chat encontrado com esse ID:", chatId);
                 }
             } catch (error) {
-                console.error("Erro ao carregar mensagens do chat:", error);
+                console.error("Erro ao carregar o chat:", error);
             }
         }
 
@@ -2765,6 +3000,10 @@
                         userProfilePicture.src = "perfil/fotoPadrao.png";
                         userProfilePicturePopUp.src = "perfil/fotoPadrao.png";
                     }
+
+                    // Exibir os anúncios do usuário
+                    await carregarAnunciosDoUsuario(uid);
+
                 } else {
                     console.log("Usuário não encontrado no Firestore");
                 }
@@ -3176,12 +3415,10 @@
 
             // Obter o elemento do perfil do usuário
             const userProfileContainer = document.getElementById("userProfileContainer");
-            const userProfileName = document.getElementById("userProfileName");
-            const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
 
             // Limpar as informações anteriores do perfil do usuário
-            userProfileName.textContent = "";
-            userProfilePicturePopUp.src = "";
+            document.getElementById("userProfileName").textContent = "";
+            document.getElementById("userProfilePicturePopUp").src = "";
 
             // Exibir o perfil do usuário
             exibirPerfilUsuario(userId);
@@ -3197,6 +3434,157 @@
             // Ocultar a tela de perfil do usuário
             const userProfileContainer = document.getElementById("userProfileContainer");
             userProfileContainer.style.display = "none";
+        }
+
+        // Função para obter os anúncios do usuário
+        async function carregarAnunciosDoUsuario(uid) {
+            const userAdsList = document.getElementById("userAdsList");
+            userAdsList.innerHTML = ""; // Limpar a lista antes de carregar
+
+            try {
+                const anunciosQuery = query(collection(db, "publicacoes"), where("userId", "==", uid));
+                const anunciosSnapshot = await getDocs(anunciosQuery);
+
+                anunciosSnapshot.forEach((docSnapshot) => {
+                    const anuncio = docSnapshot.data();
+                    const docId = docSnapshot.id;
+
+                    // Criação do elemento li para cada anúncio
+                    const li = document.createElement("li");
+                    li.classList.add("ad-item");
+                    li.style.backgroundColor = "#fff";
+                    li.style.borderRadius = "8px";
+                    li.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.1)";
+                    li.style.overflow = "hidden";
+                    li.style.margin = "15px";
+                    li.style.padding = "20px";
+                    li.style.position = "relative";
+                    li.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
+                    li.style.cursor = "pointer";
+
+                    // Estilo de hover
+                    li.addEventListener("mouseover", () => {
+                        li.style.transform = "translateY(-10px)";
+                        li.style.boxShadow = "0 16px 32px rgba(0, 0, 0, 0.2)";
+                    });
+                    li.addEventListener("mouseout", () => {
+                        li.style.transform = "translateY(0)";
+                        li.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.1)";
+                    });
+
+                    // Container para imagem
+                    if (anuncio.imagemUrl) {
+                        const imgContainer = document.createElement("div");
+                        imgContainer.style.position = "relative";
+                        imgContainer.style.overflow = "hidden";
+                        imgContainer.style.borderRadius = "8px";
+                        imgContainer.style.marginBottom = "15px";
+
+                        const imagem = document.createElement("img");
+                        imagem.src = anuncio.imagemUrl;
+                        imagem.alt = "Imagem do anúncio";
+                        imagem.style.width = "100%";
+                        imagem.style.height = "auto";
+                        imagem.style.transition = "transform 0.3s ease";
+                        imgContainer.appendChild(imagem);
+
+                        // Efeito de hover para imagem
+                        imgContainer.addEventListener("mouseover", () => {
+                            imagem.style.transform = "scale(1.05)";
+                        });
+                        imgContainer.addEventListener("mouseout", () => {
+                            imagem.style.transform = "scale(1)";
+                        });
+
+                        li.appendChild(imgContainer);
+                    }
+
+                    // Adicionar título e preço
+                    const tituloPreco = document.createElement("div");
+                    tituloPreco.style.marginBottom = "10px";
+                    tituloPreco.style.color = "#333";
+
+                    const titulo = document.createElement("h3");
+                    titulo.textContent = anuncio.descricao;
+                    titulo.style.fontSize = "18px";
+                    titulo.style.fontWeight = "bold";
+                    titulo.style.margin = "0";
+                    tituloPreco.appendChild(titulo);
+
+                    const preco = document.createElement("p");
+                    preco.textContent = `${anuncio.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    preco.style.fontSize = "16px";
+                    preco.style.color = "#e74c3c";
+                    preco.style.margin = "0";
+                    tituloPreco.appendChild(preco);
+
+                    li.appendChild(tituloPreco);
+
+                    // Adicionar data e hora (se disponível)
+                    if (anuncio.dataHora) {
+                        const dataHora = document.createElement("p");
+                        dataHora.textContent = `Data e Hora: ${new Date(anuncio.dataHora).toLocaleString('pt-BR')}`;
+                        dataHora.style.fontSize = "12px";
+                        dataHora.style.color = "#888";
+                        dataHora.style.marginTop = "10px";
+                        li.appendChild(dataHora);
+                    }
+
+                    // Botão de denunciar
+                    const reportButton = document.createElement("button");
+                    reportButton.innerHTML = '<i class="fas fa-flag"></i>';
+                    reportButton.style.backgroundColor = "#e74c3c";
+                    reportButton.style.border = "none";
+                    reportButton.style.color = "#fff";
+                    reportButton.style.padding = "10px";
+                    reportButton.style.borderRadius = "50%";
+                    reportButton.style.position = "absolute";
+                    reportButton.style.top = "15px";
+                    reportButton.style.right = "15px";
+                    reportButton.style.cursor = "pointer";
+                    reportButton.style.fontSize = "16px";
+                    reportButton.onclick = () => reportPost(docId);
+                    li.appendChild(reportButton);
+
+                    // Botão de WhatsApp
+                    const whatsappButton = document.createElement("button");
+                    whatsappButton.innerHTML = '<i class="fab fa-whatsapp"></i>';
+                    whatsappButton.style.backgroundColor = "#25D366";
+                    whatsappButton.style.border = "none";
+                    whatsappButton.style.color = "#fff";
+                    whatsappButton.style.padding = "10px 15px";
+                    whatsappButton.style.borderRadius = "50%";
+                    whatsappButton.style.position = "absolute";
+                    whatsappButton.style.bottom = "15px";
+                    whatsappButton.style.right = "15px";
+                    whatsappButton.style.cursor = "pointer";
+                    whatsappButton.style.fontSize = "16px";
+                    whatsappButton.onclick = () => sendWhatsAppMessage(docId);
+                    li.appendChild(whatsappButton);
+
+                    // Adicionar o li à lista de anúncios do usuário
+                    userAdsList.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar anúncios do usuário:", error);
+            }
+        }
+
+        async function sendWhatsAppMessage(docId) {
+            try {
+                const docSnapshot = await getDoc(doc(db, "publicacoes", docId));
+                const anuncio = docSnapshot.data();
+                const userSnapshot = await getDoc(doc(db, "users", anuncio.userId));
+                const user = userSnapshot.data();
+                const whatsappNumber = user.whatsApp;
+
+                const message = `Olá, tenho interesse em "${anuncio.titulo}"`;
+                const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+                window.open(url, '_blank');
+            } catch (error) {
+                console.error("Erro ao enviar mensagem no WhatsApp:", error);
+            }
         }
 
     </script>

@@ -4,147 +4,1555 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.8/purify.min.js"></script>
-    <title>Tela de Login</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+    <title>Dashboard</title>
 
+    <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #333;
         }
 
         .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
             background-color: #fff;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow-x: hidden;
         }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-
-        input[type="submit"],
-        button {
-            width: 100%;
-            padding: 15px;
-            background-color: #007bff;
-            border: none;
-            border-radius: 8px;
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            background: linear-gradient(135deg, #1c90aa, #2193b0);
+            /* Gradiente semelhante ao botão */
             color: #fff;
-            cursor: pointer;
-            margin-bottom: 15px;
-            font-size: 16px;
-            transition: background-color 0.3s;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            border-top: 1px solid #ccc;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            font-family: 'Arial', sans-serif;
         }
 
-        input[type="submit"]:hover,
-        button:hover {
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            font-size: 0.9em;
+            perspective: 1000px;
+            position: relative;
+        }
+
+        .tab:hover {
+            background: linear-gradient(135deg, #6dd5ed, #2193b0);
+            /* Gradiente invertido para efeito de hover */
+            box-shadow: 0 0 15px rgba(33, 147, 176, 0.5);
+            /* Sombra luminosa no hover */
+            transform: translateY(-3px);
+        }
+
+        .tab i {
+            display: block;
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .tab span {
+            font-size: 0.8em;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .tab:active {
+            transform: scale(0.98);
+        }
+
+        .tab:active i,
+        .tab:active span {
+            transform: translateZ(20px);
+        }
+
+        .tab::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: #fff;
+            /* Cor do foco */
+            transition: width 0.4s ease, left 0.4s ease;
+        }
+
+        .tab:hover::before {
+            width: 100%;
+            left: 0;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        .timeline {
+            list-style: none;
+            padding: 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
+
+        #formPublicacao {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: nowrap;
+        }
+
+        #inputMensagem {
+            flex: 1;
+            padding: 10px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #inputImagem {
+            display: none;
+        }
+
+        #btnEscolherArquivo {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin-left: 2%;
+            margin-right: 2%;
+        }
+
+        #btnEscolherArquivo:hover {
             background-color: #0056b3;
         }
 
-        h2 {
-            color: #007bff;
-            text-align: center;
-            font-family: 'Playfair Display', serif;
-            margin-bottom: 20px;
+        #formPublicacao input[type="file"] {
+            margin-bottom: 10px;
         }
 
-        form label {
-            display: block;
-            margin-bottom: 10px;
+        .publicacao-img {
+            max-width: 95%;
+            max-height: 40%;
+            object-fit: cover;
+        }
+
+        #btnEscolherFotoPerfil {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
             font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-bottom: 10px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #btnEscolherFotoPerfil:hover {
+            background-color: #0056b3;
+        }
+
+        #userProfilePicture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-left: auto;
+            margin-right: auto;
+            object-fit: cover;
+        }
+
+        /* Estilos para os botões de like, dislike e comentários */
+        .timeline-item button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            margin-bottom: 2%;
+            margin-top: 2%;
+            transition: background-color 0.3s ease;
+        }
+
+        .timeline-item button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Estilos para o contêiner de comentários */
+        .comments-container {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            width: 100%;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .comments-container p {
+            margin-bottom: 5px;
+        }
+
+        .comments-container textarea {
+            width: calc(100% - 20px);
+            height: 100px;
+            padding: 5px;
+            margin-top: 5px;
+            border-radius: 4px;
+            resize: none;
+        }
+
+        .comments-container button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .comments-container button:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            background-color: #f8f8f8;
+            color: #333;
+            text-align: center;
+            padding: 2em 1em;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            margin-bottom: 7%;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            font-family: 'Arial', sans-serif;
+            font-size: 13px;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 1em;
             color: #666;
         }
 
-        form a {
-            color: #007bff;
+        footer nav {
+            margin-top: 1em;
+        }
+
+        footer nav a {
+            color: #0056b3;
             text-decoration: none;
+            margin: 0 1em;
+            font-size: 0.9em;
+            transition: color 0.3s ease;
         }
 
-        form a:hover {
-            text-decoration: underline;
+        footer nav a:hover {
+            color: #003f8a;
         }
 
-        p#message {
+        footer nav a:active {
+            color: #002a5d;
+        }
+
+        /* Modal Container */
+        .user-profile-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Modal Content */
+        .user-profile-content {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            color: #333;
             text-align: center;
-            color: #007bff;
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90%;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.5s ease-out;
         }
 
-        /* Estilos para destacar botões ativos */
-        .active-button {
-            background-color: #0056b3 !important;
-        }
-
-        .section-label {
-            text-align: center;
-            margin-bottom: 10px;
+        /* Close Button */
+        .close-button {
+            background-color: #007BFF;
+            color: #fff;
             font-size: 18px;
-            color: #007bff;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .close-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* User Profile Picture */
+        #userProfilePicturePopUp {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* User Name */
+        #userProfileName {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* Ads Grid */
+        .user-ads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Ad Item */
+        .ad-item {
+            background-color: #fff;
+            color: #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .ad-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Ad Image */
+        .ad-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Ad Details */
+        .ad-details {
+            padding: 10px;
+        }
+
+        .ad-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .ad-description {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .ad-price {
+            font-size: 16px;
+            color: #007BFF;
+            margin: 5px 0;
+        }
+
+        /* WhatsApp Button */
+        .whatsapp-button {
+            background-color: #25D366;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .whatsapp-button:hover {
+            background-color: #1DA851;
+        }
+
+        .whatsapp-button i {
+            margin-right: 8px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        #formPublicacao {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #formPublicacao h2 {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #formPublicacao input[type="text"],
+        #formPublicacao input[type="number"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        #formPublicacao input[type="file"] {
+            display: none;
+        }
+
+        #formPublicacao button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 12px 20px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        #formPublicacao button:hover {
+            background-color: #0056b3;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .notification-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .notification-item .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-item .user-info span {
+            font-weight: bold;
+        }
+
+        .notification-item .notification-text {
+            margin-left: 10px;
+        }
+
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .sign-out-btn {
+            background-color: rgb(255, 0, 0);
+            color: #fff;
+            font-size: 17px;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .sign-out-btn:hover {
+            background-color: #cc0000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Estilos principais */
+        #chatModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        #chatContainer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            height: 80%;
+            overflow: hidden;
+        }
+
+        #chatHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #003366;
+            color: #fff;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        #chatMessages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #chatInputContainer {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: #003366;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+
+        #chatInput {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            margin-right: 10px;
+            outline: none;
+            background-color: #fff;
+            color: #000;
+        }
+
+        button {
+            background-color: #0066cc;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #005bb5;
+        }
+
+        /* Estilos de mensagens */
+        .message-container {
+            display: flex;
+            align-items: flex-start;
+            max-width: 80%;
+            padding: 10px;
+            border-radius: 15px;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .message-container.me {
+            align-self: flex-end;
+            background-color: #0066cc;
+            color: #fff;
+        }
+
+        .message-container.me::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            right: -10px;
+            border-width: 10px;
+            border-style: solid;
+            border-color: #0066cc transparent transparent transparent;
+        }
+
+        .message-container.their {
+            align-self: flex-start;
+            background-color: #fff;
+            color: #000;
+        }
+
+        .message-container.their::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: -10px;
+            border-width: 10px;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent;
+        }
+
+        .message-content {
+            max-width: 100%;
+            margin-left: 10px;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .message-time {
+            font-size: 0.75em;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        /* Estilos de imagem de perfil */
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+
+        .chat-title-content .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+            border: 2px solid #fff;
+        }
+
+        .chat-title-names {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification-counter {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .skeleton {
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-text {
+            width: 80%;
+            height: 16px;
+            background-color: #ddd;
+            margin: 10px 0;
+        }
+
+        .skeleton-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 15px;
+        }
+
+        .skeleton-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-full {
+            width: 100%;
+            height: 200px;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9));
+            padding-bottom: 20%;
+            margin-bottom: 22%;
+            backdrop-filter: blur(10px);
+            /* Desfocar fundo para um efeito futurista */
+            animation: fadeIn 0.5s ease;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.9);
+            margin: 0 auto;
+            padding: 30px;
+            border: 1px solid #ddd;
+            width: 90%;
+            max-width: 1280px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            position: relative;
+            max-height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            animation: slideUp 0.4s ease-out;
+            /* Animação de entrada */
+        }
+
+        #modalDetalhes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            z-index: 1000;
+        }
+
+        /* Carrossel de Imagens */
+        .imagens-adicionais {
+            display: flex;
+            position: relative;
+            overflow-x: auto;
+            white-space: nowrap;
+            position: relative;
+            margin-top: -1px;
+            /* Ajuste conforme a altura da imagem principal */
+            z-index: 1;
+        }
+
+        /* Imagem adicional */
+        .imagem-adicional {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 15px;
+        }
+
+        /* Container da imagem adicional */
+        .imagem-container {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .imagem-adicional:hover {
+            filter: brightness(1.2);
+            /* Brilho ao passar o mouse */
+        }
+
+        /* Botão de Tela Cheia */
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-btn:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        /* Imagem em Tela Cheia */
+        .imagem-fullscreen {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .imagem-fullscreen img {
+            max-width: 85%;
+            max-height: 85%;
+            object-fit: contain;
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Detalhes do Anúncio */
+        #detalhesAnuncio {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-titulo {
+            color: #222;
+            font-size: 28px;
+            margin-top: 20px;
+            background: linear-gradient(90deg, #f0f, #0ff);
+            -webkit-background-clip: text;
+            /* Para navegadores baseados no WebKit */
+            background-clip: text;
+            /* Para outros navegadores */
+            -webkit-text-fill-color: transparent;
+            /* Mantém o texto transparente para o gradiente aparecer */
+        }
+
+        .info-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+        }
+
+        .info-adicional {
+            margin-top: 10px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            background-color: rgba(245, 245, 245, 0.9);
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            font-size: 16px;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .info-adicional:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-descricao {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f4f4f4;
+            border-radius: 5px;
+        }
+
+        /* Imagem Principal */
+        .imagem-principal {
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+            margin-top: 20px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .imagem-principal:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(200, 0, 0, 0.9);
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modern-button {
+            display: flex;
+            /* Flex para alinhar o texto e o ícone */
+            align-items: center;
+            /* Centraliza o conteúdo do botão */
+            background: linear-gradient(135deg, #39c4e7, #17859e);
+            /* Gradiente para o fundo */
+            color: #fff;
+            /* Cor do texto */
+            padding: 12px 20px;
+            /* Espaçamento interno */
+            border: none;
+            /* Remove a borda padrão */
+            border-radius: 50px;
+            /* Bordas arredondadas */
+            font-size: 16px;
+            /* Tamanho da fonte */
+            cursor: pointer;
+            /* Cursor de ponteiro ao passar o mouse */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            /* Sombra do botão */
+            transition: all 0.3s ease;
+            /* Suaviza as transições */
+            font-family: 'Arial', sans-serif;
+            /* Fonte */
+            outline: none;
+            /* Remove o contorno ao focar */
+            position: relative;
+            /* Necessário para o efeito de hover */
+            overflow: hidden;
+            /* Para o efeito de hover não ultrapassar o botão */
+        }
+
+        /* Ícone no Botão */
+        .modern-button i {
+            margin-right: 8px;
+            /* Espaçamento entre o ícone e o texto */
+            font-size: 18px;
+            /* Tamanho do ícone */
+        }
+
+        /* Efeito de Hover */
+        .modern-button:hover {
+            background: linear-gradient(135deg, #137d97, #17859e);
+            /* Gradiente inverso no hover */
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+            /* Sombra mais intensa no hover */
+            transform: translateY(-2px);
+            /* Levanta o botão no hover */
+        }
+
+        /* Efeito de Clique */
+        .modern-button:active {
+            transform: translateY(2px);
+            /* Simula um clique ao descer o botão */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            /* Sombra reduzida ao clicar */
+        }
+
+        /* Efeito Futurista: Overlay */
+        .modern-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -75px;
+            width: 50px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: skewX(-30deg);
+            transition: all 0.5s ease;
+        }
+
+        .modern-button:hover::before {
+            left: 150%;
+            transition: all 0.5s ease;
+            /* Velocidade do efeito futurista */
+        }
+
+        .city-feedback {
+            margin-top: 20px;
+            /* Espaçamento superior */
+            font-size: 18px;
+            /* Tamanho da fonte */
+            font-weight: bold;
+            /* Texto em negrito */
+            padding: 15px 25px;
+            /* Espaçamento interno */
+            background: linear-gradient(135deg, #39c4e7, #17859e);
+            /* Gradiente de fundo */
+            color: #fff;
+            /* Cor do texto */
+            border-radius: 12px;
+            /* Bordas arredondadas */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            /* Sombra */
+            position: relative;
+            /* Para efeitos de pseudo-elementos */
+            overflow: hidden;
+            /* Para efeitos de hover */
+            transition: all 0.3s ease;
+            /* Transições suaves */
+            text-align: center;
+            /* Centraliza o texto */
+        }
+
+        /* Efeito de Hover */
+        .city-feedback:hover {
+            background: linear-gradient(135deg, #137d97, #17859e);
+            /* Gradiente invertido no hover */
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+            /* Sombra mais intensa no hover */
+            transform: translateY(-2px);
+            /* Levanta o elemento no hover */
+        }
+
+        /* Efeito Futurista: Overlay */
+        .city-feedback::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(0);
+            border-radius: 50%;
+            transition: all 0.5s ease;
+        }
+
+        .city-feedback:hover::before {
+            transform: scale(3);
+            /* Aumenta o círculo no hover */
+            left: 50%;
+            top: 50%;
+            transition: all 0.5s ease;
+            /* Velocidade do efeito futurista */
+        }
+
+        /* Efeito de Fade-in */
+        .city-feedback.fade-in {
+            animation: fadeIn 1s ease forwards;
+            /* Animação de fade-in */
+        }
+
+        /* Keyframes para Fade-in */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                /* Começa invisível */
+                transform: translateY(20px);
+                /* Levemente abaixo */
+            }
+
+            to {
+                opacity: 1;
+                /* Torna-se visível */
+                transform: translateY(0);
+                /* Sobe para a posição original */
+            }
+        }
+
+        /* Estilo do header */
+        .app-header {
+            width: 100%;
+            height: 60px;
+            /* Altura curta */
+            background: linear-gradient(to right, #6dd5ed, #2193b0);
+            /* Gradiente futurista */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Sombra leve */
+            position: fixed;
+            /* Fixa o cabeçalho no topo */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            animation: slideIn 1s ease;
+            /* Animação de entrada */
+        }
+
+        /* Animação de entrada do header */
+        @keyframes slideIn {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Estilo da barra de pesquisa */
+        .search-container {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Sombra */
+            transition: all 0.3s ease;
+            /* Animação de hover */
+        }
+
+        .search-input {
+            border: none;
+            padding: 10px 15px;
+            width: 200px;
+            font-size: 16px;
+            outline: none;
+            border-radius: 30px 0 0 30px;
+            transition: width 0.3s ease;
+            /* Animação de foco */
+        }
+
+        /* Estilo do botão de pesquisa */
+        .search-button {
+            background-color: #2193b0;
+            border: none;
+            padding: 10px;
+            color: white;
+            cursor: pointer;
+            border-radius: 0 30px 30px 0;
+            transition: background-color 0.3s ease;
+            /* Animação de hover */
+        }
+
+        .search-button:hover {
+            background-color: #6dd5ed;
+        }
+
+        /* Animação de hover na barra de pesquisa */
+        .search-container:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-input:focus {
+            width: 300px;
+            /* Expande a barra de pesquisa ao focar */
+        }
+
+        /* Ícone da pesquisa */
+        .search-button i {
+            font-size: 18px;
+        }
+
+        #loadMoreButton {
+            display: block;
+            /* Garante que o botão ocupe toda a linha */
+            margin: 20px auto;
+            /* Adiciona margem superior e centraliza o botão horizontalmente */
+            padding: 10px 20px;
+            /* Adiciona espaçamento interno ao botão */
+            background-color: #007bff;
+            /* Cor de fundo do botão */
+            color: #fff;
+            /* Cor do texto do botão */
+            border: none;
+            /* Remove a borda padrão */
+            border-radius: 5px;
+            /* Arredonda os cantos do botão */
+            cursor: pointer;
+            /* Muda o cursor para um ponteiro ao passar o mouse */
+        }
+
+        #loadMoreButton:hover {
+            background-color: #0056b3;
+            /* Muda a cor de fundo ao passar o mouse */
+        }
+
+        /* CSS */
+        .negotiation-icon {
+            margin-left: 5%;
+            margin-right: 5%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #FF5722;
+            /* Ajuste a cor conforme necessário */
         }
     </style>
 </head>
 
 <body>
 
+    <header class="app-header">
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Pesquisar por Nome, Modelo, Marca..."
+                oninput="filterPostsBySearch()" />
+            <button class="search-button" onclick="filterPostsBySearch()">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </header>
+
     <div class="container">
-        <h2>Tela de Login ou Registro</h2>
-        <button id="registerBtn" onclick="showRegisterForm(event)" class="active-button">Registro</button>
-        <button id="loginBtn" onclick="showLoginForm(event)">Login</button>
 
-        <form id="registerForm" style="display:none;" onsubmit="registerUser(event)">
-            <div class="section-label">Registro</div>
-            <input type="text" placeholder="Nome Completo" id="fullName">
-            <input type="email" placeholder="Email" id="email">
-            <input type="password" placeholder="Senha" id="password">
-            <label for="termsCheckbox">
-                <input type="checkbox" id="termsCheckbox" required> Confirmo que tenho mais de 18 anos e aceito os
+        <div class="tabs">
+            <div class="tab" onclick="showTab('timeline')"><i class="fas fa-stream"></i><span>Linha do Tempo</span>
+            </div>
+            <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-bullhorn"></i><span>Anunciar</span></div>
+            <div class="tab" onclick="showTab('meuPerfil')"><i class="fas fa-user"></i><span>Meu Perfil</span></div>
+            <div class="tab" onclick="showTab('notificacoes')" id="notificationsTab">
+                <i class="fas fa-bell"></i><span>Notificações</span>
+                <span id="notificationCounter" class="notification-counter"></span>
+            </div>
+            <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i><span>Configurações</span></div>
+        </div>
+
+
+        <div id="userInfo" class="tab-content" style="text-align: center;">
+            <h2>Informações do Usuário</h2>
+            <p id="userFullName"></p>
+            <p id="userEmail"></p>
+            <h2>Sair</h2>
+            <button class="sign-out-btn" onclick="signOut()">Sair</button>
+        </div>
+
+        <div id="timeline" class="tab-content active">
+            <h2>Linha do Tempo</h2>
+            <button onclick="capturarLocalizacao()" class="modern-button">
+                <i class="fas fa-map-marker-alt"></i> Localizar minha cidade
+            </button>
+            <div id="cityFeedback" class="city-feedback"></div>
+            <ul class="timeline" id="userTimeline">
+                <!-- Timeline items will be dynamically added here -->
+            </ul>
+        </div>
+
+        <!-- Modal para ver mais detalhes do anuncio -->
+        <div id="modalDetalhes" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeModal">&times;</span>
+                <div id="detalhesAnuncio">
+                    <!-- Informações detalhadas serão inseridas dinamicamente aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Imagem em tela cheia -->
+        <div id="imagemFullscreen" class="imagem-fullscreen">
+            <img id="imagemFullscreenSrc" src="" alt="Imagem em Tela Cheia">
+            <span id="closeFullscreen" class="close-fullscreen"><i class="fas fa-times"></i></span>
+        </div>
+
+        <div id="notificacoes" class="tab-content" style="text-align: center;">
+            <h2>Notificações</h2>
+            <div id="chatList" style="margin-bottom: 20px;">
+                <!-- Lista de chats será exibida aqui -->
+            </div>
+            <div id="chatModal"
+                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000;">
+                <div id="chatContainer"
+                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; background-color: #1a1a2e; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); overflow: hidden; display: flex; flex-direction: column; height: 80%;">
+                    <div id="chatHeader"
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: #162447; color: #fff;">
+                        <h2 id="chatTitle">Chat</h2>
+                        <button onclick="closeChat()"
+                            style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">&#10006;</button>
+                    </div>
+                    <div id="chatMessages" style="flex: 1; padding: 20px; overflow-y: auto; background-color: #1f4068;">
+                        <!-- Mensagens do chat aparecerão aqui -->
+                    </div>
+                    <div id="chatInputContainer"
+                        style="display: flex; align-items: center; padding: 15px; background-color: #162447;">
+                        <input type="text" id="chatInput" placeholder="Digite sua mensagem..."
+                            style="flex: 1; padding: 10px; border: none; border-radius: 20px; margin-right: 10px; outline: none;">
+                        <button onclick="sendMessage()"
+                            style="background-color: #e43f5a; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; cursor: pointer;">Enviar</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="meuPerfil" class="tab-content" style="text-align: center;">
+            <h2>Meu Perfil</h2>
+            <div>
+                <img id="userProfilePicture" src="" alt="Foto de Perfil" loading="lazy">
+                <p id="FullName"></p>
+                <input type="file" accept="image/*" id="inputFotoPerfil" onchange="handleProfilePictureUpload(event)"
+                    style="display: none;">
+                <button type="button" id="btnEscolherFotoPerfil" class="upload-button">Escolher Foto de Perfil</button>
+            </div>
+        </div>
+
+        <div id="userProfileContainer" class="user-profile-container">
+            <div class="user-profile-content">
+                <button class="close-button" onclick="closeUserProfile()">X</button>
+                <img id="userProfilePicturePopUp" alt="Foto do usuário" loading="lazy">
+                <p id="userProfileName"></p>
+                <div id="userAdsGrid" class="user-ads-grid"></div>
+                <ul id="userAdsList"></ul>
+            </div>
+        </div>
+
+        <!--Preview do Anúncio-->
+        <div id="previewContainer"
+            style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; text-align: center;">
+            <p>Pré-visualização do anúncio:</p>
+            <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
+            <p id="descricaoPreview" style="margin-top: 10px; font-style: italic;"></p>
+            <p id="precoPreview" style="margin-top: 10px; font-weight: bold;"></p>
+            <div style="display: flex; justify-content: center;">
+                <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
+            </div>
+        </div>
+
+        <div id="Produtor" class="tab-content">
+            <div id="loadingBar" style="display: none; text-align: center; margin-top: 20px;">
+                <div
+                    style="display: inline-block; width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;">
+                </div>
+            </div>
+            <h2>Novo Anúncio</h2>
+            <form id="formPublicacao" style="display: none;">
+                <button type="button" id="btnEscolherArquivo">Upload Imagem Principal</button>
+                <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
+
+                <button type="button" id="btnEscolherImagensAdicionais">Upload Imagens Adicionais</button>
+                <input type="file" accept="image/*" id="inputImagensAdicionais" multiple style="display: none;">
+
+                <input type="text" maxlength="200" placeholder="Nome do Produto" id="inputMensagem" required>
+                <input type="text" maxlength="200" placeholder="Descrição do Produto" id="inputDescricao" required>
+                <input type="number" placeholder="Preço do Produto" id="inputPreco" step="0.01" required>
+                <!-- Campos adicionais -->
+                <!-- Campo de localização modificado para utilizar o Autocomplete do Google Maps -->
+                <input id="inputLocalizacao" type="text" placeholder="Digite sua cidade" />
+                <input type="number" placeholder="Ano" id="inputAno" required>
+                <input type="number" placeholder="Kilometragem Total" id="inputKilometragem" required>
+                <select id="inputTipoCambio" required>
+                    <option value="" disabled selected>Selecione o tipo de câmbio do veículo</option>
+                    <option value="manual">Manual</option>
+                    <option value="automatico">Automático</option>
+                </select>
+                <select id="inputTipoCombustivel" required>
+                    <option value="" disabled selected>Selecione o tipo de combustivel do veículo</option>
+                    <option value="Gasolina">Gasolina</option>
+                    <option value="Etanol">Etanol</option>
+                    <option value="Flex">Flex</option>
+                    <option value="Eletrico">Elétrico</option>
+                    <option value="hibrido">Híbrido</option>
+                </select>
+
+                <button
+                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
+                    type="submit">Publicar</button>
+            </form>
+
+            <div id="avisoNaoProdutor" style="display: none; margin-top: 15%;">
+                <p>Você não é um Produtor parceiro.</p>
+                <p><a href="link_para_formulario_de_cadastro" target="_blank">Cadastre-se como um produtor de eventos
+                        parceiro</a>
+                </p>
+            </div>
+
+        </div>
+
+        <footer>
+            <p>&copy; 2024 LC Company. Todos os direitos reservados.</p>
+            <nav>
+                <a href="dashboard.html">Início</a>
+                <a href="#about">Sobre</a>
+                <a href="PoliticaPrivacidade.html">Politica de Privacidade</a>
                 <a href="TermosDeUso.html">Termos de Uso</a>
-            </label>
-            <input type="submit" value="Salvar">
-        </form>
+            </nav>
+        </footer>
 
-        <form id="loginForm" style="display:none;" onsubmit="loginUser(event)">
-            <div class="section-label">Login</div>
-            <input type="email" placeholder="Email" id="loginEmail" required>
-            <input type="password" placeholder="Senha" id="loginPassword" required>
-            <input type="submit" value="Entrar">
-            <button type="button" onclick="showForgotPasswordForm(event)">Esqueci minha senha</button>
-        </form>
-
-        <form id="forgotPasswordForm" style="display:none;" onsubmit="resetPassword(event)">
-            <div class="section-label">Recuperação de Senha</div>
-            <input type="email" placeholder="Email" id="resetEmail" required>
-            <input type="submit" value="Enviar email de recuperação">
-        </form>
-
-        <p id="message" style="display:none;"></p>
     </div>
 
-    <!-- Adicione as bibliotecas do Firebase -->
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDFXwGNyaOhJJQz5YeGTZU9vCHKuq1idcA&loading=async&libraries=places"></script>
+
+    <!--bibliotecas do Firebase -->
     <script type="module">
         // Importar as bibliotecas do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, orderBy, where, arrayUnion, onSnapshot, startAfter, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         // Configurações do Firebase
         const firebaseConfig = {
@@ -159,13 +1567,30 @@
 
         // Inicializar o Firebase
         const app = initializeApp(firebaseConfig);
-        console.log("Firebase inicializado com sucesso!");
-
         const auth = getAuth(app);
-        console.log("Auth inicializado com sucesso!");
-
         const db = getFirestore(app);
-        console.log("Firestore inicializado com sucesso!");
+        const storage = getStorage(app);
+
+        const user = auth.currentUser;
+
+        // Verificar se o usuário está autenticado
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Se estiver autenticado, obter informações do usuário
+                getUserInfo(user.uid);
+                getUserTimeline(user.uid);
+                getAllUserTimeline();
+                exibirPerfilUsuario(user.uid);
+                checkUserRole();
+                loadChats(user.uid);
+                monitorChats(user.uid);
+                restoreNotificationCounter();
+                const userId = user.uid;
+            } else {
+                window.location.href = "login.html"
+                console.log("Usuário não autenticado.");
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             // Captura todos os elementos de entrada relevantes na página
@@ -188,119 +1613,1990 @@
             });
         });
 
-        window.showRegisterForm = function (event) {
-            event.preventDefault(); // Evita a atualização da página
-            document.getElementById("registerForm").style.display = "block";
-            document.getElementById("registerBtn").classList.add("active-button");
-            document.getElementById("loginForm").style.display = "none";
-            document.getElementById("loginBtn").classList.remove("active-button");
-            document.getElementById("forgotPasswordForm").style.display = "none";
-            document.getElementById("message").style.display = "none";
+        // Variável global para armazenar a cidade atual
+        let cidadeAtual = '';
+
+        // Função para capturar a localização e armazenar a cidade atual
+        window.capturarLocalizacao = function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async function (position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Chama a função para converter as coordenadas em nome da cidade
+                    cidadeAtual = await converterCoordenadasParaCidade(latitude, longitude);
+
+                    if (cidadeAtual) {
+                        console.log(`Localização capturada: Latitude ${latitude}, Longitude ${longitude}, Cidade: ${cidadeAtual}`);
+
+                        // Mostra o feedback da cidade na tela
+                        document.getElementById("cityFeedback").textContent = `Exibindo resultados para: ${cidadeAtual}`;
+
+                        // Chama a função filterPosts() para filtrar com base na cidade capturada
+                        filterPosts(cidadeAtual);
+                    } else {
+                        console.error('Não foi possível determinar a cidade.');
+                        document.getElementById("cityFeedback").textContent = 'Não foi possível determinar sua cidade.';
+                    }
+                }, function (error) {
+                    console.error('Erro ao capturar localização:', error);
+                    document.getElementById("cityFeedback").textContent = 'Erro ao capturar localização.';
+                });
+            } else {
+                console.error('Geolocalização não suportada pelo navegador.');
+                document.getElementById("cityFeedback").textContent = 'Geolocalização não suportada pelo navegador.';
+            }
+        };
+
+        // Função para converter coordenadas em cidade
+        async function converterCoordenadasParaCidade(latitude, longitude) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+                const data = await response.json();
+                if (data && data.address && data.address.city) {
+                    return data.address.city;
+                } else {
+                    console.error('Não foi possível obter o nome da cidade a partir das coordenadas.');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Erro ao converter coordenadas para cidade:', error);
+                return null;
+            }
         }
 
-        window.showLoginForm = function (event) {
-            event.preventDefault(); // Evita a atualização da página
-            document.getElementById("loginForm").style.display = "block";
-            document.getElementById("loginBtn").classList.add("active-button");
-            document.getElementById("registerForm").style.display = "none";
-            document.getElementById("registerBtn").classList.remove("active-button");
-            document.getElementById("forgotPasswordForm").style.display = "none";
-            document.getElementById("message").style.display = "none";
+        // Função para obter informações do usuário
+        async function getUserInfo(uid) {
+            const userDoc = await getDocs(collection(db, "users"));
+            userDoc.forEach((doc) => {
+                if (doc.id === uid) {
+                    const userData = doc.data();
+                    document.getElementById("userFullName").textContent = `Nome: ${userData.fullName}`;
+                    document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
+                }
+            });
         }
 
-        window.showForgotPasswordForm = function (event) {
-            event.preventDefault(); // Evita a atualização da página
-            document.getElementById("forgotPasswordForm").style.display = "block";
-            document.getElementById("loginForm").style.display = "none";
-            document.getElementById("loginBtn").classList.remove("active-button");
-            document.getElementById("registerForm").style.display = "none";
-            document.getElementById("registerBtn").classList.remove("active-button");
-            document.getElementById("message").style.display = "none";
+        // Função para obter a timeline do usuário
+        async function getUserTimeline(uid) {
+            const publicacoesRef = collection(db, "publicacoes");
+            const querySnapshot = await getDocs(publicacoesRef);
+            if (!querySnapshot.empty) {
+                const userTimeline = document.getElementById("userTimeline");
+                userTimeline.innerHTML = ""; // Limpar a timeline antes de adicionar novos itens
+                querySnapshot.forEach((doc) => {
+                    const publicacaoData = doc.data();
+                    if (publicacaoData.userId === uid) {
+                        const li = document.createElement("li");
+                        li.classList.add("timeline-item");
+                        li.innerHTML = `
+                        <p>${publicacaoData.mensagem}</p>
+                        <img src="${publicacaoData.imagemUrl}" class="publicacao-img" alt="Publicação" loading="lazy">
+                        <p>Data e Hora: ${publicacaoData.timestamp}</p>`;
+                        userTimeline.appendChild(li);
+                    }
+                });
+            } else {
+                console.log("Nenhuma publicação encontrada.");
+            }
         }
 
-        window.registerUser = function (event) {
-            event.preventDefault(); // Evita a atualização da página
-            console.log("Registrando usuário...");
+        // Inicializando o Autocomplete da API do Google Maps no campo de localização
+        let currentPlace = null; // Variável global para armazenar o lugar selecionado
 
-            const fullName = document.getElementById("fullName").value;
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            const photoURL = "https://firebasestorage.googleapis.com/v0/b/redesocialmarktplace.appspot.com/o/perfil%2FfotoPadrao.png?alt=media&token=4d3dc8df-34ff-4768-8fc7-d16cc7afa1fc";
+        function initAutocomplete() {
+            try {
+                if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.places === 'undefined') {
+                    throw new Error("API do Google Maps não carregada corretamente.");
+                }
 
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    console.log("Usuário registrado com sucesso!");
+                const inputLocalizacao = document.getElementById("inputLocalizacao");
 
-                    const userUid = userCredential.user.uid;
-                    const userData = {
-                        fullName: fullName,
-                        email: email,
-                        photoURL: photoURL,
+                const autocomplete = new google.maps.places.Autocomplete(inputLocalizacao, {
+                    types: ['geocode'],
+                    componentRestrictions: { country: "br" }
+                });
+
+                autocomplete.addListener('place_changed', function () {
+                    currentPlace = autocomplete.getPlace(); // Atualiza a variável global
+                    if (!currentPlace.geometry) {
+                        alert("Por favor, selecione um endereço válido da lista de sugestões.");
+                        return;
+                    }
+
+                    console.log("Endereço:", currentPlace.formatted_address);
+                    console.log("Latitude:", currentPlace.geometry.location.lat());
+                    console.log("Longitude:", currentPlace.geometry.location.lng());
+                });
+            } catch (error) {
+                console.error("Erro ao inicializar Autocomplete:", error);
+                alert("Ocorreu um erro ao carregar o Google Maps. A página será recarregada.");
+                window.location.reload(); // Recarrega a página se a API do Google Maps não for carregada
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initAutocomplete();
+        });
+
+        // Função para publicar uma nova publicação
+        document.getElementById("formPublicacao").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            document.getElementById("loadingBar").style.display = "block";
+
+            const mensagem = document.getElementById("inputMensagem").value;
+            const descricao = document.getElementById("inputDescricao").value;
+            const precoInput = document.getElementById("inputPreco").value;
+            const imagemPrincipal = document.getElementById("inputImagem").files[0];
+            const imagensAdicionais = document.getElementById("inputImagensAdicionais").files;
+
+            // Novos campos
+            const tipoCombustivel = document.getElementById("inputTipoCombustivel").value;
+            const ano = parseInt(document.getElementById("inputAno").value);
+            const kilometragem = parseInt(document.getElementById("inputKilometragem").value);
+            const tipoCambio = document.getElementById("inputTipoCambio").value;  // Corrigido aqui
+
+            if (!imagemPrincipal) {
+                alert("Por favor, selecione uma imagem principal.");
+                document.getElementById("loadingBar").style.display = "none";
+                return;
+            }
+
+            const preco = parseFloat(precoInput.replace(/[^\d,]/g, '').replace(',', '.'));
+
+            if (isNaN(preco)) {
+                alert("Por favor, insira um preço válido.");
+                document.getElementById("loadingBar").style.display = "none";
+                return;
+            }
+
+            if (!currentPlace || !currentPlace.geometry) {
+                alert("Por favor, selecione um endereço válido da lista de sugestões.");
+                document.getElementById("loadingBar").style.display = "none";
+                return;
+            }
+
+            const localizacaoFormatada = currentPlace.formatted_address;
+            const latitude = currentPlace.geometry.location.lat();
+            const longitude = currentPlace.geometry.location.lng();
+
+            try {
+                // Upload da imagem principal
+                const compressedBlobPrincipal = await compressImage(imagemPrincipal);
+                const storageRefPrincipal = ref(storage, `imagens/${imagemPrincipal.name}`);
+                const snapshotPrincipal = await uploadBytes(storageRefPrincipal, compressedBlobPrincipal);
+                const imagemPrincipalUrl = await getDownloadURL(snapshotPrincipal.ref);
+
+                // Upload das imagens adicionais
+                const imagensAdicionaisUrls = [];
+                for (let i = 0; i < imagensAdicionais.length; i++) {
+                    const imagemAdicional = imagensAdicionais[i];
+                    const compressedBlobAdicional = await compressImage(imagemAdicional);
+                    const storageRefAdicional = ref(storage, `imagens/adicionais/${imagemAdicional.name}`);
+                    const snapshotAdicional = await uploadBytes(storageRefAdicional, compressedBlobAdicional);
+                    const imagemAdicionalUrl = await getDownloadURL(snapshotAdicional.ref);
+                    imagensAdicionaisUrls.push(imagemAdicionalUrl);
+                }
+
+                // Enviando os dados para o Firestore
+                await addDoc(collection(db, "publicacoes"), {
+                    mensagem: mensagem,
+                    descricao: descricao,
+                    preco: preco,
+                    imagemUrl: imagemPrincipalUrl,
+                    imagensAdicionaisUrls: imagensAdicionaisUrls,
+                    localizacao: localizacaoFormatada,
+                    latitude: latitude,
+                    longitude: longitude,
+                    tipoCambio: tipoCambio,  // Corrigido aqui
+                    kilometragem: kilometragem,
+                    tipoCombustivel: tipoCombustivel,
+                    ano: ano,
+                    timestamp: serverTimestamp(),
+                    userId: auth.currentUser.uid,
+                });
+
+                // Limpar os campos do formulário
+                document.getElementById("inputMensagem").value = "";
+                document.getElementById("inputDescricao").value = "";
+                document.getElementById("inputPreco").value = "";
+                document.getElementById("inputImagem").value = "";
+                document.getElementById("inputImagensAdicionais").value = "";
+                document.getElementById("inputLocalizacao").value = "";
+                document.getElementById("inputTipoCombustivel").value = "";
+                document.getElementById("inputAno").value = "";
+                document.getElementById("inputKilometragem").value = "";
+                document.getElementById("inputTipoCambio").value = "";
+
+                location.reload();
+
+            } catch (error) {
+                console.error("Erro ao publicar anúncio: ", error);
+                alert("Ocorreu um erro ao publicar o anúncio. Tente novamente.");
+            } finally {
+                document.getElementById("loadingBar").style.display = "none";
+            }
+        });
+
+        document.getElementById("btnEscolherImagensAdicionais").addEventListener("click", () => {
+            document.getElementById("inputImagensAdicionais").click();
+        });
+
+        // Função para verificar o papel do usuário
+        async function checkUserRole() {
+            const user = auth.currentUser;
+            if (!user) {
+                return;
+            }
+
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                if (userData.role === "Anunciante") {
+                    document.getElementById("formPublicacao").style.display = "block";
+                } else {
+                    document.getElementById("avisoNaoProdutor").style.display = "block";
+                }
+            } else {
+                console.log("Documento do usuário não encontrado.");
+            }
+        }
+
+        // Chame a função para verificar o papel do usuário ao carregar a página
+        window.onload = checkUserRole;
+
+        // Função para comprimir a imagem
+        window.compressImage = async function (imageFile) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    const img = new Image();
+
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // Definir as dimensões máximas da imagem
+                        const maxWidth = 1280;
+                        const maxHeight = 720;
+
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Redimensionar a imagem mantendo a proporção
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        // Desenhar a imagem redimensionada no canvas
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Converter o canvas de volta para Blob
+                        canvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, 'image/png', 0.9); // Comprimir para PNG com 90% de qualidade
                     };
 
-                    setDoc(doc(db, "users", userUid), userData)
-                        .then(() => {
-                            console.log("Dados do usuário salvos no Firestore com sucesso!");
+                    img.src = event.target.result;
+                };
 
-                            document.getElementById("registerForm").reset();
-                            document.getElementById("message").innerHTML = "Usuário registrado com sucesso!";
-                            document.getElementById("message").style.display = "block";
-                        })
-                        .catch((error) => {
-                            console.error("Erro ao salvar dados do usuário no Firestore: ", error);
+                reader.readAsDataURL(imageFile);
+            });
+        }
+
+        // Função para alternar entre as abas
+        window.showTab = function (tabId) {
+            const tabs = document.querySelectorAll(".tab-content");
+            tabs.forEach(tab => {
+                tab.classList.remove("active");
+            });
+            const selectedTab = document.getElementById(tabId);
+            selectedTab.classList.add("active");
+
+            if (tabId === 'notificacoes') {
+                resetNotificationCounter(); // Zerando o contador ao abrir a aba de notificações
+            }
+        }
+
+        // Função para filtrar posts com base na cidade
+        window.filterPosts = function (cidade) {
+            cidadeAtual = cidade.toLowerCase(); // Atualiza a cidade atual
+            const timelineItems = Array.from(document.querySelectorAll("#userTimeline .timeline-item"));
+
+            const data = timelineItems.map(item => ({
+                element: item,
+                message: (item.dataset.message || '').toLowerCase(),
+                description: (item.dataset.description || '').toLowerCase(),
+                location: (item.dataset.location || '').toLowerCase()
+            }));
+
+            const fuse = new Fuse(data, {
+                keys: ['message', 'description', 'location'],
+                threshold: 0.3
+            });
+
+            let results;
+            if (cidadeAtual.trim() === "") {
+                results = data.map(item => ({ item }));
+            } else {
+                results = fuse.search(cidadeAtual);
+            }
+
+            timelineItems.forEach(item => item.style.display = "none");
+            results.forEach(result => {
+                if (result.item.location.includes(cidadeAtual)) {
+                    result.item.element.style.display = "block";
+                }
+            });
+        };
+
+        // Função para filtrar posts com base na pesquisa
+        window.filterPostsBySearch = function () {
+            const searchInputElement = document.querySelector('.search-input');
+            const searchInput = searchInputElement ? searchInputElement.value.toLowerCase() : '';
+
+            const userTimeline = document.getElementById('userTimeline');
+            if (!userTimeline) return;
+            const timelineItems = userTimeline.getElementsByClassName('timeline-item');
+
+            Array.from(timelineItems).forEach(item => {
+                const message = item.getAttribute('data-message') ? item.getAttribute('data-message').toLowerCase() : '';
+                const description = item.getAttribute('data-description') ? item.getAttribute('data-description').toLowerCase() : '';
+                const location = item.getAttribute('data-location') ? item.getAttribute('data-location').toLowerCase() : '';
+
+                // Verifica se o texto de pesquisa está presente no título, descrição e cidade
+                if ((message.includes(searchInput) || description.includes(searchInput)) && location.includes(cidadeAtual)) {
+                    item.style.display = ''; // Mostra o item se corresponder
+                } else {
+                    item.style.display = 'none'; // Esconde o item se não corresponder
+                }
+            });
+        };
+
+        // Variáveis de controle de paginação
+        let lastVisible = null; // Para armazenar o último documento visível
+        const pageSize = 5; // Número de documentos a serem carregados por página
+
+        // Função para obter anuncios dos usuários
+        window.getAllUserTimeline = async function (isInitialLoad = true) {
+            const userTimeline = document.getElementById("userTimeline");
+
+            if (isInitialLoad) {
+
+                // Mostrar Skeleton Loader antes de carregar os dados
+                for (let i = 0; i < pageSize; i++) {
+                    const skeletonLi = document.createElement("li");
+                    skeletonLi.classList.add("timeline-item");
+
+                    // Contêiner do skeleton
+                    const skeletonContainer = document.createElement("div");
+                    skeletonContainer.classList.add("skeleton-container");
+
+                    // Imagem do usuário
+                    const skeletonImg = document.createElement("div");
+                    skeletonImg.classList.add("skeleton", "skeleton-img");
+                    skeletonContainer.appendChild(skeletonImg);
+
+                    // Texto do usuário
+                    const skeletonText = document.createElement("div");
+                    skeletonText.classList.add("skeleton", "skeleton-text");
+                    skeletonContainer.appendChild(skeletonText);
+
+                    // Adiciona o container do skeleton ao item da lista
+                    skeletonLi.appendChild(skeletonContainer);
+
+                    // Adiciona um skeleton de texto para a mensagem
+                    const skeletonMessage = document.createElement("div");
+                    skeletonMessage.classList.add("skeleton", "skeleton-text");
+                    skeletonLi.appendChild(skeletonMessage);
+
+                    // Adiciona um skeleton para a imagem da publicação (se houver)
+                    const skeletonFull = document.createElement("div");
+                    skeletonFull.classList.add("skeleton", "skeleton-full");
+                    skeletonLi.appendChild(skeletonFull);
+
+                    // Adiciona o skeleton à linha do tempo
+                    userTimeline.appendChild(skeletonLi);
+                }
+            }
+
+            try {
+                const publicacoesRef = collection(db, "publicacoes");
+                let q;
+
+                // Configurar a consulta com base na paginação
+                if (isInitialLoad) {
+                    q = query(publicacoesRef, orderBy("timestamp", "desc"), limit(pageSize));
+                } else {
+                    q = query(publicacoesRef, orderBy("timestamp", "desc"), startAfter(lastVisible), limit(pageSize));
+                }
+
+                const querySnapshot = await getDocs(q);
+
+                if (isInitialLoad) userTimeline.innerHTML = ""; // Limpar a linha do tempo antes de adicionar novos itens
+
+                // Atualizar o último documento visível
+                lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+                querySnapshot.forEach(async (doc) => {
+                    const data = doc.data();
+                    console.log("Publicações exibidas com sucesso");
+                    const timestamp = data.timestamp.toDate();
+                    const dia = String(timestamp.getDate()).padStart(2, '0');
+                    const mes = String(timestamp.getMonth() + 1).padStart(2, '0');
+                    const ano = timestamp.getFullYear();
+                    const horas = String(timestamp.getHours()).padStart(2, '0');
+                    const minutos = String(timestamp.getMinutes()).padStart(2, '0');
+                    const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+                    const message = data.mensagem || '';  // Certifique-se de que esses campos estejam no Firestore
+                    const description = data.descricao || '';
+                    const location = (data.localizacao || '').toLowerCase();  // Certifique-se de usar toLowerCase()
+
+                    const user = await getUserData(data.userId);
+
+                    // Criação do elemento li para cada publicação
+                    const li = document.createElement("li");
+                    li.classList.add("timeline-item");
+                    li.style.backgroundColor = "#f0f0f0";
+                    li.style.padding = "10px";
+                    li.style.borderRadius = "4px";
+                    li.style.marginBottom = "15%";
+                    li.style.marginTop = "10%";
+                    li.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)"; // Estilo 3D padrão
+                    li.style.transition = "all 0.3s ease"; // Transição suave
+                    li.style.transform = "translateY(0)"; // Posição padrão
+
+                    // Adicionar atributos de dados para filtragem
+                    li.setAttribute('data-message', message);
+                    li.setAttribute('data-description', description);
+                    li.setAttribute('data-location', location);
+
+                    // Função para aplicar o estilo de hover/touch
+                    function applyHoverStyles() {
+                        li.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.5)"; // Sombra mais forte
+                        li.style.transform = "translateY(-10px)"; // Levanta o item mais
+                    }
+
+                    // Função para remover o estilo de hover/touch
+                    function removeHoverStyles() {
+                        li.style.boxShadow = "0 10px 20px rgba(0, 0, 0, 0.3)"; // Sombra padrão
+                        li.style.transform = "translateY(0)"; // Volta à posição original
+                    }
+
+                    // Adiciona os eventos de mouse e toque
+                    li.addEventListener("mouseover", applyHoverStyles);
+                    li.addEventListener("mouseout", removeHoverStyles);
+                    li.addEventListener("touchstart", applyHoverStyles, { passive: true }); // Para dispositivos móveis
+                    li.addEventListener("touchend", removeHoverStyles, { passive: true }); // Para dispositivos móveis
+
+                    // Criar um contêiner para a foto do usuário e o nome do usuário
+                    const userInfoContainer = document.createElement("div");
+                    userInfoContainer.style.display = "flex";
+                    userInfoContainer.style.alignItems = "center";
+                    userInfoContainer.style.marginBottom = "10px";
+
+                    // Adicionar a foto do usuário ao contêiner
+                    const userImg = document.createElement("img");
+                    userImg.src = user.photoURL;
+                    userImg.alt = "Foto do usuário";
+                    userImg.style.width = "60px";
+                    userImg.style.height = "60px";
+                    userImg.style.borderRadius = "50%";
+                    userImg.style.marginRight = "15px";
+                    userImg.style.cursor = "pointer";
+                    userImg.style.border = "2px solid #ddd"; // Borda sutil
+                    userImg.onclick = () => showUserProfile(user.userId); // Abrir o perfil do usuário ao clicar na foto
+                    userInfoContainer.appendChild(userImg);
+
+                    // Adicionar o nome do usuário ao contêiner
+                    const userName = document.createElement("p");
+                    userName.textContent = user.fullName;
+                    userName.style.fontWeight = "bold";
+                    userName.style.cursor = "pointer";
+                    userName.onclick = () => showUserProfile(user.userId); // Abrir o perfil do usuário ao clicar no nome
+                    userInfoContainer.appendChild(userName);
+
+                    // Adicionar o contêiner de informações do usuário ao li
+                    li.appendChild(userInfoContainer);
+
+                    // Adicionar a mensagem da publicação
+                    const mensagem = document.createElement("p");
+                    mensagem.textContent = data.mensagem;
+                    mensagem.style.marginBottom = "10px";
+                    mensagem.style.fontSize = "16px";
+                    li.appendChild(mensagem);
+
+                    // Adicionar a descrição do produto
+                    const descricao = document.createElement("p");
+                    descricao.textContent = `Descrição: ${data.descricao}`;
+                    descricao.style.fontSize = "14px";
+                    descricao.style.color = "#666";
+                    li.appendChild(descricao);
+
+                    // Adicionar o preço do produto
+                    const preco = data.preco; // O valor recuperado do banco de dados
+
+                    // Verificar se o valor é um número válido
+                    if (!isNaN(preco)) {
+                        // Formatar o preço como moeda BRL
+                        const precoFormatado = parseFloat(preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                        const precoElemento = document.createElement("p");
+                        precoElemento.textContent = `Preço: ${precoFormatado}`;
+                        precoElemento.style.fontSize = "16px";
+                        precoElemento.style.fontWeight = "bold";
+                        precoElemento.style.color = "#333";
+                        li.appendChild(precoElemento);
+                    } else {
+                        console.error("O preço recuperado não é um número válido.");
+                    }
+
+                    // Adicionar data e hora da publicação
+                    const dataHora = document.createElement("p");
+                    dataHora.textContent = `Data e Hora: ${dataFormatada}`;
+                    dataHora.style.fontSize = "12px";
+                    dataHora.style.color = "#999";
+                    li.appendChild(dataHora);
+
+                    // Adicionar a imagem da publicação
+                    if (data.imagemUrl) {
+                        const imagem = document.createElement("img");
+                        imagem.src = data.imagemUrl;
+                        imagem.alt = "Imagem da publicação";
+                        imagem.style.width = "100%";
+                        imagem.style.height = "auto";
+                        imagem.style.borderRadius = "4px";
+                        imagem.style.marginTop = "10px";
+                        imagem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+                        imagem.style.transition = "transform 0.5s ease";  // Transição suave
+                        imagem.style.transform = "perspective(1000px) translateZ(0px) scale(1)";
+                        imagem.loading = "lazy";
+
+                        // Efeito de "hover" para que a imagem "saia para fora" e aumente de tamanho
+                        imagem.addEventListener("mouseenter", () => {
+                            imagem.style.transform = "perspective(1000px) translateZ(50px) scale(1.1)";
                         });
-                })
-                .catch((error) => {
-                    console.error("Erro ao registrar usuário: ", error);
-                    document.getElementById("message").textContent = "Erro ao registrar usuário. Verifique os dados informados.";
-                    document.getElementById("message").style.display =
-                        "block";
+
+                        imagem.addEventListener("mouseleave", () => {
+                            imagem.style.transform = "perspective(1000px) translateZ(0px) scale(1)";
+                        });
+
+                        li.appendChild(imagem);
+                    }
+
+                    // Adicionar botão de excluir publicação (se for o próprio usuário)
+                    if (auth.currentUser && auth.currentUser.uid === data.userId) {
+                        const deleteButton = document.createElement("button");
+                        deleteButton.innerHTML = '<i class="fa fa-trash"></i>';
+                        deleteButton.style.backgroundColor = "#e74c3c";
+                        deleteButton.style.border = "none";
+                        deleteButton.style.color = "#fff";
+                        deleteButton.style.padding = "8px 12px";
+                        deleteButton.style.borderRadius = "4px";
+                        deleteButton.style.cursor = "pointer";
+                        deleteButton.style.fontSize = "14px";
+                        deleteButton.style.position = "absolute";
+                        deleteButton.style.top = "10px";
+                        deleteButton.style.right = "10px";
+                        deleteButton.onclick = () => deletePost(doc.id, data.userId);
+                        li.appendChild(deleteButton);
+                    }
+
+                    // Adicionar botão de like
+                    const likeButton = document.createElement("button");
+                    likeButton.id = `likeButton_${doc.id}`;
+                    likeButton.innerHTML = '<i class="fa fa-thumbs-up"></i>';
+                    likeButton.style.backgroundColor = "#3498db";
+                    likeButton.style.border = "none";
+                    likeButton.style.color = "#fff";
+                    likeButton.style.padding = "10px 16px";
+                    likeButton.style.borderRadius = "6px";
+                    likeButton.style.cursor = "pointer";
+                    likeButton.style.fontSize = "16px";
+                    likeButton.style.marginRight = "10px";
+                    likeButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                    likeButton.style.transition = "all 0.3s ease";
+                    likeButton.style.position = "relative";
+                    likeButton.onclick = () => {
+                        likePost(doc.id);
+                        likeButton.style.transform = "scale(0.95)";
+                        setTimeout(() => likeButton.style.transform = "scale(1)", 100);
+                    };
+                    li.appendChild(likeButton);
+
+                    // Exibir contador de likes
+                    const likeCount = document.createElement("span");
+                    likeCount.id = `likeCount_${doc.id}`; // Adicionando ID ao likeCount
+                    likeCount.textContent = data.likes || 0;
+                    likeCount.style.fontSize = "16px";
+                    likeCount.style.color = "#333";
+                    likeCount.style.position = "absolute";
+                    likeCount.style.top = "5px";
+                    likeCount.style.left = "40px"; // Ajustar a posição conforme necessário
+                    likeButton.appendChild(likeCount); // Adicionando como filho do botão de like
+
+                    // Adicionar botão de mostrar comentários
+                    const showCommentsButton = document.createElement("button");
+                    showCommentsButton.innerHTML = '<i class="fa fa-comments"></i>';
+                    showCommentsButton.style.backgroundColor = "#2ecc71";
+                    showCommentsButton.style.border = "none";
+                    showCommentsButton.style.color = "#fff";
+                    showCommentsButton.style.padding = "10px 16px";
+                    showCommentsButton.style.borderRadius = "6px";
+                    showCommentsButton.style.cursor = "pointer";
+                    showCommentsButton.style.fontSize = "16px";
+                    showCommentsButton.style.marginLeft = "10px";
+                    showCommentsButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                    showCommentsButton.style.transition = "all 0.3s ease";
+                    showCommentsButton.style.position = "relative";
+                    showCommentsButton.onclick = () => {
+                        showComments(doc.id);
+                        showCommentsButton.style.transform = "scale(0.95)";
+                        setTimeout(() => showCommentsButton.style.transform = "scale(1)", 100);
+                    };
+                    li.appendChild(showCommentsButton);
+
+                    // Exibir contador de comentários
+                    const commentCount = document.createElement("span");
+                    commentCount.textContent = data.comments || 0;
+                    commentCount.style.fontSize = "16px";
+                    commentCount.style.color = "#333";
+                    commentCount.style.position = "absolute";
+                    commentCount.style.top = "5px";
+                    commentCount.style.left = "40px"; // Ajustar a posição conforme necessário
+                    showCommentsButton.appendChild(commentCount);
+
+                    // Botão de Mensagem
+                    const comprarButton = document.createElement("button");
+                    comprarButton.innerHTML = '<i class="fas fa-comment-dots"></i>Chat';
+                    comprarButton.style.backgroundColor = "#e67e22";
+                    comprarButton.style.border = "none";
+                    comprarButton.style.color = "#fff";
+                    comprarButton.style.padding = "10px 16px";
+                    comprarButton.style.borderRadius = "6px";
+                    comprarButton.style.cursor = "pointer";
+                    comprarButton.style.fontSize = "16px";
+                    comprarButton.style.marginLeft = "10px";
+                    comprarButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                    comprarButton.style.transition = "all 0.3s ease";
+                    comprarButton.onclick = () => {
+                        iniciarCompra(data.userId, auth.currentUser.uid, data);
+                        comprarButton.style.transform = "scale(0.95)";
+                        setTimeout(() => comprarButton.style.transform = "scale(1)", 100);
+                    };
+                    li.appendChild(comprarButton);
+
+                    // Botão Ver Mais
+                    const verMaisButton = document.createElement("button");
+                    verMaisButton.innerHTML = '<i class="fas fa-plus"></i> info';
+                    verMaisButton.style.backgroundColor = "#3498db";
+                    verMaisButton.style.color = "#fff";
+                    verMaisButton.style.border = "none";
+                    verMaisButton.style.padding = "10px 16px";
+                    verMaisButton.style.borderRadius = "6px";
+                    verMaisButton.style.cursor = "pointer";
+                    verMaisButton.style.fontSize = "16px";
+                    verMaisButton.style.marginTop = "10px";
+                    verMaisButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                    verMaisButton.style.transition = "all 0.3s ease";
+                    verMaisButton.onclick = () => {
+                        showDetalhesAnuncio(data);
+                        verMaisButton.style.transform = "scale(0.95)";
+                        setTimeout(() => verMaisButton.style.transform = "scale(1)", 100);
+                    };
+                    li.appendChild(verMaisButton);
+
+                    // Div para exibir os comentários
+                    const commentsDiv = document.createElement("div");
+                    commentsDiv.id = `comments_${doc.id}`;
+                    commentsDiv.style.display = "none";
+                    commentsDiv.style.marginTop = "10px";
+                    li.appendChild(commentsDiv);
+
+
+                    // Textarea para adicionar comentário
+                    const commentText = document.createElement("textarea");
+                    commentText.id = `commentText_${doc.id}`;
+                    commentText.placeholder = "Digite seu comentário";
+                    commentText.style.resize = "none";
+                    commentText.style.width = "calc(80% - 20px)";
+                    commentText.style.height = "20%";
+                    li.appendChild(commentText);
+
+                    // Botão para adicionar comentário
+                    const addCommentButton = document.createElement("button");
+                    addCommentButton.textContent = "Adicionar Comentário";
+                    addCommentButton.style.display = "block";
+                    addCommentButton.style.marginTop = "2%";
+                    addCommentButton.onclick = () => addComment(doc.id);
+                    li.appendChild(addCommentButton);
+
+                    // Adicionar o li à linha do tempo do usuário
+                    userTimeline.appendChild(li);
+
+                    // Exibir o contador de comentários
+                    const comentariosRef = collection(db, `publicacoes/${doc.id}/comentarios`);
+                    const comentariosSnapshot = await getDocs(comentariosRef);
+                    commentCount.textContent = comentariosSnapshot.size; // Atualiza o total de comentários
+
+                    // Adicionar botão de denúncia
+                    const reportButton = document.createElement("button");
+                    reportButton.innerHTML = '<i class="fa fa-exclamation-triangle"></i>';
+                    reportButton.innerHTML = '<i class="fa fa-flag"></i>';
+                    reportButton.style.backgroundColor = "#e74c3c";
+                    reportButton.style.border = "none";
+                    reportButton.style.color = "#fff";
+                    reportButton.style.padding = "8px 12px";
+                    reportButton.style.borderRadius = "4px";
+                    reportButton.style.cursor = "pointer";
+                    reportButton.style.fontSize = "14px";
+                    reportButton.style.position = "absolute";
+                    reportButton.style.bottom = "10px";
+                    reportButton.style.right = "10px";
+                    reportButton.id = `reportButton_${doc.id}`;
+                    reportButton.onclick = () => reportPost(doc.id);
+                    li.appendChild(reportButton);
+
+                    // Adiciona um evento de clique para exibir o perfil do usuário ao clicar na foto ou no nome
+                    userImg.onclick = () => showUserProfile(data.userId);
+                    userName.onclick = () => showUserProfile(data.userId);
+
+                    addLoadMoreButton();
+
+                    filterPostsBySearch();
                 });
+
+                // Verificar se há mais documentos a serem carregados
+                if (!isInitialLoad || querySnapshot.size === pageSize) {
+                    addLoadMoreButton();
+                }
+            } catch (error) {
+                console.error("Erro ao obter a linha do tempo:", error);
+            }
         }
 
-        window.loginUser = function (event) {
-            event.preventDefault(); // Evita a atualização da página
-            console.log("Autenticando usuário...");
+        // Função para adicionar o botão de "Carregar Mais"
+        function addLoadMoreButton() {
+            const userTimeline = document.getElementById("userTimeline");
+            let loadMoreButton = document.getElementById("loadMoreButton");
 
-            const email = document.getElementById("loginEmail").value;
-            const password = document.getElementById("loginPassword").value;
+            if (!loadMoreButton) {
+                loadMoreButton = document.createElement("button");
+                loadMoreButton.id = "loadMoreButton";
+                loadMoreButton.textContent = "Carregar Mais";
+                loadMoreButton.onclick = () => getAllUserTimeline(false); // Chama a função para carregar mais
+            }
 
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    console.log("Usuário autenticado com sucesso!");
-                    window.location.href = "dashboard.html";
-
-                    document.getElementById("loginForm").reset();
-                    document.getElementById("message").innerHTML = "Usuário autenticado com sucesso!";
-                    document.getElementById("message").style.display = "block";
-                })
-                .catch((error) => {
-                    console.error("Erro ao autenticar usuário: ", error);
-                    document.getElementById("message").textContent = "Erro ao autenticar usuário. Verifique os dados informados.";
-                    document.getElementById("message").style.display = "block";
-                });
+            // Move o botão para o final do container
+            userTimeline.appendChild(loadMoreButton);
         }
 
-        window.resetPassword = function (event) {
-            event.preventDefault(); // Evita a atualização da página
-            console.log("Enviando email de recuperação...");
+        function showDetalhesAnuncio(data) {
+            const modal = document.getElementById("modalDetalhes");
+            const detalhesAnuncio = document.getElementById("detalhesAnuncio");
 
-            const email = document.getElementById("resetEmail").value;
+            detalhesAnuncio.innerHTML = "";
 
-            sendPasswordResetEmail(auth, email)
-                .then(() => {
-                    console.log("Email de recuperação enviado com sucesso!");
+            // Adiciona o botão de fechar
+            const closeBtn = document.createElement("button");
+            closeBtn.className = "close-btn";
+            closeBtn.innerHTML = "&times;"; // Unicode para o "X"
+            closeBtn.onclick = function () {
+                modal.style.animation = "fadeOut 0.5s ease"; // Animação de saída
+                setTimeout(() => modal.style.display = "none", 500);
+            };
+            modal.appendChild(closeBtn);
 
-                    document.getElementById("forgotPasswordForm").reset();
-                    document.getElementById("message").innerHTML = "Email de recuperação enviado com sucesso!";
-                    document.getElementById("message").style.display = "block";
-                })
-                .catch((error) => {
-                    console.error("Erro ao enviar email de recuperação: ", error);
-                    document.getElementById("message").textContent = "Erro ao enviar email de recuperação. Verifique o email informado.";
-                    document.getElementById("message").style.display = "block";
+            // Adiciona o título
+            const titulo = document.createElement("h2");
+            titulo.textContent = data.mensagem;
+            titulo.className = "modal-titulo";
+            detalhesAnuncio.appendChild(titulo);
+
+            // Adiciona a imagem principal
+            if (data.imagemUrl) {
+                const imgPrincipal = document.createElement("img");
+                imgPrincipal.src = data.imagemUrl;
+                imgPrincipal.className = "imagem-principal";
+                detalhesAnuncio.appendChild(imgPrincipal);
+            }
+
+            // Adiciona o carrossel de imagens adicionais sobre a imagem principal
+            if (data.imagensAdicionaisUrls && data.imagensAdicionaisUrls.length > 0) {
+                const containerImagensAdicionais = document.createElement("div");
+                containerImagensAdicionais.className = "imagens-adicionais";
+
+                data.imagensAdicionaisUrls.forEach((url, index) => {
+                    const containerImagem = document.createElement("div");
+                    containerImagem.className = "imagem-container";
+
+                    const imagemAdicional = document.createElement("img");
+                    imagemAdicional.src = url;
+                    imagemAdicional.className = "imagem-adicional";
+                    imagemAdicional.onclick = function () {
+                        openFullscreen(url, data.imagensAdicionaisUrls, index);
+                    };
+
+                    const fullscreenBtn = document.createElement("button");
+                    fullscreenBtn.className = "fullscreen-btn";
+                    fullscreenBtn.innerHTML = "&#x26F6;"; // Unicode de tela cheia
+                    fullscreenBtn.onclick = function (e) {
+                        e.stopPropagation();
+                        openFullscreen(url, data.imagensAdicionaisUrls, index);
+                    };
+
+                    containerImagem.appendChild(imagemAdicional);
+                    containerImagem.appendChild(fullscreenBtn);
+                    containerImagensAdicionais.appendChild(containerImagem);
                 });
+
+                detalhesAnuncio.appendChild(containerImagensAdicionais);
+            }
+
+            // Adiciona as informações adicionais
+            const infoContainer = document.createElement("div");
+            infoContainer.className = "info-container";
+
+            const descricao = document.createElement("p");
+            descricao.textContent = `Descrição: ${data.descricao}`;
+            descricao.className = "info-descricao";
+            infoContainer.appendChild(descricao);
+
+            const precoElemento = document.createElement("p");
+            precoElemento.textContent = `Preço: ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+            precoElemento.className = "info-adicional";
+            infoContainer.appendChild(precoElemento);
+
+            const localizacaoElemento = document.createElement("p");
+            localizacaoElemento.innerHTML = `<i class="fa fa-map-marker-alt"></i> Localização: ${data.localizacao}`;
+            localizacaoElemento.className = "info-adicional";
+            infoContainer.appendChild(localizacaoElemento);
+
+            const tipoCambioElemento = document.createElement("p");
+            tipoCambioElemento.innerHTML = `<i class="fa fa-cogs"></i> Tipo de Câmbio: ${data.tipoCambio}`;
+            tipoCambioElemento.className = "info-adicional";
+            infoContainer.appendChild(tipoCambioElemento);
+
+            const tipoCombustivelElemento = document.createElement("p");
+            tipoCombustivelElemento.innerHTML = `<i class="fa fa-gas-pump"></i> Tipo de Combustível: ${data.tipoCombustivel}`;
+            tipoCombustivelElemento.className = "info-adicional";
+            infoContainer.appendChild(tipoCombustivelElemento);
+
+            const anoElemento = document.createElement("p");
+            anoElemento.innerHTML = `<i class="fa fa-calendar-alt"></i> Ano: ${data.ano}`;
+            anoElemento.className = "info-adicional";
+            infoContainer.appendChild(anoElemento);
+
+            const kilometragemElemento = document.createElement("p");
+            kilometragemElemento.innerHTML = `<i class="fa fa-tachometer-alt"></i> Kilometragem Total: ${data.kilometragem.toLocaleString()} km`;
+            kilometragemElemento.className = "info-adicional";
+            infoContainer.appendChild(kilometragemElemento);
+
+            detalhesAnuncio.appendChild(infoContainer);
+
+            modal.style.display = "block";
         }
+
+
+        function openFullscreen(currentImageUrl, imageUrls, currentIndex) {
+            const fullscreenContainer = document.createElement("div");
+            fullscreenContainer.className = "imagem-fullscreen";
+            fullscreenContainer.style.display = "flex";
+
+            const img = document.createElement("img");
+            img.src = currentImageUrl;
+            fullscreenContainer.appendChild(img);
+
+            document.body.appendChild(fullscreenContainer);
+
+            fullscreenContainer.onclick = function () {
+                fullscreenContainer.remove();
+            };
+
+            // Botões de navegação
+            const prevBtn = document.createElement("button");
+            prevBtn.className = "nav-btn left";
+            prevBtn.innerHTML = "&#10094;"; // Unicode para seta à esquerda
+            fullscreenContainer.appendChild(prevBtn);
+
+            const nextBtn = document.createElement("button");
+            nextBtn.className = "nav-btn right";
+            nextBtn.innerHTML = "&#10095;"; // Unicode para seta à direita
+            fullscreenContainer.appendChild(nextBtn);
+
+            // Navegação entre imagens
+            prevBtn.onclick = function (e) {
+                e.stopPropagation();
+                currentIndex = (currentIndex - 1 + imageUrls.length) % imageUrls.length;
+                img.src = imageUrls[currentIndex];
+            };
+
+            nextBtn.onclick = function (e) {
+                e.stopPropagation();
+                currentIndex = (currentIndex + 1) % imageUrls.length;
+                img.src = imageUrls[currentIndex];
+            };
+        }
+
+        window.onclick = function (event) {
+            const modal = document.getElementById("modalDetalhes");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        // Fechar o modal quando o usuário clicar no botão de fechar
+        document.getElementById("closeModal").onclick = function () {
+            document.getElementById("modalDetalhes").style.display = "none";
+        };
+
+        // Fechar o modal quando o usuário clicar fora do modal
+        window.onclick = function (event) {
+            const modal = document.getElementById("modalDetalhes");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        // Fechar a visualização em tela cheia ao clicar fora da imagem
+        document.getElementById("imagemFullscreen").onclick = function () {
+            this.style.display = "none";
+        }
+
+        let currentChatId = null;
+
+        // Função para iniciar a compra e criar um novo chat
+        async function iniciarCompra(vendedorId, compradorId, produto) {
+            try {
+                // Criar o documento do chat
+                const chatRef = await addDoc(collection(db, "chats"), {
+                    vendedorId: vendedorId,
+                    compradorId: compradorId,
+                    produto: produto,
+                    timestamp: serverTimestamp(),
+                    mensagens: [] // Iniciar com array vazio
+                });
+                console.log("Chat criado com sucesso:", chatRef.id);
+
+                // Adicionar a mensagem inicial separadamente
+                const timestamp = new Date();
+                await updateDoc(chatRef, {
+                    mensagens: arrayUnion({
+                        sender: "vendedor",
+                        texto: `${produto.descricao}. O preço é R$ ${produto.preco}.`,
+                        timestamp: timestamp,
+                    })
+                });
+
+                // Abrir o chat após a criação e adição da mensagem inicial
+                openChat(chatRef.id, produto.descricao);
+            } catch (error) {
+                console.error("Erro ao iniciar a compra:", error);
+            }
+        }
+
+        // Função para carregar chats do usuário
+        async function loadChats(userId) {
+            try {
+                // Consultas para chats onde o usuário é o vendedor ou comprador
+                const vendedorQuery = query(
+                    collection(db, "chats"),
+                    where("vendedorId", "==", userId)
+                );
+
+                const compradorQuery = query(
+                    collection(db, "chats"),
+                    where("compradorId", "==", userId)
+                );
+
+                // Recuperar dados de chats
+                const [vendedorSnapshot, compradorSnapshot] = await Promise.all([
+                    getDocs(vendedorQuery),
+                    getDocs(compradorQuery)
+                ]);
+
+                // Selecionar o container onde os chats serão exibidos
+                const chatListContainer = document.getElementById("chatList");
+                chatListContainer.innerHTML = ""; // Limpar lista anterior
+
+                // Função para buscar os dados do usuário (nome e foto)
+                const getUserData = async (userId) => {
+                    const userDoc = await getDoc(doc(db, "users", userId));
+                    return userDoc.exists() ? userDoc.data() : null;
+                };
+
+                // Função para criar o elemento do chat
+                const createChatElement = async (chatData, chatId) => {
+                    const compradorData = await getUserData(chatData.compradorId);
+                    const vendedorData = await getUserData(chatData.vendedorId);
+
+                    const chatElement = document.createElement("div");
+                    chatElement.style.marginBottom = "15px";
+                    chatElement.style.padding = "15px";
+                    chatElement.style.border = "1px solid #ddd";
+                    chatElement.style.borderRadius = "8px";
+                    chatElement.style.display = "flex";
+                    chatElement.style.alignItems = "center";
+                    chatElement.style.backgroundColor = "#ffffff";
+                    chatElement.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.2)";
+                    chatElement.style.transition = "all 0.3s ease";
+                    chatElement.style.transform = "translateY(0)";
+
+                    // Função para aplicar o estilo de hover/touch
+                    function applyHoverStyles() {
+                        chatElement.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.4)";
+                        chatElement.style.transform = "translateY(-8px)";
+                    }
+
+                    // Função para remover o estilo de hover/touch
+                    function removeHoverStyles() {
+                        chatElement.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.2)";
+                        chatElement.style.transform = "translateY(0)";
+                    }
+
+                    // Adiciona os eventos de mouse e toque
+                    chatElement.addEventListener("mouseover", applyHoverStyles);
+                    chatElement.addEventListener("mouseout", removeHoverStyles);
+                    chatElement.addEventListener("touchstart", applyHoverStyles, { passive: true });
+                    chatElement.addEventListener("touchend", removeHoverStyles, { passive: true });
+
+                    const produto = chatData.produto || {};
+                    const imagemUrlProduto = produto.imagemUrl || "default-image-url.jpg";
+                    const descricaoProduto = produto.descricao || "Descrição não disponível";
+                    const nomeComprador = compradorData?.fullName || "Comprador";
+                    const nomeVendedor = vendedorData?.fullName || "Vendedor";
+                    const fotoComprador = compradorData?.photoURL || "default-user-image.jpg";
+                    const fotoVendedor = vendedorData?.photoURL || "default-user-image.jpg";
+
+                    chatElement.innerHTML = `
+                <div style="display: flex; align-items: center; position: relative;">
+                    <img src="${imagemUrlProduto}" alt="${descricaoProduto}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 15px; position: relative;">
+                    <div style="position: absolute; bottom: -10px; left: 10px; display: flex; align-items: center;">
+                        <img src="${fotoComprador}" alt="${nomeComprador}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white; margin-right: -10px;">
+                        <img src="${fotoVendedor}" alt="${nomeVendedor}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white;">
+                    </div>
+                    <div style="flex: 1;">
+                        <strong style="display: block; margin-bottom: 5px;">${nomeComprador} iniciou um chat sobre ${descricaoProduto}</strong>
+                        <button data-chat-id="${chatId}" data-produto-descricao="${descricaoProduto}" onclick="openChatFromButton(this)" style="padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Abrir Chat</button>
+                    </div>
+                </div>`;
+
+                    return chatElement;
+                };
+
+                // Adicionar chats de vendedor à lista
+                for (const doc of vendedorSnapshot.docs) {
+                    const chatData = doc.data();
+                    const chatElement = await createChatElement(chatData, doc.id);
+                    chatListContainer.appendChild(chatElement);
+                }
+
+                // Adicionar chats de comprador à lista
+                for (const doc of compradorSnapshot.docs) {
+                    const chatData = doc.data();
+                    const chatElement = await createChatElement(chatData, doc.id);
+                    chatListContainer.appendChild(chatElement);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar chats:", error);
+            }
+        }
+
+        window.openChatFromButton = function (button) {
+            const chatId = button.dataset.chatId;
+            const produtoDescricao = button.dataset.produtoDescricao;
+            openChat(chatId, produtoDescricao);
+        }
+
+        // Função para abrir o chat
+        function openChat(chatId, produtoDescricao) {
+            currentChatId = chatId; // Define o ID do chat atual
+            const chatModal = document.getElementById("chatModal");
+            chatModal.style.display = "block";
+            loadChatMessages(chatId); // Carrega as mensagens do chat
+
+            const chatRef = doc(db, "chats", chatId);
+            onSnapshot(chatRef, (doc) => {
+                if (doc.exists()) {
+                    loadChatMessages(chatId); // Atualiza as mensagens em tempo real
+                }
+            });
+        }
+
+        // Função para fechar o chat
+        window.closeChat = function () {
+            document.getElementById("chatModal").style.display = "none";
+            currentChatId = null;
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+        // Substitua toLocaleString por formatTimestamp no código de exibição de mensagens
+        async function loadChatMessages(chatId) {
+            try {
+                const chatDoc = await getDoc(doc(db, "chats", chatId));
+                if (chatDoc.exists()) {
+                    const chatData = chatDoc.data();
+                    const chatMessagesContainer = document.getElementById("chatMessages");
+
+                    const compradorData = await getUserData(chatData.compradorId);
+                    const vendedorData = await getUserData(chatData.vendedorId);
+
+                    const chatTitle = document.getElementById("chatTitle");
+                    chatTitle.innerHTML = `
+                <div class="chat-title-content">
+                    <img src="${vendedorData.photoURL || 'default-photo-url.png'}" alt="${vendedorData.fullName}" class="user-avatar">
+                        <span class="negotiation-icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </span>
+                    <img src="${compradorData.photoURL || 'default-photo-url.png'}" alt="${compradorData.fullName}" class="user-avatar">
+                </div>
+                <div class="chat-title-names">
+                    <div>${vendedorData.fullName}</div>
+                    <div style="margin-left: 3%;"></div>
+                    <div>${compradorData.fullName}</div>
+                </div>`;
+
+                    chatMessagesContainer.innerHTML = "";
+
+                    chatData.mensagens.forEach((mensagem) => {
+                        const messageElement = document.createElement("div");
+                        messageElement.classList.add("message-container");
+
+                        let senderData = null;
+                        if (mensagem.sender === "vendedor") {
+                            senderData = vendedorData;
+                            messageElement.classList.add("me");
+                        } else if (mensagem.sender === "cliente") {
+                            senderData = compradorData;
+                        }
+
+                        if (senderData) {
+                            const senderName = senderData.fullName || "Usuário";
+                            const senderPhoto = senderData.photoURL || "default-photo-url.png";
+
+                            messageElement.innerHTML = `
+                        <img src="${senderPhoto}" alt="${senderName}" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-sender">${sanitizeHTML(senderName)}</div>
+                            <div class="message-text">${sanitizeHTML(mensagem.texto)}</div>
+                            <div class="message-time">${formatTimestamp(mensagem.timestamp.seconds)}</div>
+                        </div>`;
+                        } else {
+                            messageElement.innerHTML = `
+                        <div class="message-content">
+                            <strong>Desconhecido:</strong> ${sanitizeHTML(mensagem.texto)} 
+                            <small>(${formatTimestamp(mensagem.timestamp.seconds)})</small>
+                        </div>`;
+                        }
+
+                        chatMessagesContainer.appendChild(messageElement);
+                    });
+
+                    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+                } else {
+                    console.log("Nenhum chat encontrado com esse ID:", chatId);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar o chat:", error);
+            }
+        }
+
+        window.sendMessage = async function () {
+            const chatInput = document.getElementById("chatInput");
+            let messageText = chatInput.value.trim();
+
+            if (messageText === "" || currentChatId === null) return;
+
+            // Sanitizar o texto da mensagem
+            messageText = sanitizeHTML(messageText);
+
+            try {
+                const user = auth.currentUser;
+
+                if (!user) {
+                    console.error("Usuário não autenticado.");
+                    return;
+                }
+
+                const userId = user.uid;
+                const chatRef = doc(db, "chats", currentChatId);
+                const chatDoc = await getDoc(chatRef);
+
+                if (chatDoc.exists()) {
+                    const chatData = chatDoc.data();
+                    const timestamp = new Date();
+                    let senderType = "";
+
+                    if (userId === chatData.vendedorId) {
+                        senderType = "vendedor";
+                    } else if (userId === chatData.compradorId) {
+                        senderType = "cliente";
+                    } else {
+                        console.error("Erro: ID do usuário não corresponde ao vendedor nem ao comprador.");
+                        return;
+                    }
+
+                    await updateDoc(chatRef, {
+                        mensagens: arrayUnion({
+                            sender: senderType,
+                            texto: messageText, // Texto sanitizado
+                            timestamp: timestamp,
+                        })
+                    });
+
+                    chatInput.value = "";
+                }
+            } catch (error) {
+                console.error("Erro ao enviar mensagem:", error);
+            }
+        };
+
+        let unreadMessagesCount = 0;
+
+        // Função para atualizar o contador de notificações
+        function updateNotificationCounter(count) {
+            const counterElement = document.getElementById("notificationCounter");
+            counterElement.textContent = count > 0 ? count : '';
+            counterElement.style.display = count > 0 ? 'flex' : 'none';
+        }
+
+        // Monitorar alterações nos chats
+        async function monitorChats(userId) {
+            const chatsRef = collection(db, "chats");
+
+            // Consultas para obter chats onde o usuário é comprador ou vendedor
+            const compradorQuery = query(chatsRef, where("compradorId", "==", userId));
+            const vendedorQuery = query(chatsRef, where("vendedorId", "==", userId));
+
+            // Função para lidar com alterações nas mensagens
+            function handleSnapshot(snapshot) {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "modified") {
+                        const chatData = change.doc.data();
+                        const isVendedor = chatData.vendedorId === userId;
+                        const messages = chatData.mensagens || [];
+                        const lastMessage = messages[messages.length - 1];
+
+                        if (lastMessage &&
+                            ((isVendedor && lastMessage.sender !== "vendedor") ||
+                                (!isVendedor && lastMessage.sender !== "comprador"))) {
+                            unreadMessagesCount += 1;
+                        }
+                    }
+                });
+
+                updateNotificationCounter(unreadMessagesCount);
+            }
+
+            // Monitorar as consultas
+            onSnapshot(compradorQuery, handleSnapshot);
+            onSnapshot(vendedorQuery, handleSnapshot);
+        }
+
+        // Função para zerar o contador quando as notificações são abertas
+        function resetNotificationCounter() {
+            unreadMessagesCount = 0;
+            updateNotificationCounter(0);
+            localStorage.setItem('unreadMessagesCount', '0'); // Guardar no localStorage
+        }
+
+        // Restaurar contador após atualizar a página
+        function restoreNotificationCounter() {
+            const savedCount = localStorage.getItem('unreadMessagesCount');
+            if (savedCount !== null) {
+                unreadMessagesCount = parseInt(savedCount, 10);
+                updateNotificationCounter(unreadMessagesCount);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            showTab('timeline');
+        });
+
+        document.getElementById('btnEscolherArquivo').addEventListener('click', function () {
+            document.getElementById('inputImagem').click();
+        });
+
+        // Função para lidar com o upload da foto de perfil
+        function handleProfilePictureUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressAndUploadProfilePicture(file);
+            }
+        }
+
+        function sanitizeHTML(str) {
+            const temp = document.createElement("div");
+            temp.textContent = str;
+            return temp.innerHTML;
+        }
+
+        // Função para comprimir e enviar a foto de perfil para o armazenamento
+        window.compressAndUploadProfilePicture = async function (file) {
+            try {
+                const compressedBlob = await compressImage(file);
+                const storageRef = ref(storage, `perfil/${auth.currentUser.uid}`);
+                const snapshot = await uploadBytes(storageRef, compressedBlob);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+
+                // Atualize a foto de perfil do usuário no banco de dados Firebase
+                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                    photoURL: downloadURL
+                });
+
+                // Atualize a foto de perfil na interface do usuário
+                document.getElementById("userProfilePicture").src = downloadURL;
+            } catch (error) {
+                console.error("Erro ao fazer upload da foto de perfil:", error);
+            }
+        }
+
+        document.getElementById('btnEscolherFotoPerfil').addEventListener('click', function () {
+            document.getElementById('inputFotoPerfil').click();
+        })
+
+        window.handleProfilePictureUpload = function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressAndUploadProfilePicture(file);
+            }
+        }
+
+        // Função para exibir o perfil do usuário
+        async function exibirPerfilUsuario(uid) {
+            try {
+                // Obter os dados do usuário do Firestore
+                const userDoc = await getDoc(doc(db, "users", uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+
+                    // Atualizar o nome do usuário
+                    const userProfileName = document.getElementById("userProfileName");
+                    userProfileName.textContent = userData.fullName || "Nome do usuário não disponível";
+
+                    // Verificar se o usuário possui uma foto de perfil
+                    if (userData.photoURL) {
+                        // Se tiver, atualizar a foto de perfil do usuário
+                        const userProfilePicture = document.getElementById("userProfilePicture");
+                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
+                        userProfilePicturePopUp.src = userData.photoURL;
+                        userProfilePicture.src = userData.photoURL;
+                    } else {
+                        // Se não tiver, usar uma foto de perfil padrão
+                        const userProfilePicture = document.getElementById("userProfilePicture");
+                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
+                        userProfilePicture.src = "perfil/fotoPadrao.png";
+                        userProfilePicturePopUp.src = "perfil/fotoPadrao.png";
+                    }
+
+                    // Exibir os anúncios do usuário
+                    await carregarAnunciosDoUsuario(uid);
+                    
+                } else {
+                    console.log("Usuário não encontrado no Firestore");
+                }
+            } catch (error) {
+                console.error("Erro ao exibir perfil do usuário:", error);
+            }
+        }
+
+        // Função para verificar se o usuário já curtiu uma publicação
+        function hasLikedPost(postId) {
+            return localStorage.getItem(`like_${postId}`) === 'true';
+        }
+
+        // Função para verificar se o usuário já descurtiu uma publicação
+        function hasDislikedPost(postId) {
+            return localStorage.getItem(`dislike_${postId}`) === 'true';
+        }
+
+        // Função para incrementar um valor em um campo específico
+        window.increment = function (value) {
+            return value + 1;
+        }
+
+        // Função para curtir uma publicação
+        window.likePost = async function (postId) {
+            try {
+                // Verificar se o usuário já curtiu a publicação
+                if (hasLikedPost(postId)) {
+                    return;
+                }
+
+                // Verificar se o usuário já descurtiu a publicação e remover o deslike
+                if (hasDislikedPost(postId)) {
+                    await removeDislike(postId);
+                }
+
+                const postRef = doc(db, "publicacoes", postId);
+                await incrementCounter(postRef, 'likes');
+
+                // Atualizar o contador de likes na página
+                const likeCountElement = document.getElementById(`likeCount_${postId}`);
+                if (likeCountElement) {
+                    likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
+                } else {
+                    console.error(`Elemento de contagem de likes com ID likeCount_${postId} não encontrado.`);
+                }
+
+                // Desabilitar o botão de like após um clique
+                const likeButton = document.getElementById(`likeButton_${postId}`);
+                if (likeButton) {
+                    likeButton.disabled = true;
+                } else {
+                    console.error(`Botão de like com ID likeButton_${postId} não encontrado.`);
+                }
+
+                // Armazenar o estado de curtida no armazenamento local
+                localStorage.setItem(`like_${postId}`, 'true');
+            } catch (error) {
+                console.error("Erro ao curtir a publicação:", error);
+            }
+        }
+
+        window.incrementCounter = async function (docRef, field) {
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const currentData = docSnap.data();
+                    const newValue = currentData[field] ? currentData[field] + 1 : 1; // Incrementar o valor atual ou começar de 1 se não existir
+                    await updateDoc(docRef, {
+                        [field]: newValue
+                    });
+                } else {
+                    // Se o documento não existir, criar um novo com o campo inicializado com 1
+                    await setDoc(docRef, { [field]: 1 });
+                }
+            } catch (error) {
+                console.error("Erro ao incrementar o contador:", error);
+            }
+        }
+
+        window.addComment = async function (postId) {
+            try {
+                const commentText = document.getElementById(`commentText_${postId}`).value;
+
+                // Verificar se o texto do comentário está vazio
+                if (!commentText) {
+                    alert("Por favor, digite seu comentário.");
+                    return;
+                }
+
+                // Adicionar um novo documento a coleção
+                const comentarioRef = await addDoc(collection(db, `publicacoes/${postId}/comentarios`), {
+                    texto: commentText,
+                    userId: auth.currentUser.uid,
+                    timestamp: serverTimestamp()
+                });
+
+                // Limpar o campo do texto do comentário após adicionar o comentário
+                document.getElementById(`commentText_${postId}`).value = "";
+
+                // Exibir os comentários atualizados
+                showComments(postId);
+            } catch (error) {
+                console.error("Erro ao adicionar comentário:", error);
+            }
+        }
+
+        let commentsVisible = false;
+
+        // Função para exibir ou ocultar os comentários de uma publicação
+        window.showComments = async function (postId) {
+            try {
+                const commentsDiv = document.getElementById(`comments_${postId}`);
+                const isVisible = commentsDiv.style.display === "block";
+
+                if (isVisible) {
+                    commentsDiv.style.display = "none";
+                } else {
+                    commentsDiv.innerHTML = "";
+
+                    const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
+                    const querySnapshot = await getDocs(comentariosRef);
+
+                    if (querySnapshot.empty) {
+                        return;
+                    }
+
+                    querySnapshot.forEach(async (doc) => {
+                        const comentario = doc.data();
+                        const user = await getUserData(comentario.userId);
+
+                        // Criação do elemento li para cada comentário
+                        const li = document.createElement("li");
+                        li.classList.add("timeline-item");
+                        li.style.backgroundColor = "#f0f0f0";
+                        li.style.padding = "10px";
+                        li.style.borderRadius = "4px";
+                        li.style.marginBottom = "15%";
+                        li.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
+                        li.style.transition = "all 0.3s ease";
+                        li.style.transform = "translateY(0)";
+
+                        function applyHoverStyles() {
+                            li.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.5)";
+                            li.style.transform = "translateY(-10px)";
+                        }
+
+                        function removeHoverStyles() {
+                            li.style.boxShadow = "0 10px 20px rgba(0, 0, 0, 0.3)";
+                            li.style.transform = "translateY(0)";
+                        }
+
+                        li.addEventListener("mouseover", applyHoverStyles);
+                        li.addEventListener("mouseout", removeHoverStyles);
+                        li.addEventListener("touchstart", applyHoverStyles, { passive: true });
+                        li.addEventListener("touchend", removeHoverStyles, { passive: true });
+
+                        const userInfoContainer = document.createElement("div");
+                        userInfoContainer.style.display = "flex";
+                        userInfoContainer.style.alignItems = "center";
+                        userInfoContainer.style.marginBottom = "10px";
+
+                        const userImg = document.createElement("img");
+                        userImg.src = user.photoURL;
+                        userImg.alt = "Foto do usuário";
+                        userImg.style.width = "60px";
+                        userImg.style.height = "60px";
+                        userImg.style.borderRadius = "50%";
+                        userImg.style.marginRight = "15px";
+                        userImg.style.cursor = "pointer";
+                        userImg.style.border = "2px solid #ddd";
+                        userInfoContainer.appendChild(userImg);
+
+                        const userName = document.createElement("p");
+                        userName.textContent = DOMPurify.sanitize(user.fullName); // Sanitiza a saída
+                        userName.style.fontWeight = "bold";
+                        userName.style.cursor = "pointer";
+                        userInfoContainer.appendChild(userName);
+
+                        li.appendChild(userInfoContainer);
+
+                        const commentText = document.createElement("p");
+                        commentText.textContent = DOMPurify.sanitize(comentario.texto); // Sanitiza a saída
+                        commentText.style.marginBottom = "10px";
+                        commentText.style.fontSize = "16px";
+                        li.appendChild(commentText);
+
+                        const timestamp = comentario.timestamp.toDate();
+                        const dia = String(timestamp.getDate()).padStart(2, '0');
+                        const mes = String(timestamp.getMonth() + 1).padStart(2, '0');
+                        const ano = timestamp.getFullYear();
+                        const horas = String(timestamp.getHours()).padStart(2, '0');
+                        const minutos = String(timestamp.getMinutes()).padStart(2, '0');
+                        const dataFormatada = `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+
+                        const commentTime = document.createElement("p");
+                        commentTime.textContent = `Data e Hora: ${dataFormatada}`;
+                        commentTime.style.fontSize = "12px";
+                        commentTime.style.color = "#999";
+                        li.appendChild(commentTime);
+
+                        commentsDiv.appendChild(li);
+                    });
+
+                    commentsDiv.style.display = "block";
+                }
+            } catch (error) {
+                console.error("Erro ao exibir ou ocultar comentários:", error);
+            }
+        };
+
+        // Função para obter informações do usuário com base no userId
+        async function getUserData(userId) {
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+                return userDoc.data();
+            } else {
+                return null;
+            }
+        }
+
+        // Função para excluir uma publicação
+        window.deletePost = async function (postId, userId) {
+            try {
+                // Confirmar se o usuário deseja realmente excluir a publicação
+                const confirmDelete = confirm("Tem certeza de que deseja excluir esta publicação?");
+                if (!confirmDelete) {
+                    return;
+                }
+
+                // Verificar se o usuário atual é o dono da publicação
+                if (userId !== auth.currentUser.uid) {
+                    console.log("Você não tem permissão para excluir esta publicação.");
+                    return;
+                }
+
+                // Excluir todos os comentários associados à publicação
+                const comentariosRef = collection(db, `publicacoes/${postId}/comentarios`);
+                const comentariosSnapshot = await getDocs(comentariosRef);
+                comentariosSnapshot.forEach(async (doc) => {
+                    await deleteDoc(doc.ref);
+                });
+
+                // Obter os dados da publicação para acessar as URLs das imagens
+                const postDoc = await getDoc(doc(db, "publicacoes", postId));
+                if (postDoc.exists()) {
+                    const postData = postDoc.data();
+
+                    // Excluir a imagem principal associada à publicação no Storage
+                    if (postData.imagemUrl) {
+                        const imageRef = ref(storage, postData.imagemUrl);
+                        await deleteObject(imageRef);
+                        console.log("Imagem principal associada à publicação excluída com sucesso.");
+                    }
+
+                    // Excluir as imagens adicionais associadas à publicação no Storage
+                    if (postData.imagensAdicionaisUrls && postData.imagensAdicionaisUrls.length > 0) {
+                        for (const url of postData.imagensAdicionaisUrls) {
+                            const imageRef = ref(storage, url);
+                            await deleteObject(imageRef);
+                            console.log("Imagem adicional associada à publicação excluída com sucesso.");
+                        }
+                    }
+                }
+
+                // Finalmente, excluir o documento de publicação
+                await deleteDoc(doc(db, "publicacoes", postId));
+
+                console.log("Publicação excluída com sucesso.");
+            } catch (error) {
+                console.error("Erro ao excluir a publicação:", error);
+            }
+
+            location.reload();
+        }
+
+        // Função para atualizar os contadores de likes e deslikes
+        window.updateLikeDislikeCounts = async function (postId) {
+            const postRef = doc(db, "publicacoes", postId);
+            const postSnap = await getDoc(postRef);
+            if (postSnap.exists()) {
+                const postData = postSnap.data();
+                let likeCount = +1;
+                let dislikeCount = +1;
+                if (postData.likes) {
+                    likeCount = postData.likes;
+                }
+                if (postData.dislikes) {
+                    dislikeCount = postData.dislikes;
+                }
+                const likeCountElement = document.getElementById(`likeCount_${postId}`);
+                const dislikeCountElement = document.getElementById(`dislikeCount_${postId}`);
+                likeCountElement.textContent = likeCount;
+                dislikeCountElement.textContent = dislikeCount;
+            }
+        }
+
+        window.signOut = function () {
+            try {
+                // Fazer logout do usuário usando Firebase Authentication
+                auth.signOut().then(() => {
+                    // Redirecionar o usuário para a página de login após fazer logout
+                    window.location.href = "login.html";
+                }).catch((error) => {
+                    console.error("Erro ao fazer logout:", error);
+                });
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+            }
+        }
+
+        // Adicione ouvintes de eventos para detectar mudanças no input de mensagem
+        document.getElementById('inputMensagem').addEventListener('input', function () {
+            // Atualize a mensagem na pré-visualização
+            const mensagem = this.value;
+            document.getElementById('mensagemPreview').textContent = mensagem;
+        });
+
+        // Função para formatar o preço
+        function formatarPreco(preco) {
+            const precoNumero = parseFloat(preco.replace(/[^\d,]/g, '').replace(',', '.'));
+            if (isNaN(precoNumero)) return 'Preço inválido';
+            return precoNumero.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Adicione ouvintes de eventos para detectar mudanças no input de mensagem
+        document.getElementById('inputMensagem').addEventListener('input', function () {
+            // Atualize a mensagem na pré-visualização
+            const mensagem = this.value;
+            document.getElementById('mensagemPreview').textContent = mensagem;
+        });
+
+        // Adicione ouvintes de eventos para detectar mudanças no input de descrição
+        document.getElementById('inputDescricao').addEventListener('input', function () {
+            // Atualize a descrição na pré-visualização
+            const descricao = this.value;
+            document.getElementById('descricaoPreview').textContent = descricao;
+        });
+
+        // Adicione ouvintes de eventos para detectar mudanças no input de preço
+        document.getElementById('inputPreco').addEventListener('input', function () {
+            // Atualize o preço na pré-visualização
+            const preco = this.value;
+            const precoFormatado = formatarPreco(preco);
+            document.getElementById('precoPreview').textContent = `Preço: ${precoFormatado}`;
+        });
+
+        // Adicione um ouvinte de eventos para detectar mudanças no input de arquivo
+        document.getElementById('inputImagem').addEventListener('change', function () {
+            // Verifique se algum arquivo foi selecionado
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+
+                // Quando o arquivo terminar de carregar, atualize a pré-visualização da imagem
+                reader.onload = function (e) {
+                    document.getElementById('imgPreview').src = e.target.result;
+                }
+
+                // Leia o conteúdo do arquivo como uma URL de dados
+                reader.readAsDataURL(this.files[0]);
+
+                // Exiba o container de pré-visualização
+                document.getElementById('previewContainer').style.display = 'block';
+            } else {
+                // Se nenhum arquivo for selecionado, oculte o container de pré-visualização
+                document.getElementById('previewContainer').style.display = 'none';
+            }
+        });
+
+        // Função para denunciar uma publicação
+        window.reportPost = async function (postId) {
+            try {
+                const docRef = doc(db, "publicacoes", postId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && data.mensagem) {
+                        const motivo = prompt("Por favor, informe o motivo da denúncia:");
+                        if (motivo) {
+                            const reportData = {
+                                postId: postId,
+                                motivo: motivo,
+                                dataDenuncia: new Date().toISOString(),
+                                conteudoPublicacao: {
+                                    mensagem: data.mensagem,
+                                    imagemUrl: data.imagemUrl || null
+                                }
+                            };
+                            await addDoc(collection(db, "reportes"), reportData);
+                            alert("Publicação denunciada com sucesso. Nossa equipe avaliará sua denúncia.");
+                        } else {
+                            alert("O motivo da denúncia é obrigatório.");
+                        }
+                    } else {
+                        alert("A publicação não possui uma mensagem.");
+                    }
+                } else {
+                    alert("A publicação não existe.");
+                }
+            } catch (error) {
+                console.error("Erro ao denunciar a publicação:", error);
+                alert("Ocorreu um erro ao denunciar a publicação. Por favor, tente novamente mais tarde.");
+            }
+        }
+
+        // Função para exibir o perfil do usuário ao clicar no nome ou na foto de perfil
+        function showUserProfile(userId) {
+            console.log("Mostrando perfil do usuário com ID:", userId);
+
+            // Obter o elemento do perfil do usuário
+            const userProfileContainer = document.getElementById("userProfileContainer");
+
+            // Limpar as informações anteriores do perfil do usuário
+            document.getElementById("userProfileName").textContent = "";
+            document.getElementById("userProfilePicturePopUp").src = "";
+
+            // Exibir o perfil do usuário
+            exibirPerfilUsuario(userId);
+
+            // Mostrar a tela de perfil do usuário
+            userProfileContainer.style.display = "flex";
+        }
+
+        // Função para fechar a tela do perfil do usuário
+        window.closeUserProfile = function () {
+            console.log("Fechando perfil do usuário.");
+
+            // Ocultar a tela de perfil do usuário
+            const userProfileContainer = document.getElementById("userProfileContainer");
+            userProfileContainer.style.display = "none";
+        }
+
+        // Função para obter os anúncios do usuário
+        async function carregarAnunciosDoUsuario(uid) {
+            const userAdsList = document.getElementById("userAdsList");
+            userAdsList.innerHTML = ""; // Limpar a lista antes de carregar
+
+            try {
+                const anunciosQuery = query(collection(db, "publicacoes"), where("userId", "==", uid));
+                const anunciosSnapshot = await getDocs(anunciosQuery);
+
+                anunciosSnapshot.forEach((docSnapshot) => {
+                    const anuncio = docSnapshot.data();
+                    const docId = docSnapshot.id;
+
+                    // Criação do elemento li para cada anúncio
+                    const li = document.createElement("li");
+                    li.classList.add("ad-item");
+                    li.style.backgroundColor = "#fff";
+                    li.style.borderRadius = "8px";
+                    li.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.1)";
+                    li.style.overflow = "hidden";
+                    li.style.margin = "15px";
+                    li.style.padding = "20px";
+                    li.style.position = "relative";
+                    li.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
+                    li.style.cursor = "pointer";
+
+                    // Estilo de hover
+                    li.addEventListener("mouseover", () => {
+                        li.style.transform = "translateY(-10px)";
+                        li.style.boxShadow = "0 16px 32px rgba(0, 0, 0, 0.2)";
+                    });
+                    li.addEventListener("mouseout", () => {
+                        li.style.transform = "translateY(0)";
+                        li.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.1)";
+                    });
+
+                    // Container para imagem
+                    if (anuncio.imagemUrl) {
+                        const imgContainer = document.createElement("div");
+                        imgContainer.style.position = "relative";
+                        imgContainer.style.overflow = "hidden";
+                        imgContainer.style.borderRadius = "8px";
+                        imgContainer.style.marginBottom = "15px";
+
+                        const imagem = document.createElement("img");
+                        imagem.src = anuncio.imagemUrl;
+                        imagem.alt = "Imagem do anúncio";
+                        imagem.style.width = "100%";
+                        imagem.style.height = "auto";
+                        imagem.style.transition = "transform 0.3s ease";
+                        imgContainer.appendChild(imagem);
+
+                        // Efeito de hover para imagem
+                        imgContainer.addEventListener("mouseover", () => {
+                            imagem.style.transform = "scale(1.05)";
+                        });
+                        imgContainer.addEventListener("mouseout", () => {
+                            imagem.style.transform = "scale(1)";
+                        });
+
+                        li.appendChild(imgContainer);
+                    }
+
+                    // Adicionar título e preço
+                    const tituloPreco = document.createElement("div");
+                    tituloPreco.style.marginBottom = "10px";
+                    tituloPreco.style.color = "#333";
+
+                    const titulo = document.createElement("h3");
+                    titulo.textContent = anuncio.descricao;
+                    titulo.style.fontSize = "18px";
+                    titulo.style.fontWeight = "bold";
+                    titulo.style.margin = "0";
+                    tituloPreco.appendChild(titulo);
+
+                    const preco = document.createElement("p");
+                    preco.textContent = `${anuncio.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    preco.style.fontSize = "16px";
+                    preco.style.color = "#e74c3c";
+                    preco.style.margin = "0";
+                    tituloPreco.appendChild(preco);
+
+                    li.appendChild(tituloPreco);
+
+                    // Adicionar data e hora (se disponível)
+                    if (anuncio.dataHora) {
+                        const dataHora = document.createElement("p");
+                        dataHora.textContent = `Data e Hora: ${new Date(anuncio.dataHora).toLocaleString('pt-BR')}`;
+                        dataHora.style.fontSize = "12px";
+                        dataHora.style.color = "#888";
+                        dataHora.style.marginTop = "10px";
+                        li.appendChild(dataHora);
+                    }
+
+                    // Botão de denunciar
+                    const reportButton = document.createElement("button");
+                    reportButton.innerHTML = '<i class="fas fa-flag"></i>';
+                    reportButton.style.backgroundColor = "#e74c3c";
+                    reportButton.style.border = "none";
+                    reportButton.style.color = "#fff";
+                    reportButton.style.padding = "10px";
+                    reportButton.style.borderRadius = "50%";
+                    reportButton.style.position = "absolute";
+                    reportButton.style.top = "15px";
+                    reportButton.style.right = "15px";
+                    reportButton.style.cursor = "pointer";
+                    reportButton.style.fontSize = "16px";
+                    reportButton.onclick = () => reportPost(docId);
+                    li.appendChild(reportButton);
+
+                    // Botão de WhatsApp
+                    const whatsappButton = document.createElement("button");
+                    whatsappButton.innerHTML = '<i class="fab fa-whatsapp"></i>';
+                    whatsappButton.style.backgroundColor = "#25D366";
+                    whatsappButton.style.border = "none";
+                    whatsappButton.style.color = "#fff";
+                    whatsappButton.style.padding = "10px 15px";
+                    whatsappButton.style.borderRadius = "50%";
+                    whatsappButton.style.position = "absolute";
+                    whatsappButton.style.bottom = "15px";
+                    whatsappButton.style.right = "15px";
+                    whatsappButton.style.cursor = "pointer";
+                    whatsappButton.style.fontSize = "16px";
+                    whatsappButton.onclick = () => sendWhatsAppMessage(docId);
+                    li.appendChild(whatsappButton);
+
+                    // Adicionar o li à lista de anúncios do usuário
+                    userAdsList.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar anúncios do usuário:", error);
+            }
+        }
+
+        async function sendWhatsAppMessage(docId) {
+            try {
+                const docSnapshot = await getDoc(doc(db, "publicacoes", docId));
+                const anuncio = docSnapshot.data();
+                const userSnapshot = await getDoc(doc(db, "users", anuncio.userId));
+                const user = userSnapshot.data();
+                const whatsappNumber = user.whatsApp;
+
+                const message = `Olá, tenho interesse em "${anuncio.titulo}"`;
+                const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+                window.open(url, '_blank');
+            } catch (error) {
+                console.error("Erro ao enviar mensagem no WhatsApp:", error);
+            }
+        }
+
     </script>
 </body>
 

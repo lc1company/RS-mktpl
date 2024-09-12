@@ -578,128 +578,137 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        .chat-modal {
+        /* Estilos principais */
+        #chatModal {
+            display: none;
             position: fixed;
-            bottom: 0;
-            right: 0;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 400px;
-            height: 40%;
-            max-height: 400px;
-            background-color: #f9f9f9;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
-            border-radius: 10px 10px 0 0;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        #chatContainer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
+            height: 80%;
+            overflow: hidden;
         }
 
-        .chat-title {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            border-radius: 10px 10px 0 0;
+        #chatHeader {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
+            padding: 15px;
+            background-color: #003366;
+            color: #fff;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
         }
 
-        .chat-title-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin: 0 5px;
-        }
-
-        .negotiation-icon {
-            font-size: 20px;
-            margin: 0 10px;
-        }
-
-        .chat-title-names {
-            display: flex;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        .chat-messages {
+        #chatMessages {
             flex: 1;
-            padding: 10px;
+            padding: 20px;
             overflow-y: auto;
-            background-color: #e9ecef;
-            border-bottom: 1px solid #ddd;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .chat-input-container {
+        #chatInputContainer {
             display: flex;
-            padding: 10px;
-            background-color: #f9f9f9;
+            align-items: center;
+            padding: 15px;
+            background-color: #003366;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
         }
 
         #chatInput {
             flex: 1;
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            outline: none;
-            box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .send-button {
-            padding: 10px 20px;
-            margin-left: 10px;
-            background-color: #007bff;
-            color: white;
             border: none;
             border-radius: 20px;
+            margin-right: 10px;
+            outline: none;
+            background-color: #fff;
+            color: #000;
+        }
+
+        button {
+            background-color: #0066cc;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
             cursor: pointer;
-            box-shadow: 0px 4px 6px rgba(0, 123, 255, 0.3);
             transition: background-color 0.3s ease;
         }
 
-        .send-button:hover {
-            background-color: #0056b3;
+        button:hover {
+            background-color: #005bb5;
         }
 
+        /* Estilos de mensagens */
         .message-container {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 10px;
+            max-width: 80%;
             padding: 10px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             background-color: #fff;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .message-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease forwards;
         }
 
         .message-container.me {
-            background-color: #007bff;
-            color: white;
             align-self: flex-end;
-            box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.3);
+            background-color: #0066cc;
+            color: #fff;
         }
 
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
+        .message-container.me::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            right: -10px;
+            border-width: 10px;
+            border-style: solid;
+            border-color: #0066cc transparent transparent transparent;
+        }
+
+        .message-container.their {
+            align-self: flex-start;
+            background-color: #fff;
+            color: #000;
+        }
+
+        .message-container.their::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: -10px;
+            border-width: 10px;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent;
         }
 
         .message-content {
-            max-width: 70%;
+            max-width: 100%;
+            margin-left: 10px;
         }
 
         .message-sender {
@@ -707,14 +716,46 @@
             margin-bottom: 5px;
         }
 
-        .message-text {
-            word-wrap: break-word;
+        .message-time {
+            font-size: 0.75em;
+            color: #aaa;
+            margin-top: 5px;
         }
 
-        .message-time {
-            font-size: 0.85em;
-            color: #000000;
-            margin-top: 5px;
+        /* Estilos de imagem de perfil */
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+
+        .chat-title-content .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+            border: 2px solid #fff;
+        }
+
+        .chat-title-names {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .notification-counter {
@@ -1297,6 +1338,18 @@
             background-color: #0056b3;
             /* Muda a cor de fundo ao passar o mouse */
         }
+
+        /* CSS */
+        .negotiation-icon {
+            margin-left: 5%;
+            margin-right: 5%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #FF5722;
+            /* Ajuste a cor conforme necessário */
+        }
     </style>
 </head>
 
@@ -1368,24 +1421,28 @@
                 <!-- Lista de chats será exibida aqui -->
             </div>
             <div id="chatModal"
-                style="display: none; position: fixed; top: 10%; left: 50%; transform: translate(-50%, 0); width: 80%; max-width: 600px; background-color: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 20px; z-index: 1000;">
-                <div id="chatHeader"
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 id="chatTitle">Chat</h2>
-                    <button onclick="closeChat()"
-                        style="background-color: #e74c3c; color: #fff; border: none; border-radius: 4px; padding: 8px 12px; cursor: pointer;">Fechar</button>
-                </div>
-                <div id="chatMessages"
-                    style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
-                    <!-- Mensagens do chat aparecerão aqui -->
-                </div>
-                <div id="chatInputContainer" style="display: flex; margin-top: 20px;">
-                    <input type="text" id="chatInput" placeholder="Digite sua mensagem..."
-                        style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px;">
-                    <button onclick="sendMessage()"
-                        style="background-color: #3498db; color: #fff; border: none; border-radius: 4px; padding: 10px 20px; cursor: pointer;">Enviar</button>
+                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000;">
+                <div id="chatContainer"
+                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; background-color: #1a1a2e; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); overflow: hidden; display: flex; flex-direction: column; height: 80%;">
+                    <div id="chatHeader"
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: #162447; color: #fff;">
+                        <h2 id="chatTitle">Chat</h2>
+                        <button onclick="closeChat()"
+                            style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">&#10006;</button>
+                    </div>
+                    <div id="chatMessages" style="flex: 1; padding: 20px; overflow-y: auto; background-color: #1f4068;">
+                        <!-- Mensagens do chat aparecerão aqui -->
+                    </div>
+                    <div id="chatInputContainer"
+                        style="display: flex; align-items: center; padding: 15px; background-color: #162447;">
+                        <input type="text" id="chatInput" placeholder="Digite sua mensagem..."
+                            style="flex: 1; padding: 10px; border: none; border-radius: 20px; margin-right: 10px; outline: none;">
+                        <button onclick="sendMessage()"
+                            style="background-color: #e43f5a; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; cursor: pointer;">Enviar</button>
+                    </div>
                 </div>
             </div>
+
         </div>
 
         <div id="meuPerfil" class="tab-content" style="text-align: center;">
@@ -2685,25 +2742,34 @@
             currentChatId = null;
         }
 
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+        // Substitua toLocaleString por formatTimestamp no código de exibição de mensagens
         async function loadChatMessages(chatId) {
             try {
-                // Obter o documento do chat
                 const chatDoc = await getDoc(doc(db, "chats", chatId));
-
                 if (chatDoc.exists()) {
                     const chatData = chatDoc.data();
                     const chatMessagesContainer = document.getElementById("chatMessages");
 
-                    // Carregar dados do comprador e do vendedor
                     const compradorData = await getUserData(chatData.compradorId);
                     const vendedorData = await getUserData(chatData.vendedorId);
 
-                    // Atualizar o título do chat
                     const chatTitle = document.getElementById("chatTitle");
                     chatTitle.innerHTML = `
                 <div class="chat-title-content">
                     <img src="${vendedorData.photoURL || 'default-photo-url.png'}" alt="${vendedorData.fullName}" class="user-avatar">
-                    <span class="negotiation-icon">⚔️</span>
+                        <span class="negotiation-icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </span>
                     <img src="${compradorData.photoURL || 'default-photo-url.png'}" alt="${compradorData.fullName}" class="user-avatar">
                 </div>
                 <div class="chat-title-names">
@@ -2712,10 +2778,8 @@
                     <div>${compradorData.fullName}</div>
                 </div>`;
 
-                    // Limpar mensagens antigas
                     chatMessagesContainer.innerHTML = "";
 
-                    // Iterar sobre as mensagens e adicioná-las ao container
                     chatData.mensagens.forEach((mensagem) => {
                         const messageElement = document.createElement("div");
                         messageElement.classList.add("message-container");
@@ -2733,30 +2797,29 @@
                             const senderPhoto = senderData.photoURL || "default-photo-url.png";
 
                             messageElement.innerHTML = `
-                    <img src="${senderPhoto}" alt="${senderName}" class="message-avatar">
-                    <div class="message-content">
-                        <div class="message-sender">${sanitizeHTML(senderName)}</div>
-                        <div class="message-text">${sanitizeHTML(mensagem.texto)}</div>
-                        <div class="message-time">${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()}</div>
-                    </div>`;
+                        <img src="${senderPhoto}" alt="${senderName}" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-sender">${sanitizeHTML(senderName)}</div>
+                            <div class="message-text">${sanitizeHTML(mensagem.texto)}</div>
+                            <div class="message-time">${formatTimestamp(mensagem.timestamp.seconds)}</div>
+                        </div>`;
                         } else {
                             messageElement.innerHTML = `
-                    <div class="message-content">
-                        <strong>Desconhecido:</strong> ${sanitizeHTML(mensagem.texto)} 
-                        <small>(${new Date(mensagem.timestamp.seconds * 1000).toLocaleString()})</small>
-                    </div>`;
+                        <div class="message-content">
+                            <strong>Desconhecido:</strong> ${sanitizeHTML(mensagem.texto)} 
+                            <small>(${formatTimestamp(mensagem.timestamp.seconds)})</small>
+                        </div>`;
                         }
 
                         chatMessagesContainer.appendChild(messageElement);
                     });
 
-                    // Rolagem automática para a última mensagem
                     chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
                 } else {
                     console.log("Nenhum chat encontrado com esse ID:", chatId);
                 }
             } catch (error) {
-                console.error("Erro ao carregar mensagens do chat:", error);
+                console.error("Erro ao carregar o chat:", error);
             }
         }
 
@@ -2933,16 +2996,24 @@
                     const userProfileName = document.getElementById("userProfileName");
                     userProfileName.textContent = userData.fullName || "Nome do usuário não disponível";
 
-                    // Atualizar a foto de perfil do usuário
-                    const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
+                    // Verificar se o usuário possui uma foto de perfil
                     if (userData.photoURL) {
+                        // Se tiver, atualizar a foto de perfil do usuário
+                        const userProfilePicture = document.getElementById("userProfilePicture");
+                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
                         userProfilePicturePopUp.src = userData.photoURL;
+                        userProfilePicture.src = userData.photoURL;
                     } else {
+                        // Se não tiver, usar uma foto de perfil padrão
+                        const userProfilePicture = document.getElementById("userProfilePicture");
+                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
+                        userProfilePicture.src = "perfil/fotoPadrao.png";
                         userProfilePicturePopUp.src = "perfil/fotoPadrao.png";
                     }
 
                     // Exibir os anúncios do usuário
                     await carregarAnunciosDoUsuario(uid);
+                    
                 } else {
                     console.log("Usuário não encontrado no Firestore");
                 }

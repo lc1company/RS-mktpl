@@ -1574,6 +1574,10 @@
         const user = auth.currentUser;
 
         // Verificar se o usuário está autenticado
+        // Defina uma variável global para controlar o redirecionamento
+        let hasRedirected = false;
+
+        // Verificar se o usuário está autenticado
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 // Se estiver autenticado, obter informações do usuário
@@ -1585,10 +1589,13 @@
                 loadChats(user.uid);
                 monitorChats(user.uid);
                 restoreNotificationCounter();
-                const userId = user.uid;
             } else {
-                window.location.href = "login.html"
-                console.log("Usuário não autenticado.");
+                // Verifique se o redirecionamento já foi feito
+                if (!hasRedirected) {
+                    hasRedirected = true;
+                    window.location.replace("login.html");
+                    console.log("Usuário não autenticado.");
+                }
             }
         });
 

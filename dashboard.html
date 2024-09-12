@@ -1705,33 +1705,24 @@
         let currentPlace = null; // Variável global para armazenar o lugar selecionado
 
         function initAutocomplete() {
-            try {
-                if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.places === 'undefined') {
-                    throw new Error("API do Google Maps não carregada corretamente.");
+            const inputLocalizacao = document.getElementById("inputLocalizacao");
+
+            const autocomplete = new google.maps.places.Autocomplete(inputLocalizacao, {
+                types: ['geocode'],
+                componentRestrictions: { country: "br" }
+            });
+
+            autocomplete.addListener('place_changed', function () {
+                currentPlace = autocomplete.getPlace(); // Atualiza a variável global
+                if (!currentPlace.geometry) {
+                    alert("Por favor, selecione um endereço válido da lista de sugestões.");
+                    return;
                 }
 
-                const inputLocalizacao = document.getElementById("inputLocalizacao");
-
-                const autocomplete = new google.maps.places.Autocomplete(inputLocalizacao, {
-                    types: ['geocode'],
-                    componentRestrictions: { country: "br" }
-                });
-
-                autocomplete.addListener('place_changed', function () {
-                    currentPlace = autocomplete.getPlace(); // Atualiza a variável global
-                    if (!currentPlace.geometry) {
-                        alert("Por favor, selecione um endereço válido da lista de sugestões.");
-                        return;
-                    }
-
-                    console.log("Endereço:", currentPlace.formatted_address);
-                    console.log("Latitude:", currentPlace.geometry.location.lat());
-                    console.log("Longitude:", currentPlace.geometry.location.lng());
-                });
-            } catch (error) {
-                console.error("Erro ao inicializar Autocomplete:", error);
-                alert("Ocorreu um erro ao carregar o Google Maps. Por Favor Atualize a pagina.");
-            }
+                console.log("Endereço:", currentPlace.formatted_address);
+                console.log("Latitude:", currentPlace.geometry.location.lat());
+                console.log("Longitude:", currentPlace.geometry.location.lng());
+            });
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -3012,7 +3003,7 @@
 
                     // Exibir os anúncios do usuário
                     await carregarAnunciosDoUsuario(uid);
-                    
+
                 } else {
                     console.log("Usuário não encontrado no Firestore");
                 }

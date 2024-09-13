@@ -1705,24 +1705,34 @@
         let currentPlace = null; // Variável global para armazenar o lugar selecionado
 
         function initAutocomplete() {
-            const inputLocalizacao = document.getElementById("inputLocalizacao");
-
-            const autocomplete = new google.maps.places.Autocomplete(inputLocalizacao, {
-                types: ['geocode'],
-                componentRestrictions: { country: "br" }
-            });
-
-            autocomplete.addListener('place_changed', function () {
-                currentPlace = autocomplete.getPlace(); // Atualiza a variável global
-                if (!currentPlace.geometry) {
-                    alert("Por favor, selecione um endereço válido da lista de sugestões.");
-                    return;
+            try {
+                if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.places === 'undefined') {
+                    throw new Error("API do Google Maps não carregada corretamente.");
                 }
 
-                console.log("Endereço:", currentPlace.formatted_address);
-                console.log("Latitude:", currentPlace.geometry.location.lat());
-                console.log("Longitude:", currentPlace.geometry.location.lng());
-            });
+                const inputLocalizacao = document.getElementById("inputLocalizacao");
+
+                const autocomplete = new google.maps.places.Autocomplete(inputLocalizacao, {
+                    types: ['geocode'],
+                    componentRestrictions: { country: "br" }
+                });
+
+                autocomplete.addListener('place_changed', function () {
+                    currentPlace = autocomplete.getPlace(); // Atualiza a variável global
+                    if (!currentPlace.geometry) {
+                        alert("Por favor, selecione um endereço válido da lista de sugestões.");
+                        return;
+                    }
+
+                    console.log("Endereço:", currentPlace.formatted_address);
+                    console.log("Latitude:", currentPlace.geometry.location.lat());
+                    console.log("Longitude:", currentPlace.geometry.location.lng());
+                });
+            } catch (error) {
+                console.error("Erro ao inicializar Autocomplete:", error);
+                alert("Ocorreu um erro ao carregar o Google Maps. A página será recarregada.");
+                window.location.reload(); // Recarrega a página se a API do Google Maps não for carregada
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -2618,6 +2628,36 @@
                     getDocs(compradorQuery)
                 ]);
 
+                // Combinar todos os chats em um array
+                const allChats = [];
+                vendedorSnapshot.forEach(doc => allChats.push({ id: doc.id, data: doc.data() }));
+                compradorSnapshot.forEach(doc => allChats.push({ id: doc.id, data: doc.data() }));
+
+                // Função para buscar a última mensagem de um chat e retornar seu timestamp
+                const getLastMessageTimestamp = async (chatId) => {
+                    const chatRef = doc(db, "chats", chatId);
+                    const chatDoc = await getDoc(chatRef);
+                    const chatData = chatDoc.data();
+
+                    if (chatData.mensagens && chatData.mensagens.length > 0) {
+                        const lastMessage = chatData.mensagens[chatData.mensagens.length - 1];
+                        return lastMessage.timestamp.toDate();
+                    }
+                    return new Date(0); // Retorna uma data muito antiga se não houver mensagens
+                };
+
+                // Adicionar timestamp da última mensagem e ordenar os chats
+                const chatsWithTimestamps = await Promise.all(allChats.map(async (chat) => {
+                    const lastMessageTimestamp = await getLastMessageTimestamp(chat.id);
+                    return {
+                        ...chat,
+                        lastMessageTimestamp
+                    };
+                }));
+
+                // Ordenar chats por timestamp da última mensagem (mais recente em cima)
+                chatsWithTimestamps.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp);
+
                 // Selecionar o container onde os chats serão exibidos
                 const chatListContainer = document.getElementById("chatList");
                 chatListContainer.innerHTML = ""; // Limpar lista anterior
@@ -2629,7 +2669,7 @@
                 };
 
                 // Função para criar o elemento do chat
-                const createChatElement = async (chatData, chatId) => {
+                const createChatElement = async (chatData, chatId, lastMessageTimestamp) => {
                     const compradorData = await getUserData(chatData.compradorId);
                     const vendedorData = await getUserData(chatData.vendedorId);
 
@@ -2671,33 +2711,35 @@
                     const fotoComprador = compradorData?.photoURL || "default-user-image.jpg";
                     const fotoVendedor = vendedorData?.photoURL || "default-user-image.jpg";
 
+                    // Formatar o timestamp para exibição
+                    const formattedTimestamp = lastMessageTimestamp.toLocaleDateString("pt-BR", {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
                     chatElement.innerHTML = `
-                <div style="display: flex; align-items: center; position: relative;">
-                    <img src="${imagemUrlProduto}" alt="${descricaoProduto}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 15px; position: relative;">
-                    <div style="position: absolute; bottom: -10px; left: 10px; display: flex; align-items: center;">
-                        <img src="${fotoComprador}" alt="${nomeComprador}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white; margin-right: -10px;">
-                        <img src="${fotoVendedor}" alt="${nomeVendedor}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white;">
-                    </div>
-                    <div style="flex: 1;">
-                        <strong style="display: block; margin-bottom: 5px;">${nomeComprador} iniciou um chat sobre ${descricaoProduto}</strong>
-                        <button data-chat-id="${chatId}" data-produto-descricao="${descricaoProduto}" onclick="openChatFromButton(this)" style="padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Abrir Chat</button>
-                    </div>
-                </div>`;
+        <div style="display: flex; align-items: center; position: relative;">
+            <img src="${imagemUrlProduto}" alt="${descricaoProduto}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 15px; position: relative;">
+            <div style="position: absolute; bottom: -10px; left: 10px; display: flex; align-items: center;">
+                <img src="${fotoComprador}" alt="${nomeComprador}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white; margin-right: -10px;">
+                <img src="${fotoVendedor}" alt="${nomeVendedor}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white;">
+            </div>
+            <div style="flex: 1;">
+                <strong style="display: block; margin-bottom: 5px;">${nomeComprador} iniciou um chat sobre ${descricaoProduto}</strong>
+                <div style="font-size: 0.9em; color: #666;">Última mensagem: ${formattedTimestamp}</div>
+                <button data-chat-id="${chatId}" data-produto-descricao="${descricaoProduto}" onclick="openChatFromButton(this)" style="padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Abrir Chat</button>
+            </div>
+        </div>`;
 
                     return chatElement;
                 };
 
-                // Adicionar chats de vendedor à lista
-                for (const doc of vendedorSnapshot.docs) {
-                    const chatData = doc.data();
-                    const chatElement = await createChatElement(chatData, doc.id);
-                    chatListContainer.appendChild(chatElement);
-                }
-
-                // Adicionar chats de comprador à lista
-                for (const doc of compradorSnapshot.docs) {
-                    const chatData = doc.data();
-                    const chatElement = await createChatElement(chatData, doc.id);
+                // Adicionar chats à lista
+                for (const chat of chatsWithTimestamps) {
+                    const chatElement = await createChatElement(chat.data, chat.id, chat.lastMessageTimestamp);
                     chatListContainer.appendChild(chatElement);
                 }
             } catch (error) {

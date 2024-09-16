@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.8/purify.min.js"></script>
-    <title>Dashboard</title>
+    <title>MotorZapp</title>
 
     <style>
         body {
@@ -3642,13 +3642,41 @@
 
         async function sendWhatsAppMessage(docId) {
             try {
+                // Obtém o documento do anúncio
                 const docSnapshot = await getDoc(doc(db, "publicacoes", docId));
+
+                if (!docSnapshot.exists()) {
+                    console.error("Anúncio não encontrado.");
+                    return;
+                }
+
                 const anuncio = docSnapshot.data();
+
+                // Verifica se o campo "mensagem" ou "titulo" existe no documento
+                const tituloAnuncio = anuncio.mensagem || anuncio.titulo;
+                if (!tituloAnuncio) {
+                    console.error("Título do anúncio não encontrado.");
+                    return;
+                }
+
+                // Obtém os dados do usuário
                 const userSnapshot = await getDoc(doc(db, "users", anuncio.userId));
+
+                if (!userSnapshot.exists()) {
+                    console.error("Usuário não encontrado.");
+                    return;
+                }
+
                 const user = userSnapshot.data();
                 const whatsappNumber = user.whatsApp;
 
-                const message = `Olá, tenho interesse em "${anuncio.titulo}"`;
+                if (!whatsappNumber) {
+                    console.error("Número de WhatsApp não encontrado.");
+                    return;
+                }
+
+                // Cria a mensagem e abre o link do WhatsApp
+                const message = `Olá, vim pela plataforma MotorZapp e tenho interesse em "${tituloAnuncio}"`;
                 const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
                 window.open(url, '_blank');

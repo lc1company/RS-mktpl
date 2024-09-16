@@ -481,51 +481,72 @@
         }
 
         #formPublicacao {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
+            max-width: 600px;
+            margin: 0 auto;
             padding: 20px;
             background-color: #f9f9f9;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: block;
         }
 
-        #formPublicacao h2 {
+        #formPublicacao input,
+        #formPublicacao select,
+        #formPublicacao button {
             width: 100%;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        #formPublicacao input[type="text"],
-        #formPublicacao input[type="number"] {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
-            margin-bottom: 10px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
         }
 
-        #formPublicacao input[type="file"] {
-            display: none;
+        #formPublicacao input:focus,
+        #formPublicacao select:focus {
+            border-color: #007bff;
+            outline: none;
         }
 
         #formPublicacao button {
             background-color: #007bff;
             color: #fff;
             border: none;
-            border-radius: 4px;
             cursor: pointer;
-            padding: 12px 20px;
-            font-size: 16px;
             transition: background-color 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
         #formPublicacao button:hover {
             background-color: #0056b3;
+        }
+
+        #formPublicacao .upload-button {
+            background-color: #6c757d;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #formPublicacao .upload-button:hover {
+            background-color: #5a6268;
+        }
+
+        #formPublicacao .form-group {
+            margin-bottom: 15px;
+        }
+
+        #formPublicacao .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        #formPublicacao input[type="file"] {
+            display: none;
         }
 
         .notification-item {
@@ -1378,6 +1399,86 @@
             color: #FF5722;
             /* Ajuste a cor conforme necessário */
         }
+
+        /* Estilo para o container de preview flutuante */
+        #previewContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 250px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            /* O preview só será exibido quando a imagem for carregada */
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease;
+            cursor: grab;
+            /* Indica ao usuário que ele pode arrastar o preview */
+        }
+
+        #previewContainer.show {
+            display: block;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        #previewContainer p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        #previewContainer img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        /* Animação suave para entrada e saída */
+        #previewContainer.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* Melhoria para o conteúdo do preview */
+        #mensagemPreview {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        #descricaoPreview {
+            font-style: italic;
+            color: #333;
+        }
+
+        #precoPreview {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        /* Responsividade - Ocultar o preview em telas menores */
+        @media (max-width: 600px) {
+            #previewContainer {
+                display: none;
+            }
+        }
+
+        /* Estilo para a área de instrução */
+        #instrucoes {
+            font-size: 12px;
+            color: #555;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        #previewContainer:active {
+            cursor: grabbing;
+            /* Muda o cursor enquanto o usuário arrasta */
+        }
     </style>
 </head>
 
@@ -1494,16 +1595,16 @@
             </div>
         </div>
 
-        <!--Preview do Anúncio-->
-        <div id="previewContainer"
-            style="display: none; background-color: #f0f0f0; padding: 10px; border-radius: 8px; text-align: center;">
+        <!-- Preview do Anúncio -->
+        <div id="previewContainer">
             <p>Pré-visualização do anúncio:</p>
-            <p id="mensagemPreview" style="margin-top: 10px; font-style: italic;"></p>
-            <p id="descricaoPreview" style="margin-top: 10px; font-style: italic;"></p>
-            <p id="precoPreview" style="margin-top: 10px; font-weight: bold;"></p>
+            <p id="mensagemPreview"></p>
+            <p id="descricaoPreview"></p>
+            <p id="precoPreview"></p>
             <div style="display: flex; justify-content: center;">
-                <img id="imgPreview" src="#" alt="Preview da Imagem" style="max-width: 300px; max-height: 300px;">
+                <img id="imgPreview" src="#" alt="Preview da Imagem">
             </div>
+            <p id="instrucoes">Arraste para mover o preview</p>
         </div>
 
         <div id="Produtor" class="tab-content">
@@ -1513,44 +1614,76 @@
                 </div>
             </div>
             <h2>Novo Anúncio</h2>
-            <form id="formPublicacao" style="display: none;">
-                <button type="button" id="btnEscolherArquivo">Upload Imagem Principal</button>
-                <input type="file" accept="image/*" id="inputImagem" style="display: none;" required>
+            <form id="formPublicacao">
+                <div class="form-group">
+                    <button type="button" id="btnEscolherArquivo" class="upload-button">Upload Imagem Principal</button>
+                    <input type="file" accept="image/*" id="inputImagem" required>
+                </div>
 
-                <button type="button" id="btnEscolherImagensAdicionais">Upload Imagens Adicionais</button>
-                <input type="file" accept="image/*" id="inputImagensAdicionais" multiple style="display: none;">
+                <div class="form-group">
+                    <button type="button" id="btnEscolherImagensAdicionais" class="upload-button">Upload Imagens
+                        Adicionais</button>
+                    <input type="file" accept="image/*" id="inputImagensAdicionais" multiple>
+                </div>
 
-                <input type="text" maxlength="200" placeholder="Nome do Produto" id="inputMensagem" required>
-                <input type="text" maxlength="200" placeholder="Descrição do Produto" id="inputDescricao" required>
-                <input type="number" placeholder="Preço do Produto" id="inputPreco" step="0.01" required>
-                <!-- Campos adicionais -->
-                <!-- Campo de localização modificado para utilizar o Autocomplete do Google Maps -->
-                <input id="inputLocalizacao" type="text" placeholder="Digite sua cidade" />
-                <input type="number" placeholder="Ano" id="inputAno" required>
-                <input type="number" placeholder="Kilometragem Total" id="inputKilometragem" required>
-                <select id="inputTipoCambio" required>
-                    <option value="" disabled selected>Selecione o tipo de câmbio do veículo</option>
-                    <option value="manual">Manual</option>
-                    <option value="automatico">Automático</option>
-                </select>
-                <select id="inputTipoCombustivel" required>
-                    <option value="" disabled selected>Selecione o tipo de combustivel do veículo</option>
-                    <option value="Gasolina">Gasolina</option>
-                    <option value="Etanol">Etanol</option>
-                    <option value="Flex">Flex</option>
-                    <option value="Eletrico">Elétrico</option>
-                    <option value="hibrido">Híbrido</option>
-                </select>
+                <div class="form-group">
+                    <label for="inputMensagem">Nome do veículo</label>
+                    <input type="text" id="inputMensagem" maxlength="200" placeholder="Nome do Veículo" required>
+                </div>
 
-                <button
-                    style="margin-right: 2%; margin-left: 2%; font-size: 16px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
-                    type="submit">Publicar</button>
+                <div class="form-group">
+                    <label for="inputDescricao">Breve Descrição</label>
+                    <input type="text" id="inputDescricao" maxlength="200" placeholder="Breve Descrição" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputPreco">Preço do veículo</label>
+                    <input type="number" id="inputPreco" placeholder="Valor em reais R$" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputLocalizacao">Localização</label>
+                    <input type="text" id="inputLocalizacao" placeholder="Digite sua cidade">
+                </div>
+
+                <div class="form-group">
+                    <label for="inputAno">Ano</label>
+                    <input type="number" id="inputAno" placeholder="Ano" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputKilometragem">Kilometragem Total</label>
+                    <input type="number" id="inputKilometragem" placeholder="Kilometragem Total" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputTipoCambio">Tipo de Câmbio</label>
+                    <select id="inputTipoCambio" required>
+                        <option value="" disabled selected>Selecione o tipo de câmbio</option>
+                        <option value="manual">Manual</option>
+                        <option value="automatico">Automático</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputTipoCombustivel">Tipo de Combustível</label>
+                    <select id="inputTipoCombustivel" required>
+                        <option value="" disabled selected>Selecione o tipo de combustível</option>
+                        <option value="Gasolina">Gasolina</option>
+                        <option value="Etanol">Etanol</option>
+                        <option value="Flex">Flex</option>
+                        <option value="Eletrico">Elétrico</option>
+                        <option value="hibrido">Híbrido</option>
+                    </select>
+                </div>
+
+                <button type="submit">Publicar</button>
             </form>
 
             <div id="avisoNaoProdutor" style="display: none; margin-top: 15%;">
-                <p>Você não é um Produtor parceiro.</p>
-                <p><a href="link_para_formulario_de_cadastro" target="_blank">Cadastre-se como um produtor de eventos
-                        parceiro</a>
+                <p>Você não é um anunciante parceiro.</p>
+                <p><a href="link_para_formulario_de_cadastro" target="_blank">Cadastre-se agora como um anunciante em
+                        nossa plataforma</a>
                 </p>
             </div>
 
@@ -3385,12 +3518,71 @@
             }
         }
 
-        // Adicione ouvintes de eventos para detectar mudanças no input de mensagem
-        document.getElementById('inputMensagem').addEventListener('input', function () {
-            // Atualize a mensagem na pré-visualização
-            const mensagem = this.value;
-            document.getElementById('mensagemPreview').textContent = mensagem;
-        });
+        function makePreviewDraggable() {
+            const previewContainer = document.getElementById('previewContainer');
+            let offsetX = 0;
+            let offsetY = 0;
+            let isDragging = false;
+
+            // Iniciar o movimento
+            previewContainer.addEventListener('mousedown', startDrag);
+            previewContainer.addEventListener('touchstart', startDrag, { passive: true });
+
+            // Movimentar o preview
+            previewContainer.addEventListener('mousemove', drag);
+            previewContainer.addEventListener('touchmove', drag, { passive: false });
+
+            // Finalizar o movimento
+            previewContainer.addEventListener('mouseup', stopDrag);
+            previewContainer.addEventListener('mouseleave', stopDrag);
+            previewContainer.addEventListener('touchend', stopDrag);
+
+            function startDrag(e) {
+                isDragging = true;
+
+                if (e.type === 'touchstart') {
+                    offsetX = e.touches[0].clientX - previewContainer.getBoundingClientRect().left;
+                    offsetY = e.touches[0].clientY - previewContainer.getBoundingClientRect().top;
+                } else {
+                    offsetX = e.clientX - previewContainer.getBoundingClientRect().left;
+                    offsetY = e.clientY - previewContainer.getBoundingClientRect().top;
+                }
+
+                previewContainer.style.transition = 'none'; // Desativar transições durante o arraste
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+
+                e.preventDefault();
+
+                let x, y;
+
+                if (e.type === 'touchmove') {
+                    x = e.touches[0].clientX;
+                    y = e.touches[0].clientY;
+                } else {
+                    x = e.clientX;
+                    y = e.clientY;
+                }
+
+                const newX = x - offsetX;
+                const newY = y - offsetY;
+
+                previewContainer.style.left = `${newX}px`;
+                previewContainer.style.top = `${newY}px`;
+                previewContainer.style.right = 'auto'; // Remover o posicionamento à direita
+                previewContainer.style.bottom = 'auto'; // Remover o posicionamento abaixo
+            }
+
+            function stopDrag() {
+                isDragging = false;
+                previewContainer.style.transition = 'transform 0.3s ease'; // Restaurar transições após o arraste
+            }
+        }
+
+        // Chamar a função para tornar o preview arrastável
+        makePreviewDraggable();
 
         // Função para formatar o preço
         function formatarPreco(preco) {
@@ -3399,49 +3591,48 @@
             return precoNumero.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        // Adicione ouvintes de eventos para detectar mudanças no input de mensagem
+        // Adicionar eventos para atualizar o preview conforme o usuário preenche o formulário
         document.getElementById('inputMensagem').addEventListener('input', function () {
-            // Atualize a mensagem na pré-visualização
             const mensagem = this.value;
             document.getElementById('mensagemPreview').textContent = mensagem;
+            mostrarPreview();
         });
 
-        // Adicione ouvintes de eventos para detectar mudanças no input de descrição
         document.getElementById('inputDescricao').addEventListener('input', function () {
-            // Atualize a descrição na pré-visualização
             const descricao = this.value;
             document.getElementById('descricaoPreview').textContent = descricao;
+            mostrarPreview();
         });
 
-        // Adicione ouvintes de eventos para detectar mudanças no input de preço
         document.getElementById('inputPreco').addEventListener('input', function () {
-            // Atualize o preço na pré-visualização
             const preco = this.value;
             const precoFormatado = formatarPreco(preco);
             document.getElementById('precoPreview').textContent = `Preço: ${precoFormatado}`;
+            mostrarPreview();
         });
 
-        // Adicione um ouvinte de eventos para detectar mudanças no input de arquivo
         document.getElementById('inputImagem').addEventListener('change', function () {
-            // Verifique se algum arquivo foi selecionado
             if (this.files && this.files[0]) {
                 const reader = new FileReader();
-
-                // Quando o arquivo terminar de carregar, atualize a pré-visualização da imagem
                 reader.onload = function (e) {
                     document.getElementById('imgPreview').src = e.target.result;
+                    mostrarPreview();
                 }
-
-                // Leia o conteúdo do arquivo como uma URL de dados
                 reader.readAsDataURL(this.files[0]);
-
-                // Exiba o container de pré-visualização
-                document.getElementById('previewContainer').style.display = 'block';
             } else {
-                // Se nenhum arquivo for selecionado, oculte o container de pré-visualização
-                document.getElementById('previewContainer').style.display = 'none';
+                document.getElementById('imgPreview').src = '';
             }
         });
+
+        function mostrarPreview() {
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.classList.add('show');
+        }
+
+        function esconderPreview() {
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.classList.add('hidden');
+        }
 
         // Função para denunciar uma publicação
         window.reportPost = async function (postId) {

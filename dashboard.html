@@ -2125,34 +2125,62 @@
         };
 
         // Função para filtrar posts com base na pesquisa
-        window.filterPostsBySearch = function () {
+        window.filterPostsBySearch = async function () {
             const searchInputElement = document.querySelector('.search-input');
             const searchInput = searchInputElement ? searchInputElement.value.toLowerCase() : '';
+            let foundMatch = false; // Variável para controlar se a busca encontrou algum item correspondente
+            let page = 1; // Controle de página para carregamento
 
+            // Função para aplicar a pesquisa nos itens carregados
+            const applyFilter = (timelineItems) => {
+                Array.from(timelineItems).forEach(item => {
+                    const message = item.getAttribute('data-message') ? item.getAttribute('data-message').toLowerCase() : '';
+                    const description = item.getAttribute('data-description') ? item.getAttribute('data-description').toLowerCase() : '';
+                    const location = item.getAttribute('data-location') ? item.getAttribute('data-location').toLowerCase() : '';
+
+                    if ((message.includes(searchInput) || description.includes(searchInput)) && location.includes(cidadeAtual)) {
+                        item.style.display = ''; // Mostra o item se corresponder
+                        foundMatch = true; // Encontrou ao menos um item
+                    } else {
+                        item.style.display = 'none'; // Esconde o item se não corresponder
+                    }
+                });
+            };
+
+            // Inicialmente aplica o filtro nos itens já carregados
             const userTimeline = document.getElementById('userTimeline');
-            if (!userTimeline) return;
-            const timelineItems = userTimeline.getElementsByClassName('timeline-item');
+            if (userTimeline) {
+                const timelineItems = userTimeline.getElementsByClassName('timeline-item');
+                applyFilter(timelineItems);
+            }
 
-            Array.from(timelineItems).forEach(item => {
-                const message = item.getAttribute('data-message') ? item.getAttribute('data-message').toLowerCase() : '';
-                const description = item.getAttribute('data-description') ? item.getAttribute('data-description').toLowerCase() : '';
-                const location = item.getAttribute('data-location') ? item.getAttribute('data-location').toLowerCase() : '';
+            // Se não encontrar correspondências nos itens atuais, carrega mais
+            while (!foundMatch && page <= 10) { // Limite de páginas para evitar loops infinitos
+                await window.getAllUserTimeline(false); // Carrega mais publicações (continuação da paginação)
 
-                // Verifica se o texto de pesquisa está presente no título, descrição e cidade
-                if ((message.includes(searchInput) || description.includes(searchInput)) && location.includes(cidadeAtual)) {
-                    item.style.display = ''; // Mostra o item se corresponder
-                } else {
-                    item.style.display = 'none'; // Esconde o item se não corresponder
-                }
-            });
+                // Aplica o filtro novamente com os novos itens carregados
+                const newItems = userTimeline.getElementsByClassName('timeline-item');
+                applyFilter(newItems);
+
+                page++;
+            }
+
+            // Se não encontrar nenhum item correspondente após todas as páginas, exibe uma mensagem
+            if (!foundMatch) {
+                console.log('Nenhum item encontrado na pesquisa.');
+            }
         };
 
         // Variáveis de controle de paginação
         let lastVisible = null; // Para armazenar o último documento visível
         const pageSize = 7; // Número de documentos a serem carregados por página
+        let isFetching = false; // Flag para evitar múltiplas chamadas
 
         // Função para obter anuncios dos usuários
         window.getAllUserTimeline = async function (isInitialLoad = true) {
+            if (isFetching) return; // Não permitir múltiplas execuções simultâneas
+            isFetching = true;
+
             const userTimeline = document.getElementById("userTimeline");
 
             if (isInitialLoad) {
@@ -2546,6 +2574,9 @@
                 }
             } catch (error) {
                 console.error("Erro ao obter a linha do tempo:", error);
+            }
+            finally {
+                isFetching = false;
             }
         }
 

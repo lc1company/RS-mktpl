@@ -1523,7 +1523,6 @@
                 <i class="fas fa-map-marker-alt"></i> Localizar minha cidade
             </button>
             <div id="cityFeedback" class="city-feedback"></div>
-            <div id="linkCompartilhavel"></div>
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
@@ -1965,7 +1964,7 @@
                 }
 
                 // Enviando os dados para o Firestore
-                const docRef = await addDoc(collection(db, "publicacoes"), {
+                await addDoc(collection(db, "publicacoes"), {
                     mensagem: mensagem,
                     descricao: descricao,
                     preco: preco,
@@ -1981,20 +1980,6 @@
                     timestamp: serverTimestamp(),
                     userId: auth.currentUser.uid,
                 });
-
-                const publicacaoId = docRef.id;  // Obter o ID da publicação criada
-
-                // Exibir o link compartilhável para a publicação
-                const linkCompartilhavel = `${window.location.origin}/#${publicacaoId}`;
-                console.log("Link compartilhável: ", linkCompartilhavel);
-
-                // Atualizar a interface com o novo link, se o elemento existir
-                const linkElement = document.getElementById("linkCompartilhavel");
-                if (linkElement) {
-                    linkElement.innerHTML = `<a href="${linkCompartilhavel}">Link para a publicação</a>`;
-                } else {
-                    console.error("Elemento 'linkCompartilhavel' não encontrado.");
-                }
 
                 // Limpar os campos do formulário
                 document.getElementById("inputMensagem").value = "";
@@ -2186,16 +2171,6 @@
             // Se não encontrar nenhum item correspondente após todas as páginas, exibe uma mensagem
             if (!foundMatch) {
                 console.log('Nenhum item encontrado na pesquisa.');
-            }
-        };
-
-        window.onload = function () {
-            const hash = window.location.hash;
-            if (hash) {
-                const publicacaoElement = document.querySelector(hash);
-                if (publicacaoElement) {
-                    publicacaoElement.scrollIntoView({ behavior: 'smooth' });
-                }
             }
         };
 
@@ -2586,33 +2561,6 @@
                     reportButton.id = `reportButton_${doc.id}`;
                     reportButton.onclick = () => reportPost(doc.id);
                     li.appendChild(reportButton);
-
-                    // Botão de compartilhar
-                    const shareButton = document.createElement("button");
-                    shareButton.innerHTML = '<i class="fa fa-share-alt"></i> Compartilhar';
-                    shareButton.style.backgroundColor = "#1abc9c";
-                    shareButton.style.border = "none";
-                    shareButton.style.color = "#fff";
-                    shareButton.style.padding = "10px 16px";
-                    shareButton.style.borderRadius = "6px";
-                    shareButton.style.cursor = "pointer";
-                    shareButton.style.fontSize = "16px";
-                    shareButton.style.marginLeft = "10px";
-                    shareButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
-                    shareButton.style.transition = "all 0.3s ease";
-                    shareButton.style.position = "relative";
-                    shareButton.onclick = () => {
-                        // Aqui você pode definir a funcionalidade de compartilhamento
-                        // Exemplo: Copiar o link da publicação para a área de transferência
-                        navigator.clipboard.writeText(window.location.href + `#${doc.id}`)
-                            .then(() => {
-                                alert('Link copiado para a área de transferência!');
-                            })
-                            .catch(err => {
-                                console.error('Falha ao copiar o link: ', err);
-                            });
-                    };
-                    li.appendChild(shareButton);
 
                     // Adiciona um evento de clique para exibir o perfil do usuário ao clicar na foto ou no nome
                     userImg.onclick = () => showUserProfile(data.userId);

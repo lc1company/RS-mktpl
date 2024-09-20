@@ -1627,8 +1627,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="inputMensagem">Nome do veículo</label>
-                    <input type="text" id="inputMensagem" maxlength="200" placeholder="Nome do Veículo" required>
+                    <label for="inputMensagem">Nome do local</label>
+                    <input type="text" id="inputMensagem" maxlength="200" placeholder="Nome do local" required>
                 </div>
 
                 <div class="form-group">
@@ -1637,7 +1637,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="inputPreco">Preço do veículo</label>
+                    <label for="inputPreco">Preço da diária</label>
                     <input type="number" id="inputPreco" placeholder="Valor em reais R$" step="0.01" required>
                 </div>
 
@@ -1646,35 +1646,42 @@
                     <input type="text" id="inputLocalizacao" placeholder="Digite sua cidade">
                 </div>
 
+                <!-- Alterado para quantidade de quartos -->
                 <div class="form-group">
-                    <label for="inputAno">Ano</label>
-                    <input type="number" id="inputAno" placeholder="Ano" required>
+                    <label for="inputQuartos">Quantidade de Quartos</label>
+                    <input type="number" id="inputQuartos" placeholder="Quantidade de Quartos" required>
                 </div>
 
+                <!-- Alterado para capacidade de pessoas -->
                 <div class="form-group">
-                    <label for="inputKilometragem">Kilometragem Total</label>
-                    <input type="number" id="inputKilometragem" placeholder="Kilometragem Total" required>
+                    <label for="inputCapacidade">Capacidade (até quantas pessoas)</label>
+                    <input type="number" id="inputCapacidade" placeholder="Capacidade de Pessoas" required>
                 </div>
 
+                <!-- Alterado para piscina sim ou não -->
                 <div class="form-group">
-                    <label for="inputTipoCambio">Tipo de Câmbio</label>
-                    <select id="inputTipoCambio" required>
-                        <option value="" disabled selected>Selecione o tipo de câmbio</option>
-                        <option value="manual">Manual</option>
-                        <option value="automatico">Automático</option>
+                    <label for="inputPiscina">Possui Piscina?</label>
+                    <select id="inputPiscina" required>
+                        <option value="" disabled selected>Selecione</option>
+                        <option value="sim">Sim</option>
+                        <option value="nao">Não</option>
                     </select>
                 </div>
 
+                <!-- Alterado para churrasqueira sim ou não -->
                 <div class="form-group">
-                    <label for="inputTipoCombustivel">Tipo de Combustível</label>
-                    <select id="inputTipoCombustivel" required>
-                        <option value="" disabled selected>Selecione o tipo de combustível</option>
-                        <option value="Gasolina">Gasolina</option>
-                        <option value="Etanol">Etanol</option>
-                        <option value="Flex">Flex</option>
-                        <option value="Eletrico">Elétrico</option>
-                        <option value="hibrido">Híbrido</option>
+                    <label for="inputChurrasqueira">Possui Churrasqueira?</label>
+                    <select id="inputChurrasqueira" required>
+                        <option value="" disabled selected>Selecione</option>
+                        <option value="sim">Sim</option>
+                        <option value="nao">Não</option>
                     </select>
+                </div>
+
+                <!-- Alterado para quantidade de banheiros -->
+                <div class="form-group">
+                    <label for="inputBanheiros">Quantidade de Banheiros</label>
+                    <input type="number" id="inputBanheiros" placeholder="Quantidade de Banheiros" required>
                 </div>
 
                 <button type="submit">Publicar</button>
@@ -1915,11 +1922,12 @@
             const imagemPrincipal = document.getElementById("inputImagem").files[0];
             const imagensAdicionais = document.getElementById("inputImagensAdicionais").files;
 
-            // Novos campos
-            const tipoCombustivel = document.getElementById("inputTipoCombustivel").value;
-            const ano = parseInt(document.getElementById("inputAno").value);
-            const kilometragem = parseInt(document.getElementById("inputKilometragem").value);
-            const tipoCambio = document.getElementById("inputTipoCambio").value;  // Corrigido aqui
+            // Novos campos do formulário
+            const quantidadeQuartos = parseInt(document.getElementById("inputQuartos").value);
+            const capacidadePessoas = parseInt(document.getElementById("inputCapacidade").value);
+            const possuiPiscina = document.getElementById("inputPiscina").value;
+            const possuiChurrasqueira = document.getElementById("inputChurrasqueira").value;
+            const quantidadeBanheiros = parseInt(document.getElementById("inputBanheiros").value);
 
             if (!imagemPrincipal) {
                 alert("Por favor, selecione uma imagem principal.");
@@ -1973,10 +1981,11 @@
                     localizacao: localizacaoFormatada,
                     latitude: latitude,
                     longitude: longitude,
-                    tipoCambio: tipoCambio,  // Corrigido aqui
-                    kilometragem: kilometragem,
-                    tipoCombustivel: tipoCombustivel,
-                    ano: ano,
+                    quantidadeQuartos: quantidadeQuartos,
+                    capacidadePessoas: capacidadePessoas,
+                    possuiPiscina: possuiPiscina,
+                    possuiChurrasqueira: possuiChurrasqueira,
+                    quantidadeBanheiros: quantidadeBanheiros,
                     timestamp: serverTimestamp(),
                     userId: auth.currentUser.uid,
                 });
@@ -1988,10 +1997,11 @@
                 document.getElementById("inputImagem").value = "";
                 document.getElementById("inputImagensAdicionais").value = "";
                 document.getElementById("inputLocalizacao").value = "";
-                document.getElementById("inputTipoCombustivel").value = "";
-                document.getElementById("inputAno").value = "";
-                document.getElementById("inputKilometragem").value = "";
-                document.getElementById("inputTipoCambio").value = "";
+                document.getElementById("inputQuartos").value = "";
+                document.getElementById("inputCapacidade").value = "";
+                document.getElementById("inputPiscina").value = "";
+                document.getElementById("inputChurrasqueira").value = "";
+                document.getElementById("inputBanheiros").value = "";
 
                 location.reload();
 
@@ -2603,108 +2613,194 @@
             const modal = document.getElementById("modalDetalhes");
             const detalhesAnuncio = document.getElementById("detalhesAnuncio");
 
+            // Limpa o conteúdo anterior
             detalhesAnuncio.innerHTML = "";
 
-            // Adiciona o botão de fechar
+            // Estiliza o modal
+            modal.style.display = "block";
+            modal.style.position = "fixed";
+            modal.style.top = "50%";
+            modal.style.left = "50%";
+            modal.style.transform = "translate(-50%, -50%)";
+            modal.style.width = "90%";
+            modal.style.maxWidth = "600px";
+            modal.style.height = "80%";
+            modal.style.backgroundColor = "#ffffff";
+            modal.style.borderRadius = "15px";
+            modal.style.boxShadow = "0 4px 25px rgba(0, 0, 0, 0.4)";
+            modal.style.padding = "20px";
+            modal.style.overflowY = "auto";
+            modal.style.animation = "fadeIn 0.5s ease";
+            modal.style.zIndex = "1000";
+
+            // Botão de fechar
             const closeBtn = document.createElement("button");
-            closeBtn.className = "close-btn";
-            closeBtn.innerHTML = "&times;"; // Unicode para o "X"
+            closeBtn.innerHTML = "&times;";
+            closeBtn.style.position = "absolute";
+            closeBtn.style.top = "15px";
+            closeBtn.style.right = "15px";
+            closeBtn.style.fontSize = "28px";
+            closeBtn.style.color = "#ff4757";
+            closeBtn.style.border = "none";
+            closeBtn.style.background = "none";
+            closeBtn.style.cursor = "pointer";
             closeBtn.onclick = function () {
-                modal.style.animation = "fadeOut 0.5s ease"; // Animação de saída
+                modal.style.animation = "fadeOut 0.5s ease";
                 setTimeout(() => modal.style.display = "none", 500);
             };
             modal.appendChild(closeBtn);
 
-            // Adiciona o título
+            // Título
             const titulo = document.createElement("h2");
             titulo.textContent = data.mensagem;
-            titulo.className = "modal-titulo";
+            titulo.style.fontSize = "24px";
+            titulo.style.color = "#ff4757";
+            titulo.style.marginBottom = "15px";
+            titulo.style.fontWeight = "bold";
+            titulo.style.textAlign = "center";
+            titulo.style.animation = "slideDown 0.5s ease";
             detalhesAnuncio.appendChild(titulo);
 
-            // Adiciona a imagem principal
+            // Imagem principal
             if (data.imagemUrl) {
                 const imgPrincipal = document.createElement("img");
                 imgPrincipal.src = data.imagemUrl;
-                imgPrincipal.className = "imagem-principal";
+                imgPrincipal.style.width = "100%";
+                imgPrincipal.style.borderRadius = "10px";
+                imgPrincipal.style.marginBottom = "20px";
                 detalhesAnuncio.appendChild(imgPrincipal);
             }
 
-            // Adiciona o carrossel de imagens adicionais sobre a imagem principal
+            // Carrossel de imagens adicionais
             if (data.imagensAdicionaisUrls && data.imagensAdicionaisUrls.length > 0) {
                 const containerImagensAdicionais = document.createElement("div");
-                containerImagensAdicionais.className = "imagens-adicionais";
+                containerImagensAdicionais.style.display = "flex";
+                containerImagensAdicionais.style.justifyContent = "center";
+                containerImagensAdicionais.style.gap = "10px";
+                containerImagensAdicionais.style.marginBottom = "20px";
 
                 data.imagensAdicionaisUrls.forEach((url, index) => {
-                    const containerImagem = document.createElement("div");
-                    containerImagem.className = "imagem-container";
-
                     const imagemAdicional = document.createElement("img");
                     imagemAdicional.src = url;
-                    imagemAdicional.className = "imagem-adicional";
+                    imagemAdicional.style.width = "80px";
+                    imagemAdicional.style.height = "80px";
+                    imagemAdicional.style.borderRadius = "8px";
+                    imagemAdicional.style.cursor = "pointer";
+                    imagemAdicional.style.transition = "transform 0.3s ease";
                     imagemAdicional.onclick = function () {
                         openFullscreen(url, data.imagensAdicionaisUrls, index);
                     };
 
-                    const fullscreenBtn = document.createElement("button");
-                    fullscreenBtn.className = "fullscreen-btn";
-                    fullscreenBtn.innerHTML = "&#x26F6;"; // Unicode de tela cheia
-                    fullscreenBtn.onclick = function (e) {
-                        e.stopPropagation();
-                        openFullscreen(url, data.imagensAdicionaisUrls, index);
+                    imagemAdicional.onmouseover = function () {
+                        imagemAdicional.style.transform = "scale(1.1)";
+                    };
+                    imagemAdicional.onmouseout = function () {
+                        imagemAdicional.style.transform = "scale(1)";
                     };
 
-                    containerImagem.appendChild(imagemAdicional);
-                    containerImagem.appendChild(fullscreenBtn);
-                    containerImagensAdicionais.appendChild(containerImagem);
+                    containerImagensAdicionais.appendChild(imagemAdicional);
                 });
 
                 detalhesAnuncio.appendChild(containerImagensAdicionais);
             }
 
-            // Adiciona as informações adicionais
-            const infoContainer = document.createElement("div");
-            infoContainer.className = "info-container";
+            // Descrição e preço
+            const descricaoPrecoContainer = document.createElement("div");
+            descricaoPrecoContainer.style.marginBottom = "20px";
 
             const descricao = document.createElement("p");
-            descricao.textContent = `Descrição: ${data.descricao}`;
-            descricao.className = "info-descricao";
-            infoContainer.appendChild(descricao);
+            descricao.innerHTML = `<strong>Descrição:</strong> ${data.descricao}`;
+            descricao.style.color = "#2f3542";
+            descricao.style.fontSize = "16px";
+            descricao.style.lineHeight = "1.6";
 
             const precoElemento = document.createElement("p");
-            precoElemento.textContent = `Preço: ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
-            precoElemento.className = "info-adicional";
-            infoContainer.appendChild(precoElemento);
+            precoElemento.innerHTML = `<strong>Preço:</strong> ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+            precoElemento.style.color = "#ff6b81";
+            precoElemento.style.fontSize = "20px";
+            precoElemento.style.fontWeight = "bold";
+
+            descricaoPrecoContainer.appendChild(descricao);
+            descricaoPrecoContainer.appendChild(precoElemento);
+            detalhesAnuncio.appendChild(descricaoPrecoContainer);
+
+            // Localização e quartos
+            const localizacaoQuartosContainer = document.createElement("div");
+            localizacaoQuartosContainer.style.marginBottom = "20px";
 
             const localizacaoElemento = document.createElement("p");
-            localizacaoElemento.innerHTML = `<i class="fa fa-map-marker-alt"></i> Localização: ${data.localizacao}`;
-            localizacaoElemento.className = "info-adicional";
-            infoContainer.appendChild(localizacaoElemento);
+            localizacaoElemento.innerHTML = `<i class="fa fa-map-marker-alt"></i> <strong>Localização:</strong> ${data.localizacao}`;
+            localizacaoElemento.style.color = "#1e90ff";
+            localizacaoElemento.style.fontSize = "16px";
+            localizacaoElemento.style.marginBottom = "10px";
 
-            const tipoCambioElemento = document.createElement("p");
-            tipoCambioElemento.innerHTML = `<i class="fa fa-cogs"></i> Tipo de Câmbio: ${data.tipoCambio}`;
-            tipoCambioElemento.className = "info-adicional";
-            infoContainer.appendChild(tipoCambioElemento);
+            const quartosElemento = document.createElement("p");
+            quartosElemento.innerHTML = `<i class="fa fa-bed"></i> <strong>Quartos:</strong> ${data.quantidadeQuartos || 0}`;
+            quartosElemento.style.color = "#1e90ff";
+            quartosElemento.style.fontSize = "16px";
 
-            const tipoCombustivelElemento = document.createElement("p");
-            tipoCombustivelElemento.innerHTML = `<i class="fa fa-gas-pump"></i> Tipo de Combustível: ${data.tipoCombustivel}`;
-            tipoCombustivelElemento.className = "info-adicional";
-            infoContainer.appendChild(tipoCombustivelElemento);
+            localizacaoQuartosContainer.appendChild(localizacaoElemento);
+            localizacaoQuartosContainer.appendChild(quartosElemento);
+            detalhesAnuncio.appendChild(localizacaoQuartosContainer);
 
-            const anoElemento = document.createElement("p");
-            anoElemento.innerHTML = `<i class="fa fa-calendar-alt"></i> Ano: ${data.ano}`;
-            anoElemento.className = "info-adicional";
-            infoContainer.appendChild(anoElemento);
+            // Capacidade, piscina, churrasqueira e banheiros
+            const capacidadeAmenidadesContainer = document.createElement("div");
+            capacidadeAmenidadesContainer.style.display = "grid";
+            capacidadeAmenidadesContainer.style.gridTemplateColumns = "1fr 1fr";
+            capacidadeAmenidadesContainer.style.gap = "15px";
+            capacidadeAmenidadesContainer.style.marginBottom = "20px";
 
-            const kilometragemElemento = document.createElement("p");
-            kilometragemElemento.innerHTML = `<i class="fa fa-tachometer-alt"></i> Kilometragem Total: ${data.kilometragem.toLocaleString()} km`;
-            kilometragemElemento.className = "info-adicional";
-            infoContainer.appendChild(kilometragemElemento);
+            const capacidadeElemento = document.createElement("p");
+            capacidadeElemento.innerHTML = `<i class="fa fa-users"></i> <strong>Capacidade:</strong> Até ${data.capacidadePessoas || 0} pessoas`;
+            capacidadeElemento.style.color = "#ffa502";
+            capacidadeElemento.style.fontSize = "16px";
 
-            detalhesAnuncio.appendChild(infoContainer);
+            const piscinaElemento = document.createElement("p");
+            piscinaElemento.innerHTML = `<i class="fa fa-swimmer"></i> <strong>Piscina:</strong> ${data.possuiPiscina === 'sim' ? 'Sim' : 'Não'}`;
+            piscinaElemento.style.color = "#ffa502";
+            piscinaElemento.style.fontSize = "16px";
 
-            modal.style.display = "block";
+            const churrasqueiraElemento = document.createElement("p");
+            churrasqueiraElemento.innerHTML = `<i class="fa fa-fire"></i> <strong>Churrasqueira:</strong> ${data.possuiChurrasqueira === 'sim' ? 'Sim' : 'Não'}`;
+            churrasqueiraElemento.style.color = "#ffa502";
+            churrasqueiraElemento.style.fontSize = "16px";
+
+            const banheirosElemento = document.createElement("p");
+            banheirosElemento.innerHTML = `<i class="fa fa-bath"></i> <strong>Banheiros:</strong> ${data.quantidadeBanheiros || 0}`;
+            banheirosElemento.style.color = "#ffa502";
+            banheirosElemento.style.fontSize = "16px";
+
+            capacidadeAmenidadesContainer.appendChild(capacidadeElemento);
+            capacidadeAmenidadesContainer.appendChild(piscinaElemento);
+            capacidadeAmenidadesContainer.appendChild(churrasqueiraElemento);
+            capacidadeAmenidadesContainer.appendChild(banheirosElemento);
+            detalhesAnuncio.appendChild(capacidadeAmenidadesContainer);
+
         }
 
+        // Estilos CSS inline para animações e scroll
+        document.head.innerHTML += `
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+#modalDetalhes {
+    overflow-y: auto; /* Permite scroll vertical */
+}
+</style>
+`;
 
         function openFullscreen(currentImageUrl, imageUrls, currentIndex) {
             const fullscreenContainer = document.createElement("div");
@@ -3866,27 +3962,29 @@
         }
 
         async function sendWhatsAppMessage(docId) {
+            console.log("docId:", docId); // Verificação do docId
             try {
                 // Obtém o documento do anúncio
                 const docSnapshot = await getDoc(doc(db, "publicacoes", docId));
-
-                if (!docSnapshot.exists()) {
-                    console.error("Anúncio não encontrado.");
+                if (!docSnapshot || !docSnapshot.exists()) {
+                    console.error("Anúncio não encontrado para o docId:", docId);
                     return;
                 }
 
                 const anuncio = docSnapshot.data();
-
-                // Verifica se o campo "mensagem" ou "titulo" existe no documento
                 const tituloAnuncio = anuncio.mensagem || anuncio.titulo;
                 if (!tituloAnuncio) {
                     console.error("Título do anúncio não encontrado.");
                     return;
                 }
 
-                // Obtém os dados do usuário
-                const userSnapshot = await getDoc(doc(db, "users", anuncio.userId));
+                const userId = anuncio.userId; // Verifica se userId está definido
+                if (!userId) {
+                    console.error("userId não encontrado no anúncio.");
+                    return;
+                }
 
+                const userSnapshot = await getDoc(doc(db, "users", userId));
                 if (!userSnapshot.exists()) {
                     console.error("Usuário não encontrado.");
                     return;
@@ -3900,10 +3998,8 @@
                     return;
                 }
 
-                // Cria a mensagem e abre o link do WhatsApp
                 const message = `Olá, vim pela plataforma MotorZapp e tenho interesse em "${tituloAnuncio}"`;
                 const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-
                 window.open(url, '_blank');
             } catch (error) {
                 console.error("Erro ao enviar mensagem no WhatsApp:", error);

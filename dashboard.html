@@ -2616,191 +2616,219 @@
             // Limpa o conteúdo anterior
             detalhesAnuncio.innerHTML = "";
 
-            // Estiliza o modal
+            // Estiliza e exibe o modal
+            styleModal(modal);
             modal.style.display = "block";
-            modal.style.position = "fixed";
-            modal.style.top = "50%";
-            modal.style.left = "50%";
-            modal.style.transform = "translate(-50%, -50%)";
-            modal.style.width = "90%";
-            modal.style.maxWidth = "600px";
-            modal.style.height = "80%";
-            modal.style.backgroundColor = "#ffffff";
-            modal.style.borderRadius = "15px";
-            modal.style.boxShadow = "0 4px 25px rgba(0, 0, 0, 0.4)";
-            modal.style.padding = "20px";
-            modal.style.overflowY = "auto";
-            modal.style.animation = "fadeIn 0.5s ease";
-            modal.style.zIndex = "1000";
 
-            // Botão de fechar
-            const closeBtn = document.createElement("button");
-            closeBtn.innerHTML = "&times;";
-            closeBtn.style.position = "absolute";
-            closeBtn.style.top = "15px";
-            closeBtn.style.right = "15px";
-            closeBtn.style.fontSize = "28px";
-            closeBtn.style.color = "#ff4757";
-            closeBtn.style.border = "none";
-            closeBtn.style.background = "none";
-            closeBtn.style.cursor = "pointer";
-            closeBtn.onclick = function () {
-                modal.style.animation = "fadeOut 0.5s ease";
-                setTimeout(() => modal.style.display = "none", 500);
-            };
+            // Cria e adiciona o botão de fechar
+            const closeBtn = createCloseButton(modal);
             modal.appendChild(closeBtn);
 
-            // Título
+            // Adiciona conteúdo ao modal
+            detalhesAnuncio.appendChild(createTitle(data.mensagem));
+            if (data.imagemUrl) detalhesAnuncio.appendChild(createImage(data.imagemUrl));
+            if (data.imagensAdicionaisUrls) detalhesAnuncio.appendChild(createImageCarousel(data.imagensAdicionaisUrls));
+            detalhesAnuncio.appendChild(createDescriptionAndPrice(data.descricao, data.preco));
+            detalhesAnuncio.appendChild(createLocationAndRooms(data.localizacao, data.quantidadeQuartos));
+            detalhesAnuncio.appendChild(createCapacityAndAmenities(data));
+        }
+
+        // Funções auxiliares
+        function styleModal(modal) {
+            Object.assign(modal.style, {
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "90%",
+                maxWidth: "600px",
+                height: "80%",
+                backgroundColor: "#ffffff",
+                borderRadius: "15px",
+                boxShadow: "0 4px 25px rgba(0, 0, 0, 0.4)",
+                padding: "20px",
+                overflowY: "auto",
+                animation: "fadeIn 0.5s ease",
+                zIndex: "1000",
+            });
+        }
+
+        function createCloseButton(modal) {
+            const closeBtn = document.createElement("button");
+            closeBtn.innerHTML = "&times;";
+            Object.assign(closeBtn.style, {
+                position: "absolute",
+                top: "15px",
+                right: "15px",
+                fontSize: "28px",
+                color: "#ff4757",
+                border: "none",
+                background: "none",
+                cursor: "pointer",
+            });
+            closeBtn.onclick = function () {
+                modal.style.animation = "fadeOut 0.5s ease";
+                setTimeout(() => (modal.style.display = "none"), 500);
+            };
+            return closeBtn;
+        }
+
+        function createTitle(text) {
             const titulo = document.createElement("h2");
-            titulo.textContent = data.mensagem;
-            titulo.style.fontSize = "24px";
-            titulo.style.color = "#ff4757";
-            titulo.style.marginBottom = "15px";
-            titulo.style.fontWeight = "bold";
-            titulo.style.textAlign = "center";
-            titulo.style.animation = "slideDown 0.5s ease";
-            detalhesAnuncio.appendChild(titulo);
+            titulo.textContent = text;
+            Object.assign(titulo.style, {
+                fontSize: "24px",
+                color: "#ff4757",
+                marginBottom: "15px",
+                fontWeight: "bold",
+                textAlign: "center",
+                animation: "slideDown 0.5s ease",
+            });
+            return titulo;
+        }
 
-            // Imagem principal
-            if (data.imagemUrl) {
-                const imgPrincipal = document.createElement("img");
-                imgPrincipal.src = data.imagemUrl;
-                imgPrincipal.style.width = "100%";
-                imgPrincipal.style.borderRadius = "10px";
-                imgPrincipal.style.marginBottom = "20px";
-                detalhesAnuncio.appendChild(imgPrincipal);
-            }
+        function createImage(url) {
+            const img = document.createElement("img");
+            img.src = url;
+            Object.assign(img.style, {
+                width: "100%",
+                borderRadius: "10px",
+                marginBottom: "20px",
+            });
+            return img;
+        }
 
-            // Carrossel de imagens adicionais
-            if (data.imagensAdicionaisUrls && data.imagensAdicionaisUrls.length > 0) {
-                const containerImagensAdicionais = document.createElement("div");
-                containerImagensAdicionais.style.display = "flex";
-                containerImagensAdicionais.style.justifyContent = "center";
-                containerImagensAdicionais.style.gap = "10px";
-                containerImagensAdicionais.style.marginBottom = "20px";
+        function createImageCarousel(urls) {
+            const container = document.createElement("div");
+            Object.assign(container.style, {
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+                marginBottom: "20px",
+            });
 
-                data.imagensAdicionaisUrls.forEach((url, index) => {
-                    const imagemAdicional = document.createElement("img");
-                    imagemAdicional.src = url;
-                    imagemAdicional.style.width = "80px";
-                    imagemAdicional.style.height = "80px";
-                    imagemAdicional.style.borderRadius = "8px";
-                    imagemAdicional.style.cursor = "pointer";
-                    imagemAdicional.style.transition = "transform 0.3s ease";
-                    imagemAdicional.onclick = function () {
-                        openFullscreen(url, data.imagensAdicionaisUrls, index);
-                    };
-
-                    imagemAdicional.onmouseover = function () {
-                        imagemAdicional.style.transform = "scale(1.1)";
-                    };
-                    imagemAdicional.onmouseout = function () {
-                        imagemAdicional.style.transform = "scale(1)";
-                    };
-
-                    containerImagensAdicionais.appendChild(imagemAdicional);
+            urls.forEach((url, index) => {
+                const img = document.createElement("img");
+                img.src = url;
+                Object.assign(img.style, {
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    transition: "transform 0.3s ease",
                 });
+                img.onclick = function () {
+                    openFullscreen(url, urls, index);
+                };
+                img.onmouseover = () => (img.style.transform = "scale(1.1)");
+                img.onmouseout = () => (img.style.transform = "scale(1)");
+                container.appendChild(img);
+            });
 
-                detalhesAnuncio.appendChild(containerImagensAdicionais);
-            }
+            return container;
+        }
 
-            // Descrição e preço
-            const descricaoPrecoContainer = document.createElement("div");
-            descricaoPrecoContainer.style.marginBottom = "20px";
+        function createDescriptionAndPrice(descricao, preco) {
+            const container = document.createElement("div");
+            container.style.marginBottom = "20px";
 
-            const descricao = document.createElement("p");
-            descricao.innerHTML = `<strong>Descrição:</strong> ${data.descricao}`;
-            descricao.style.color = "#2f3542";
-            descricao.style.fontSize = "16px";
-            descricao.style.lineHeight = "1.6";
+            const descricaoElem = document.createElement("p");
+            descricaoElem.innerHTML = `<strong>Descrição:</strong> ${descricao}`;
+            Object.assign(descricaoElem.style, {
+                color: "#2f3542",
+                fontSize: "16px",
+                lineHeight: "1.6",
+            });
 
-            const precoElemento = document.createElement("p");
-            precoElemento.innerHTML = `<strong>Preço:</strong> ${parseFloat(data.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
-            precoElemento.style.color = "#ff6b81";
-            precoElemento.style.fontSize = "20px";
-            precoElemento.style.fontWeight = "bold";
+            const precoElem = document.createElement("p");
+            precoElem.innerHTML = `<strong>Preço:</strong> ${parseFloat(preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+            Object.assign(precoElem.style, {
+                color: "#ff6b81",
+                fontSize: "20px",
+                fontWeight: "bold",
+            });
 
-            descricaoPrecoContainer.appendChild(descricao);
-            descricaoPrecoContainer.appendChild(precoElemento);
-            detalhesAnuncio.appendChild(descricaoPrecoContainer);
+            container.appendChild(descricaoElem);
+            container.appendChild(precoElem);
+            return container;
+        }
 
-            // Localização e quartos
-            const localizacaoQuartosContainer = document.createElement("div");
-            localizacaoQuartosContainer.style.marginBottom = "20px";
+        function createLocationAndRooms(localizacao, quantidadeQuartos) {
+            const container = document.createElement("div");
+            container.style.marginBottom = "20px";
 
-            const localizacaoElemento = document.createElement("p");
-            localizacaoElemento.innerHTML = `<i class="fa fa-map-marker-alt"></i> <strong>Localização:</strong> ${data.localizacao}`;
-            localizacaoElemento.style.color = "#1e90ff";
-            localizacaoElemento.style.fontSize = "16px";
-            localizacaoElemento.style.marginBottom = "10px";
+            const localizacaoElem = document.createElement("p");
+            localizacaoElem.innerHTML = `<i class="fa fa-map-marker-alt"></i> <strong>Localização:</strong> ${localizacao}`;
+            Object.assign(localizacaoElem.style, {
+                color: "#1e90ff",
+                fontSize: "16px",
+                marginBottom: "10px",
+            });
 
-            const quartosElemento = document.createElement("p");
-            quartosElemento.innerHTML = `<i class="fa fa-bed"></i> <strong>Quartos:</strong> ${data.quantidadeQuartos || 0}`;
-            quartosElemento.style.color = "#1e90ff";
-            quartosElemento.style.fontSize = "16px";
+            const quartosElem = document.createElement("p");
+            quartosElem.innerHTML = `<i class="fa fa-bed"></i> <strong>Quartos:</strong> ${quantidadeQuartos || 0}`;
+            Object.assign(quartosElem.style, {
+                color: "#1e90ff",
+                fontSize: "16px",
+            });
 
-            localizacaoQuartosContainer.appendChild(localizacaoElemento);
-            localizacaoQuartosContainer.appendChild(quartosElemento);
-            detalhesAnuncio.appendChild(localizacaoQuartosContainer);
+            container.appendChild(localizacaoElem);
+            container.appendChild(quartosElem);
+            return container;
+        }
 
-            // Capacidade, piscina, churrasqueira e banheiros
-            const capacidadeAmenidadesContainer = document.createElement("div");
-            capacidadeAmenidadesContainer.style.display = "grid";
-            capacidadeAmenidadesContainer.style.gridTemplateColumns = "1fr 1fr";
-            capacidadeAmenidadesContainer.style.gap = "15px";
-            capacidadeAmenidadesContainer.style.marginBottom = "20px";
+        function createCapacityAndAmenities(data) {
+            const container = document.createElement("div");
+            Object.assign(container.style, {
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "15px",
+                marginBottom: "20px",
+            });
 
-            const capacidadeElemento = document.createElement("p");
-            capacidadeElemento.innerHTML = `<i class="fa fa-users"></i> <strong>Capacidade:</strong> Até ${data.capacidadePessoas || 0} pessoas`;
-            capacidadeElemento.style.color = "#ffa502";
-            capacidadeElemento.style.fontSize = "16px";
+            const capacity = createAmenityElement("fa-users", "Capacidade:", `Até ${data.capacidadePessoas || 0} pessoas`, "#ffa502");
+            const piscina = createAmenityElement("fa-swimmer", "Piscina:", data.possuiPiscina === 'sim' ? 'Sim' : 'Não', "#ffa502");
+            const churrasqueira = createAmenityElement("fa-fire", "Churrasqueira:", data.possuiChurrasqueira === 'sim' ? 'Sim' : 'Não', "#ffa502");
+            const banheiros = createAmenityElement("fa-bath", "Banheiros:", data.quantidadeBanheiros || 0, "#ffa502");
 
-            const piscinaElemento = document.createElement("p");
-            piscinaElemento.innerHTML = `<i class="fa fa-swimmer"></i> <strong>Piscina:</strong> ${data.possuiPiscina === 'sim' ? 'Sim' : 'Não'}`;
-            piscinaElemento.style.color = "#ffa502";
-            piscinaElemento.style.fontSize = "16px";
+            container.appendChild(capacity);
+            container.appendChild(piscina);
+            container.appendChild(churrasqueira);
+            container.appendChild(banheiros);
+            return container;
+        }
 
-            const churrasqueiraElemento = document.createElement("p");
-            churrasqueiraElemento.innerHTML = `<i class="fa fa-fire"></i> <strong>Churrasqueira:</strong> ${data.possuiChurrasqueira === 'sim' ? 'Sim' : 'Não'}`;
-            churrasqueiraElemento.style.color = "#ffa502";
-            churrasqueiraElemento.style.fontSize = "16px";
-
-            const banheirosElemento = document.createElement("p");
-            banheirosElemento.innerHTML = `<i class="fa fa-bath"></i> <strong>Banheiros:</strong> ${data.quantidadeBanheiros || 0}`;
-            banheirosElemento.style.color = "#ffa502";
-            banheirosElemento.style.fontSize = "16px";
-
-            capacidadeAmenidadesContainer.appendChild(capacidadeElemento);
-            capacidadeAmenidadesContainer.appendChild(piscinaElemento);
-            capacidadeAmenidadesContainer.appendChild(churrasqueiraElemento);
-            capacidadeAmenidadesContainer.appendChild(banheirosElemento);
-            detalhesAnuncio.appendChild(capacidadeAmenidadesContainer);
-
+        function createAmenityElement(iconClass, title, value, color) {
+            const element = document.createElement("p");
+            element.innerHTML = `<i class="fa ${iconClass}"></i> <strong>${title}</strong> ${value}`;
+            element.style.color = color;
+            element.style.fontSize = "16px";
+            return element;
         }
 
         // Estilos CSS inline para animações e scroll
         document.head.innerHTML += `
-<style>
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+            <style>
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
 
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
 
-@keyframes slideDown {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
+                @keyframes slideDown {
+                    from { transform: translateY(-20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
 
-#modalDetalhes {
-    overflow-y: auto; /* Permite scroll vertical */
-}
-</style>
-`;
+                #modalDetalhes {
+                    overflow-y: auto; /* Permite scroll vertical */
+                }
+            </style>
+        `;
 
         function openFullscreen(currentImageUrl, imageUrls, currentIndex) {
             const fullscreenContainer = document.createElement("div");

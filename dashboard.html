@@ -1556,7 +1556,7 @@
 
     <header class="app-header">
         <div class="search-container">
-            <input type="text" class="search-input" placeholder="Pesquisar por Nome, Modelo, Marca..."
+            <input type="text" class="search-input" placeholder="Pesquisar Serviço..."
                 oninput="filterPostsBySearch()" />
             <button class="search-button" onclick="filterPostsBySearch()">
                 <i class="fas fa-search"></i>
@@ -1570,12 +1570,12 @@
             <div class="tab" onclick="showTab('timeline')"><i class="fas fa-stream"></i><span>Publicações</span>
             </div>
             <div class="tab" onclick="showTab('Online')"><i class="fas fa-user-tie"></i><span>Online Agora</span></div>
-            <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-bullhorn"></i><span>Anunciar</span></div>
-            <div class="tab" onclick="showTab('meuPerfil')"><i class="fas fa-user"></i><span>Meu Perfil</span></div>
             <div class="tab" onclick="showTab('notificacoes')" id="notificationsTab">
                 <i class="fas fa-comment"></i><span>Mensagens</span>
                 <span id="notificationCounter" class="notification-counter"></span>
             </div>
+            <div class="tab" onclick="showTab('meuPerfil')"><i class="fas fa-user"></i><span>Meu Perfil</span></div>
+            <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-bullhorn"></i><span>Anunciar</span></div>
             <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i><span>Configurações</span></div>
         </div>
 
@@ -1625,7 +1625,7 @@
         </div>
 
         <div id="notificacoes" class="tab-content" style="text-align: center;">
-            <h2>Notificações</h2>
+            <h2>Mensagens</h2>
             <div id="chatList" style="margin-bottom: 20px;">
                 <!-- Lista de chats será exibida aqui -->
             </div>
@@ -1694,7 +1694,7 @@
                 </div>
             </div>
 
-            <p>Controle sua disponibilidade como entregador.</p>
+            <p>Controle sua disponibilidade Para receber Pedidos.</p>
             <button id="btnDisponivel" class="status-button available" onclick="toggleAvailability(true)">Ficar
                 Disponível</button>
             <button id="btnIndisponivel" class="status-button unavailable" onclick="toggleAvailability(false)">Ficar

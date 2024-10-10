@@ -1725,7 +1725,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="inputPreco">Preço da diária</label>
+                    <label for="inputPreco">Preço do serviço</label>
                     <input type="number" id="inputPreco" placeholder="Valor em reais R$" step="0.01" required>
                 </div>
 
@@ -1734,43 +1734,21 @@
                     <input type="text" id="inputLocalizacao" placeholder="Digite sua cidade">
                 </div>
 
-                <!-- Alterado para quantidade de quartos -->
                 <div class="form-group">
-                    <label for="inputQuartos">Quantidade de Quartos</label>
-                    <input type="number" id="inputQuartos" placeholder="Quantidade de Quartos" required>
-                </div>
-
-                <!-- Alterado para capacidade de pessoas -->
-                <div class="form-group">
-                    <label for="inputCapacidade">Capacidade (até quantas pessoas)</label>
-                    <input type="number" id="inputCapacidade" placeholder="Capacidade de Pessoas" required>
-                </div>
-
-                <!-- Alterado para piscina sim ou não -->
-                <div class="form-group">
-                    <label for="inputPiscina">Possui Piscina?</label>
-                    <select id="inputPiscina" required>
-                        <option value="" disabled selected>Selecione</option>
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
+                    <label for="inputTipoLimpeza">Tipo de Limpeza</label>
+                    <select id="inputTipoLimpeza" required>
+                        <option value="" disabled selected>Selecione o tipo de limpeza</option>
+                        <option value="residencial">Limpeza Residencial</option>
+                        <option value="industrial">Limpeza Industrial</option>
+                        <option value="comercial">Limpeza Comercial</option>
+                        <option value="posObra">Limpeza Pós-Obra</option>
                     </select>
                 </div>
 
-                <!-- Alterado para churrasqueira sim ou não -->
                 <div class="form-group">
-                    <label for="inputChurrasqueira">Possui Churrasqueira?</label>
-                    <select id="inputChurrasqueira" required>
-                        <option value="" disabled selected>Selecione</option>
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                    </select>
-                </div>
-
-                <!-- Alterado para quantidade de banheiros -->
-                <div class="form-group">
-                    <label for="inputBanheiros">Quantidade de Banheiros</label>
-                    <input type="number" id="inputBanheiros" placeholder="Quantidade de Banheiros" required>
-                </div>
+                    <label for="inputDuracao">Duração do Serviço (horas)</label>
+                    <input type="number" id="inputDuracao" placeholder="Duração em horas" step="0.1" required>
+                </div>                
 
                 <button type="submit">Publicar</button>
             </form>
@@ -2012,13 +1990,9 @@
             const precoInput = document.getElementById("inputPreco").value;
             const imagemPrincipal = document.getElementById("inputImagem").files[0];
             const imagensAdicionais = document.getElementById("inputImagensAdicionais").files;
-
-            // Novos campos do formulário
-            const quantidadeQuartos = parseInt(document.getElementById("inputQuartos").value);
-            const capacidadePessoas = parseInt(document.getElementById("inputCapacidade").value);
-            const possuiPiscina = document.getElementById("inputPiscina").value;
-            const possuiChurrasqueira = document.getElementById("inputChurrasqueira").value;
-            const quantidadeBanheiros = parseInt(document.getElementById("inputBanheiros").value);
+            const tipoLimpeza = document.getElementById("inputTipoLimpeza").value;
+            const localizacao = document.getElementById("inputLocalizacao").value;
+            const duracao = document.getElementById("inputDuracao").value;
 
             if (!imagemPrincipal) {
                 alert("Por favor, selecione uma imagem principal.");
@@ -2033,16 +2007,6 @@
                 document.getElementById("loadingBar").style.display = "none";
                 return;
             }
-
-            if (!currentPlace || !currentPlace.geometry) {
-                alert("Por favor, selecione um endereço válido da lista de sugestões.");
-                document.getElementById("loadingBar").style.display = "none";
-                return;
-            }
-
-            const localizacaoFormatada = currentPlace.formatted_address;
-            const latitude = currentPlace.geometry.location.lat();
-            const longitude = currentPlace.geometry.location.lng();
 
             try {
                 // Upload da imagem principal
@@ -2069,14 +2033,9 @@
                     preco: preco,
                     imagemUrl: imagemPrincipalUrl,
                     imagensAdicionaisUrls: imagensAdicionaisUrls,
-                    localizacao: localizacaoFormatada,
-                    latitude: latitude,
-                    longitude: longitude,
-                    quantidadeQuartos: quantidadeQuartos,
-                    capacidadePessoas: capacidadePessoas,
-                    possuiPiscina: possuiPiscina,
-                    possuiChurrasqueira: possuiChurrasqueira,
-                    quantidadeBanheiros: quantidadeBanheiros,
+                    localizacao: localizacao,
+                    tipoLimpeza: tipoLimpeza,
+                    duracao: duracao,
                     timestamp: serverTimestamp(),
                     userId: auth.currentUser.uid,
                 });
@@ -2088,11 +2047,8 @@
                 document.getElementById("inputImagem").value = "";
                 document.getElementById("inputImagensAdicionais").value = "";
                 document.getElementById("inputLocalizacao").value = "";
-                document.getElementById("inputQuartos").value = "";
-                document.getElementById("inputCapacidade").value = "";
-                document.getElementById("inputPiscina").value = "";
-                document.getElementById("inputChurrasqueira").value = "";
-                document.getElementById("inputBanheiros").value = "";
+                document.getElementById("inputTipoLimpeza").value = "";
+                document.getElementById("inputDuracao").value = "";
 
                 location.reload();
 
@@ -2720,11 +2676,35 @@
             if (data.imagemUrl) detalhesAnuncio.appendChild(createImage(data.imagemUrl));
             if (data.imagensAdicionaisUrls) detalhesAnuncio.appendChild(createImageCarousel(data.imagensAdicionaisUrls));
             detalhesAnuncio.appendChild(createDescriptionAndPrice(data.descricao, data.preco));
-            detalhesAnuncio.appendChild(createLocationAndRooms(data.localizacao, data.quantidadeQuartos));
-            detalhesAnuncio.appendChild(createCapacityAndAmenities(data));
+            detalhesAnuncio.appendChild(createServiceDetails(data.tipoLimpeza, data.duracao));
         }
 
-        // Funções auxiliares
+        // Funções auxiliares atualizadas para serviços
+        function createServiceDetails(servico, duracao) {
+            const container = document.createElement("div");
+            container.style.marginBottom = "20px";
+
+            const servicoElem = document.createElement("p");
+            servicoElem.innerHTML = `<i class="fa fa-concierge-bell"></i> <strong>Serviço:</strong> ${servico}`;
+            Object.assign(servicoElem.style, {
+                color: "#1e90ff",
+                fontSize: "16px",
+                marginBottom: "10px",
+            });
+
+            const duracaoElem = document.createElement("p");
+            duracaoElem.innerHTML = `<i class="fa fa-clock"></i> <strong>Duração:</strong> ${duracao} horas`;
+            Object.assign(duracaoElem.style, {
+                color: "#1e90ff",
+                fontSize: "16px",
+            });
+
+            container.appendChild(servicoElem);
+            container.appendChild(duracaoElem);
+            return container;
+        }
+
+        // Funções auxiliares gerais
         function styleModal(modal) {
             Object.assign(modal.style, {
                 position: "fixed",
@@ -2844,82 +2824,29 @@
             return container;
         }
 
-        function createLocationAndRooms(localizacao, quantidadeQuartos) {
-            const container = document.createElement("div");
-            container.style.marginBottom = "20px";
-
-            const localizacaoElem = document.createElement("p");
-            localizacaoElem.innerHTML = `<i class="fa fa-map-marker-alt"></i> <strong>Localização:</strong> ${localizacao}`;
-            Object.assign(localizacaoElem.style, {
-                color: "#1e90ff",
-                fontSize: "16px",
-                marginBottom: "10px",
-            });
-
-            const quartosElem = document.createElement("p");
-            quartosElem.innerHTML = `<i class="fa fa-bed"></i> <strong>Quartos:</strong> ${quantidadeQuartos || 0}`;
-            Object.assign(quartosElem.style, {
-                color: "#1e90ff",
-                fontSize: "16px",
-            });
-
-            container.appendChild(localizacaoElem);
-            container.appendChild(quartosElem);
-            return container;
-        }
-
-        function createCapacityAndAmenities(data) {
-            const container = document.createElement("div");
-            Object.assign(container.style, {
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "15px",
-                marginBottom: "20px",
-            });
-
-            const capacity = createAmenityElement("fa-users", "Capacidade:", `Até ${data.capacidadePessoas || 0} pessoas`, "#ffa502");
-            const piscina = createAmenityElement("fa-swimmer", "Piscina:", data.possuiPiscina === 'sim' ? 'Sim' : 'Não', "#ffa502");
-            const churrasqueira = createAmenityElement("fa-fire", "Churrasqueira:", data.possuiChurrasqueira === 'sim' ? 'Sim' : 'Não', "#ffa502");
-            const banheiros = createAmenityElement("fa-bath", "Banheiros:", data.quantidadeBanheiros || 0, "#ffa502");
-
-            container.appendChild(capacity);
-            container.appendChild(piscina);
-            container.appendChild(churrasqueira);
-            container.appendChild(banheiros);
-            return container;
-        }
-
-        function createAmenityElement(iconClass, title, value, color) {
-            const element = document.createElement("p");
-            element.innerHTML = `<i class="fa ${iconClass}"></i> <strong>${title}</strong> ${value}`;
-            element.style.color = color;
-            element.style.fontSize = "16px";
-            return element;
-        }
-
         // Estilos CSS inline para animações e scroll
         document.head.innerHTML += `
-            <style>
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
-                @keyframes fadeOut {
-                    from { opacity: 1; }
-                    to { opacity: 0; }
-                }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
 
-                @keyframes slideDown {
-                    from { transform: translateY(-20px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
-                }
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
 
-                #modalDetalhes {
-                    overflow-y: auto; /* Permite scroll vertical */
-                }
-            </style>
-        `;
+        #modalDetalhes {
+            overflow-y: auto; /* Permite scroll vertical */
+        }
+    </style>
+`;
 
         function openFullscreen(currentImageUrl, imageUrls, currentIndex) {
             const fullscreenContainer = document.createElement("div");

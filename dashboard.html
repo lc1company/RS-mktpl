@@ -1748,7 +1748,7 @@
                 <div class="form-group">
                     <label for="inputDuracao">Duração do Serviço (horas)</label>
                     <input type="number" id="inputDuracao" placeholder="Duração em horas" step="0.1" required>
-                </div>                
+                </div>
 
                 <button type="submit">Publicar</button>
             </form>
@@ -2302,6 +2302,7 @@
 
                 querySnapshot.forEach(async (doc) => {
                     const data = doc.data();
+                    const docId = doc.id;
                     console.log("Publicações exibidas com sucesso");
                     const timestamp = data.timestamp.toDate();
                     const dia = String(timestamp.getDate()).padStart(2, '0');
@@ -2327,6 +2328,19 @@
                     li.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)"; // Estilo 3D padrão
                     li.style.transition = "all 0.3s ease"; // Transição suave
                     li.style.transform = "translateY(0)"; // Posição padrão
+
+                    // Criar o link dinâmico
+                    const linkAnuncio = document.createElement("a");
+                    linkAnuncio.href = `/anuncio/${docId}`;  // URL dinâmica para cada anúncio
+                    linkAnuncio.style.textDecoration = "none";
+                    linkAnuncio.style.color = "inherit";
+
+                    const link = document.createElement("a");
+                    link.href = `/anuncio/${doc.id}`; // Cria o link dinâmico com base no ID do documento (anúncio)
+                    link.textContent = "Ver anúncio";
+                    link.style.color = "#3498db"; // Cor do link
+                    link.style.textDecoration = "none"; // Remover sublinhado
+                    li.appendChild(link); // Adiciona o link ao elemento li
 
                     // Adicionar atributos de dados para filtragem
                     li.setAttribute('data-message', message);

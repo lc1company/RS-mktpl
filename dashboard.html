@@ -2176,6 +2176,12 @@
             const selectedTab = document.getElementById(tabId);
             selectedTab.classList.add("active");
 
+            // Atualiza o perfil quando a aba "Meu Perfil" é selecionada
+            if (tabId === 'meuPerfil') {
+                // Chama a função para exibir o perfil do usuário logado
+                exibirPerfilUsuario(auth.currentUser.uid); // Passando o UID do usuário logado
+            }
+
             if (tabId === 'notificacoes') {
                 resetNotificationCounter(); // Zerando o contador ao abrir a aba de notificações
             }

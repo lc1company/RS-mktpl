@@ -3407,9 +3407,7 @@
 
                     // Atualizar o nome do usuário
                     const userProfileName = document.getElementById("userProfileName");
-                    if (userProfileName) {
-                        userProfileName.textContent = userData.fullName || "Nome do usuário não disponível";
-                    }
+                    userProfileName.textContent = userData.fullName || "Nome do usuário não disponível";
 
                     // Exibir o setor do usuário
                     const userSector = document.getElementById("userSector");
@@ -3430,19 +3428,23 @@
                     }
 
                     // Verificar se o usuário possui uma foto de perfil
-                    const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
                     if (userData.photoURL) {
-                        if (userProfilePicturePopUp) {
-                            userProfilePicturePopUp.src = userData.photoURL;
-                        }
+                        // Se tiver, atualizar a foto de perfil do usuário
+                        const userProfilePicture = document.getElementById("userProfilePicture");
+                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
+                        userProfilePicturePopUp.src = userData.photoURL;
+                        userProfilePicture.src = userData.photoURL;
                     } else {
-                        if (userProfilePicturePopUp) {
-                            userProfilePicturePopUp.src = "perfil/fotoPadrao.png";
-                        }
+                        // Se não tiver, usar uma foto de perfil padrão
+                        const userProfilePicture = document.getElementById("userProfilePicture");
+                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
+                        userProfilePicture.src = "perfil/fotoPadrao.png";
+                        userProfilePicturePopUp.src = "perfil/fotoPadrao.png";
                     }
 
                     // Exibir os anúncios do usuário
                     await carregarAnunciosDoUsuario(uid);
+
                 } else {
                     console.log("Usuário não encontrado no Firestore");
                 }

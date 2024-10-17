@@ -1549,6 +1549,32 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        .sector {
+            font-family: 'Arial', sans-serif;
+            /* Altere para a fonte desejada */
+            font-size: 1.2em;
+            /* Tamanho da fonte */
+            color: #007BFF;
+            /* Cor do texto do setor */
+            margin: 10px 0;
+        }
+
+        .entry-date {
+            font-family: 'Arial', sans-serif;
+            font-size: 1em;
+            color: #6c757d;
+            /* Cor cinza */
+        }
+
+        .verification-message {
+            font-family: 'Arial', sans-serif;
+            font-size: 1em;
+            color: #28a745;
+            /* Cor verde */
+            font-weight: bold;
+            /* Texto em negrito */
+        }
     </style>
 </head>
 
@@ -1670,6 +1696,9 @@
                 <button class="close-button" onclick="closeUserProfile()">X</button>
                 <img id="userProfilePicturePopUp" alt="Foto do usuário" loading="lazy">
                 <p id="userProfileName"></p>
+                <p id="userSector" class="sector"></p> <!-- Setor do usuário -->
+                <p id="userVerification" class="verification-message"></p> <!-- Mensagem de verificação -->
+                <p id="userEntryDate" class="entry-date"></p> <!-- Data de entrada -->
                 <div id="userAdsGrid" class="user-ads-grid"></div>
                 <ul id="userAdsList"></ul>
             </div>
@@ -2340,6 +2369,7 @@
                     link.textContent = "Ver anúncio";
                     link.style.color = "#3498db"; // Cor do link
                     link.style.textDecoration = "none"; // Remover sublinhado
+                    link.style.display = "none"; //oculto enquanto não esta funcionando corretamente, após correçaõ remover essa linha
                     li.appendChild(link); // Adiciona o link ao elemento li
 
                     // Adicionar atributos de dados para filtragem
@@ -3377,26 +3407,42 @@
 
                     // Atualizar o nome do usuário
                     const userProfileName = document.getElementById("userProfileName");
-                    userProfileName.textContent = userData.fullName || "Nome do usuário não disponível";
+                    if (userProfileName) {
+                        userProfileName.textContent = userData.fullName || "Nome do usuário não disponível";
+                    }
+
+                    // Exibir o setor do usuário
+                    const userSector = document.getElementById("userSector");
+                    if (userSector) {
+                        userSector.textContent = userData.setor || "Setor não disponível";
+                    }
+
+                    // Exibir a data de entrada do usuário
+                    const userEntryDate = document.getElementById("userEntryDate");
+                    if (userEntryDate) {
+                        userEntryDate.textContent = `Entrou em: ${userData.entrou || "Data não disponível"}`; // Substitua `entrou` pelo campo correto
+                    }
+
+                    // Exibir a mensagem de verificação
+                    const userVerification = document.getElementById("userVerification");
+                    if (userVerification) {
+                        userVerification.textContent = "Profissional verificado e treinado pela equipe";
+                    }
 
                     // Verificar se o usuário possui uma foto de perfil
+                    const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
                     if (userData.photoURL) {
-                        // Se tiver, atualizar a foto de perfil do usuário
-                        const userProfilePicture = document.getElementById("userProfilePicture");
-                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
-                        userProfilePicturePopUp.src = userData.photoURL;
-                        userProfilePicture.src = userData.photoURL;
+                        if (userProfilePicturePopUp) {
+                            userProfilePicturePopUp.src = userData.photoURL;
+                        }
                     } else {
-                        // Se não tiver, usar uma foto de perfil padrão
-                        const userProfilePicture = document.getElementById("userProfilePicture");
-                        const userProfilePicturePopUp = document.getElementById("userProfilePicturePopUp");
-                        userProfilePicture.src = "perfil/fotoPadrao.png";
-                        userProfilePicturePopUp.src = "perfil/fotoPadrao.png";
+                        if (userProfilePicturePopUp) {
+                            userProfilePicturePopUp.src = "perfil/fotoPadrao.png";
+                        }
                     }
 
                     // Exibir os anúncios do usuário
                     await carregarAnunciosDoUsuario(uid);
-
                 } else {
                     console.log("Usuário não encontrado no Firestore");
                 }

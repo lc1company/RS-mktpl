@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.8/purify.min.js"></script>
-    <title>MotorZapp</title>
+    <title>HelpiFy</title>
 
     <style>
         body {
@@ -1605,7 +1605,6 @@
             <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i><span>Configurações</span></div>
         </div>
 
-
         <div id="userInfo" class="tab-content" style="text-align: center;">
             <h2>Informações do Usuário</h2>
             <p id="userFullName"></p>
@@ -2990,6 +2989,9 @@
 
                 // Abrir o chat após a criação e adição da mensagem inicial
                 openChat(chatRef.id, produto.descricao);
+
+                // Trocar para a aba de notificações
+                showTab('notificacoes');
             } catch (error) {
                 console.error("Erro ao iniciar a compra:", error);
             }
@@ -4126,10 +4128,10 @@
 
             // Atualiza o status na interface
             if (isAvailable) {
-                statusElement.textContent = 'Você está disponível para entregas.';
+                statusElement.textContent = 'Você está disponível para receber Pedidos.';
                 localStorage.setItem('deliveryStatus', 'online');
             } else {
-                statusElement.textContent = 'Você está indisponível para entregas.';
+                statusElement.textContent = 'Você está indisponível para receber Pedidos.';
                 localStorage.setItem('deliveryStatus', 'offline');
             }
 

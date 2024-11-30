@@ -2598,15 +2598,60 @@
                     };
                     li.appendChild(verMaisButton);
 
+                    // Criar o container para os botões
+                    const buttonContainer = document.createElement("div");
+                    buttonContainer.style.display = "flex";
+                    buttonContainer.style.flexWrap = "wrap"; // Permite que os botões quebrem de linha se necessário
+                    buttonContainer.style.gap = "10px"; // Espaçamento entre os botões
+                    buttonContainer.style.marginTop = "15px"; // Distância dos elementos acima
+                    buttonContainer.style.justifyContent = "center"; // Centralizar os botões no container
+
+                    // Definir estilo comum para os botões
+                    const buttonStyle = {
+                        backgroundColor: "#3498db",
+                        color: "#fff",
+                        border: "none",
+                        padding: "10px 16px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                        transition: "all 0.3s ease",
+                    };
+
+                    // Aplicar estilo aos botões
+                    Object.assign(likeButton.style, buttonStyle);
+                    Object.assign(showCommentsButton.style, { ...buttonStyle, backgroundColor: "#2ecc71" });
+                    Object.assign(comprarButton.style, { ...buttonStyle, backgroundColor: "#e67e22" });
+                    Object.assign(verMaisButton.style, buttonStyle);
+
+                    // Adicionar os botões ao container
+                    buttonContainer.appendChild(likeButton);
+                    buttonContainer.appendChild(showCommentsButton);
+                    buttonContainer.appendChild(comprarButton);
+                    buttonContainer.appendChild(verMaisButton);
+
+                    // Adicionar o container ao elemento principal
+                    li.appendChild(buttonContainer);
+
+                    // Botão de Checkout
                     const checkoutButton = document.createElement("button");
-                    checkoutButton.innerHTML = '<i class="fas fa-shopping-cart"></i>';
+                    checkoutButton.innerHTML = '<i class="fas fa-shopping-cart"></i> Agendar Serviço';
                     checkoutButton.style.backgroundColor = "#f39c12";
                     checkoutButton.style.color = "#fff";
                     checkoutButton.style.border = "none";
-                    checkoutButton.style.padding = "10px 16px";
+                    checkoutButton.style.padding = "14px 20px"; // Mais espaçamento
                     checkoutButton.style.borderRadius = "6px";
                     checkoutButton.style.cursor = "pointer";
+                    checkoutButton.style.fontSize = "18px"; // Fonte maior para destaque
+                    checkoutButton.style.marginTop = "15px"; // Distância dos outros elementos
+                    checkoutButton.style.width = "100%"; // Largura total
+                    checkoutButton.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+                    checkoutButton.style.transition = "all 0.3s ease";
                     checkoutButton.onclick = () => openCheckoutModal(doc.id, data);
+
+                    // Adicionar o botão de checkout no final
+                    li.appendChild(document.createElement("br")); // Quebra de linha para organizar visualmente
                     li.appendChild(checkoutButton);
 
                     // Div para exibir os comentários
@@ -2615,6 +2660,7 @@
                     commentsDiv.style.display = "none";
                     commentsDiv.style.marginTop = "10px";
                     li.appendChild(commentsDiv);
+
 
                     // Textarea para adicionar comentário
                     const commentText = document.createElement("textarea");

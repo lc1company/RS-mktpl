@@ -1595,7 +1595,6 @@
         <div class="tabs">
             <div class="tab" onclick="showTab('timeline')"><i class="fas fa-stream"></i><span>Publicações</span>
             </div>
-            <div class="tab" onclick="showTab('Online')"><i class="fas fa-user-tie"></i><span>Online Agora</span></div>
             <div class="tab" onclick="showTab('notificacoes')" id="notificationsTab">
                 <i class="fas fa-comment"></i><span>Mensagens</span>
                 <span id="notificationCounter" class="notification-counter"></span>
@@ -1622,15 +1621,6 @@
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
-        </div>
-
-        <div id="Online" class="tab-content" style="text-align: center;">
-            <h2>Profissionais Online</h2>
-            <button id="btnCapturarCidade" class="capture-button" onclick="capturarCidade()">Buscar Profissionais
-                Online</button>
-            <p id="cidadeUsuario"></p>
-            <h3>Profissionais Online na Sua Cidade</h3>
-            <div id="entregadoresOnline"></div> <!-- Aqui serão exibidos os entregadores -->
         </div>
 
         <!-- Modal para ver mais detalhes do anuncio -->
@@ -1721,13 +1711,6 @@
                     style="display: inline-block; width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;">
                 </div>
             </div>
-
-            <p>Controle sua disponibilidade Para receber Pedidos.</p>
-            <button id="btnDisponivel" class="status-button available" onclick="toggleAvailability(true)">Ficar
-                Disponível</button>
-            <button id="btnIndisponivel" class="status-button unavailable" onclick="toggleAvailability(false)">Ficar
-                Indisponível</button>
-            <p id="status"></p>
 
             <h2>Novo Anúncio</h2>
             <form id="formPublicacao" style="display:none;">
@@ -1900,8 +1883,6 @@
                         // Chama a função filterPosts() para filtrar com base na cidade capturada
                         filterPosts(cidadeAtual);
 
-                        // Chama a função para buscar entregadores online na cidade capturada
-                        buscarEntregadoresOnline(cidadeAtual);
                     } else {
                         console.error('Não foi possível determinar a cidade.');
                         document.getElementById("cityFeedback").textContent = 'Não foi possível determinar sua cidade.';
@@ -2617,13 +2598,23 @@
                     };
                     li.appendChild(verMaisButton);
 
+                    const checkoutButton = document.createElement("button");
+                    checkoutButton.innerHTML = '<i class="fas fa-shopping-cart"></i>';
+                    checkoutButton.style.backgroundColor = "#f39c12";
+                    checkoutButton.style.color = "#fff";
+                    checkoutButton.style.border = "none";
+                    checkoutButton.style.padding = "10px 16px";
+                    checkoutButton.style.borderRadius = "6px";
+                    checkoutButton.style.cursor = "pointer";
+                    checkoutButton.onclick = () => openCheckoutModal(doc.id, data);
+                    li.appendChild(checkoutButton);
+
                     // Div para exibir os comentários
                     const commentsDiv = document.createElement("div");
                     commentsDiv.id = `comments_${doc.id}`;
                     commentsDiv.style.display = "none";
                     commentsDiv.style.marginTop = "10px";
                     li.appendChild(commentsDiv);
-
 
                     // Textarea para adicionar comentário
                     const commentText = document.createElement("textarea");
@@ -2703,6 +2694,78 @@
 
             // Move o botão para o final do container
             userTimeline.appendChild(loadMoreButton);
+        }
+
+        function openCheckoutModal(docId, data) {
+            const modal = document.createElement("div");
+            modal.style.position = "fixed";
+            modal.style.top = "0";
+            modal.style.left = "0";
+            modal.style.width = "100%";
+            modal.style.height = "100%";
+            modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+            modal.style.display = "flex";
+            modal.style.justifyContent = "center";
+            modal.style.alignItems = "center";
+            modal.style.zIndex = "1000";
+
+            const modalContent = document.createElement("div");
+            modalContent.style.backgroundColor = "#fff";
+            modalContent.style.padding = "20px";
+            modalContent.style.borderRadius = "8px";
+            modalContent.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+            modalContent.style.textAlign = "center";
+            modalContent.innerHTML = `
+        <h3>Agendar Serviço</h3>
+        <p>Serviço: ${data.descricao}</p>
+        <label>Data:</label>
+        <input type="date" id="serviceDate" required />
+        <label>Hora:</label>
+        <input type="time" id="serviceTime" required />
+        <label>Local:</label>
+        <input type="text" id="serviceLocation" placeholder="Digite o local" required />
+        <button id="confirmCheckout" style="background-color: #2ecc71; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; margin-top: 10px;">Confirmar</button>
+    `;
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+
+            document.getElementById("confirmCheckout").onclick = () => {
+                const date = document.getElementById("serviceDate").value;
+                const time = document.getElementById("serviceTime").value;
+                const location = document.getElementById("serviceLocation").value;
+                if (date && time && location) {
+                    confirmCheckout(docId, data, date, time, location);
+                    document.body.removeChild(modal);
+                } else {
+                    alert("Preencha todos os campos!");
+                }
+            };
+        }
+
+        async function confirmCheckout(docId, data, date, time, location) {
+            const buyerUid = auth.currentUser.uid;
+            const sellerUid = data.userId;
+
+            const agendamento = {
+                buyerUid,
+                sellerUid,
+                anuncioId: docId,
+                descricao: data.descricao,
+                preco: data.preco,
+                date,
+                time,
+                location,
+                status: "pendente", // Pendente, confirmado, concluído
+                createdAt: new Date(),
+            };
+
+            try {
+                await addDoc(collection(db, "agendamentos"), agendamento);
+                alert("Serviço agendado com sucesso!");
+            } catch (error) {
+                console.error("Erro ao salvar agendamento:", error);
+                alert("Ocorreu um erro ao agendar o serviço. Tente novamente.");
+            }
         }
 
         function showDetalhesAnuncio(data) {
@@ -4120,141 +4183,6 @@
             } catch (error) {
                 console.error("Erro ao enviar mensagem no WhatsApp:", error);
             }
-        }
-
-        window.toggleAvailability = function (isAvailable) {
-            const userId = auth.currentUser.uid; // Usando o objeto `auth` que foi importado
-            const statusElement = document.getElementById('status');
-
-            // Atualiza o status na interface
-            if (isAvailable) {
-                statusElement.textContent = 'Você está disponível para receber Pedidos.';
-                localStorage.setItem('deliveryStatus', 'online');
-            } else {
-                statusElement.textContent = 'Você está indisponível para receber Pedidos.';
-                localStorage.setItem('deliveryStatus', 'offline');
-            }
-
-            // Atualiza o status no Firestore
-            const userDocRef = doc(db, 'users', userId); // Usando `doc` e `db` corretamente
-            updateDoc(userDocRef, {
-                status: isAvailable ? 'online' : 'offline'
-            }).then(() => {
-                console.log('Status atualizado no Firestore.');
-            }).catch((error) => {
-                console.error('Erro ao atualizar o status:', error);
-            });
-        };
-
-        // Função para buscar prestadores online da mesma cidade, usa referencias a entregadores pq eu reaproveitei outro codigo
-        function buscarEntregadoresOnline(cidadeUsuario) {
-            const entregadoresOnlineEl = document.getElementById('entregadoresOnline');
-            entregadoresOnlineEl.innerHTML = ''; // Limpa a lista antes de exibir novos entregadores
-
-            // Refere-se à coleção 'users' no Firestore
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('status', '==', 'online'), where('cidade', '==', cidadeUsuario), where('role', '==', 'Anunciante'));
-
-            getDocs(q)
-                .then((querySnapshot) => {
-                    if (querySnapshot.empty) {
-                        entregadoresOnlineEl.innerHTML = '<p style="color: #666; font-size: 16px; text-align: center; padding: 20px;">Nenhum entregador online nesta cidade.</p>';
-                    } else {
-                        querySnapshot.forEach((doc) => {
-                            const entregador = doc.data();
-
-                            // Captura os dados corretos do entregador
-                            const nome = entregador.fullName || 'Nome não disponível';
-                            const foto = entregador.photoURL || 'caminho/para/imagem/padrao.png'; // Substitua pelo caminho da imagem padrão
-
-                            // Criação do elemento para o entregador
-                            const entregadorEl = document.createElement('div');
-                            entregadorEl.style.display = 'flex';
-                            entregadorEl.style.alignItems = 'center';
-                            entregadorEl.style.padding = '15px';
-                            entregadorEl.style.marginBottom = '12px';
-                            entregadorEl.style.border = '1px solid rgba(200, 200, 200, 0.3)';
-                            entregadorEl.style.borderRadius = '8px';
-                            entregadorEl.style.backgroundColor = '#f9f9f9';
-                            entregadorEl.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                            entregadorEl.style.transition = 'background-color 0.3s, box-shadow 0.3s';
-
-                            // Adiciona animações ao passar o mouse
-                            entregadorEl.addEventListener('mouseenter', () => {
-                                entregadorEl.style.backgroundColor = '#f1f1f1';
-                                entregadorEl.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-                            });
-                            entregadorEl.addEventListener('mouseleave', () => {
-                                entregadorEl.style.backgroundColor = '#f9f9f9';
-                                entregadorEl.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                            });
-
-                            // Adiciona conteúdo do entregador
-                            entregadorEl.innerHTML = `
-                        <img src="${foto}" alt="${nome}" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; border: 2px solid #00cc44;">
-                        <div style="flex-grow: 1;">
-                            <strong style="color: #333; font-size: 18px;">${nome}</strong>
-                            <div style="display: flex; align-items: center; margin-top: 5px;">
-                                <span style="width: 10px; height: 10px; background-color: #00cc44; border-radius: 50%; margin-right: 8px;"></span>
-                                <p style="color: #888; font-size: 14px; margin: 0;">Status: Online</p>
-                            </div>
-                        </div>
-                    `;
-
-                            entregadoresOnlineEl.appendChild(entregadorEl);
-                        });
-                    }
-                })
-                .catch((error) => {
-                    console.error('Erro ao buscar entregadores online:', error);
-                    entregadoresOnlineEl.innerHTML = '<p style="color: #ff5555; text-align: center; padding: 20px;">Erro ao buscar entregadores online.</p>';
-                });
-        }
-
-        // Função para capturar a cidade do usuário para aba de prestadores de serviço online, usa referencia a entregadores por que eu aproveitei outro codigo e fiquei com preguiça de mudar as referencias
-        window.capturarCidade = function () {
-            // Verifica se o navegador suporta geolocalização
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
-            } else {
-                alert('Geolocalização não é suportada pelo seu navegador.');
-            }
-        }
-
-        // Callback de sucesso para geolocalização
-        function successCallback(position) {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-
-            // URL da API do OpenStreetMap para geocodificação reversa
-            const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
-
-            // Faz a solicitação para obter o nome da cidade e estado
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    const cidade = data.address.city || data.address.town || data.address.village;
-                    const estado = data.address.state || data.address.region; // Pega o estado ou região
-                    const estadoSigla = data.address.state_code || ''; // Pega a sigla do estado se disponível
-
-                    // Monta o nome da cidade com a sigla do estado, se disponível
-                    const cidadeCompleta = estadoSigla ? `${cidade}-${estadoSigla}` : `${cidade}, ${estado}`;
-
-                    const cidadeUsuarioEl = document.getElementById('cidadeUsuario');
-                    cidadeUsuarioEl.innerText = `Sua cidade: ${cidadeCompleta}`;
-                    cidadeUsuarioEl.classList.add('show'); // Adiciona a classe para animar o texto
-
-                    buscarEntregadoresOnline(cidadeCompleta);
-                })
-                .catch(error => {
-                    console.error('Erro ao buscar a cidade:', error);
-                    alert('Não foi possível capturar a cidade.');
-                });
-        }
-
-        // Callback de erro para geolocalização
-        function errorCallback(error) {
-            alert('Erro ao obter geolocalização: ' + error.message);
         }
 
     </script>

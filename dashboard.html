@@ -2537,15 +2537,37 @@
                     li.appendChild(likeButton);
 
                     // Exibir contador de likes
+                    // Exibir contador de likes
                     const likeCount = document.createElement("span");
                     likeCount.id = `likeCount_${doc.id}`; // Adicionando ID ao likeCount
                     likeCount.textContent = data.likes || 0;
-                    likeCount.style.fontSize = "16px";
-                    likeCount.style.color = "#333";
-                    likeCount.style.position = "absolute";
-                    likeCount.style.top = "5px";
-                    likeCount.style.left = "40px"; // Ajustar a posição conforme necessário
-                    likeButton.appendChild(likeCount); // Adicionando como filho do botão de like
+                    Object.assign(likeCount.style, {
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        color: "#3498db", // Cor azul para os likes
+                        position: "absolute",
+                        top: "5px",
+                        left: "65%",
+                        backgroundColor: "#f1f1f1",
+                        borderRadius: "50%",
+                        width: "24px",
+                        height: "24px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+                        transition: "transform 0.3s ease, background-color 0.3s ease",
+                    });
+
+                    // Animação visual ao alterar o contador de likes (seu sistema pode acionar isso conforme a lógica já existente)
+                    function animateLikeCounter() {
+                        likeCount.style.transform = "scale(1.2)";
+                        setTimeout(() => {
+                            likeCount.style.transform = "scale(1)";
+                        }, 200);
+                    }
+
+                    likeButton.appendChild(likeCount);
 
                     // Adicionar botão de mostrar comentários
                     const showCommentsButton = document.createElement("button");
@@ -2571,11 +2593,32 @@
                     // Exibir contador de comentários
                     const commentCount = document.createElement("span");
                     commentCount.textContent = data.comments || 0;
-                    commentCount.style.fontSize = "16px";
-                    commentCount.style.color = "#333";
-                    commentCount.style.position = "absolute";
-                    commentCount.style.top = "5px";
-                    commentCount.style.left = "40px"; // Ajustar a posição conforme necessário
+                    Object.assign(commentCount.style, {
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        color: "#2ecc71", // Cor verde para os comentários
+                        position: "absolute",
+                        top: "5px",
+                        left: "65%",
+                        backgroundColor: "#f1f1f1",
+                        borderRadius: "50%",
+                        width: "24px",
+                        height: "24px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+                        transition: "transform 0.3s ease, background-color 0.3s ease",
+                    });
+
+                    // Animação visual ao alterar o contador de comentários (seu sistema pode acionar isso conforme a lógica já existente)
+                    function animateCommentCounter() {
+                        commentCount.style.transform = "scale(1.2)";
+                        setTimeout(() => {
+                            commentCount.style.transform = "scale(1)";
+                        }, 200);
+                    }
+
                     showCommentsButton.appendChild(commentCount);
 
                     // Botão de Mensagem

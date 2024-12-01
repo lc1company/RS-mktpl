@@ -2494,6 +2494,26 @@
                         li.appendChild(deleteButton);
                     }
 
+                    // Botão de Checkout
+                    const checkoutButton = document.createElement("button");
+                    checkoutButton.innerHTML = '<i class="fas fa-clock"></i> Agendar Serviço';
+                    checkoutButton.style.backgroundColor = "#2ecc71";
+                    checkoutButton.style.color = "#fff";
+                    checkoutButton.style.border = "none";
+                    checkoutButton.style.padding = "14px 20px"; // Mais espaçamento
+                    checkoutButton.style.borderRadius = "6px";
+                    checkoutButton.style.cursor = "pointer";
+                    checkoutButton.style.fontSize = "18px"; // Fonte maior para destaque
+                    checkoutButton.style.marginTop = "15px"; // Distância dos outros elementos
+                    checkoutButton.style.width = "100%"; // Largura total
+                    checkoutButton.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+                    checkoutButton.style.transition = "all 0.3s ease";
+                    checkoutButton.onclick = () => openCheckoutModal(doc.id, data);
+
+                    // Adicionar o botão de checkout no final
+                    li.appendChild(document.createElement("br")); // Quebra de linha para organizar visualmente
+                    li.appendChild(checkoutButton);
+
                     // Adicionar botão de like
                     const likeButton = document.createElement("button");
                     likeButton.id = `likeButton_${doc.id}`;
@@ -2676,26 +2696,6 @@
 
                     // Atualiza o layout ao redimensionar a tela
                     mediaQuery.addEventListener("change", adjustButtonLayout);
-
-                    // Botão de Checkout
-                    const checkoutButton = document.createElement("button");
-                    checkoutButton.innerHTML = '<i class="fas fa-clock"></i> Agendar Serviço';
-                    checkoutButton.style.backgroundColor = "#2ecc71";
-                    checkoutButton.style.color = "#fff";
-                    checkoutButton.style.border = "none";
-                    checkoutButton.style.padding = "14px 20px"; // Mais espaçamento
-                    checkoutButton.style.borderRadius = "6px";
-                    checkoutButton.style.cursor = "pointer";
-                    checkoutButton.style.fontSize = "18px"; // Fonte maior para destaque
-                    checkoutButton.style.marginTop = "15px"; // Distância dos outros elementos
-                    checkoutButton.style.width = "100%"; // Largura total
-                    checkoutButton.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
-                    checkoutButton.style.transition = "all 0.3s ease";
-                    checkoutButton.onclick = () => openCheckoutModal(doc.id, data);
-
-                    // Adicionar o botão de checkout no final
-                    li.appendChild(document.createElement("br")); // Quebra de linha para organizar visualmente
-                    li.appendChild(checkoutButton);
 
                     // Div para exibir os comentários
                     const commentsDiv = document.createElement("div");

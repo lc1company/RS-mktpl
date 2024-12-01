@@ -2704,22 +2704,72 @@
                     commentsDiv.style.marginTop = "10px";
                     li.appendChild(commentsDiv);
 
-
                     // Textarea para adicionar comentário
                     const commentText = document.createElement("textarea");
                     commentText.id = `commentText_${doc.id}`;
                     commentText.placeholder = "Digite seu comentário";
-                    commentText.style.resize = "none";
-                    commentText.style.width = "calc(100% - 20px)";
-                    commentText.style.height = "20%";
+                    Object.assign(commentText.style, {
+                        resize: "none",
+                        width: "calc(100% - 20px)",
+                        height: "75px", // Altura suficiente para comentários
+                        padding: "10px",
+                        borderRadius: "8px",
+                        border: "1px solid #ccc",
+                        boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                        fontSize: "14px",
+                        lineHeight: "1.5",
+                        fontFamily: "'Arial', sans-serif",
+                        color: "#333",
+                        backgroundColor: "#f9f9f9",
+                        outline: "none",
+                        transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                    });
+
+                    // Adicionar estilo ao focar na textarea
+                    commentText.addEventListener("focus", () => {
+                        commentText.style.borderColor = "#3498db"; // Azul claro
+                        commentText.style.boxShadow = "0 3px 8px rgba(52, 152, 219, 0.2)";
+                    });
+
+                    commentText.addEventListener("blur", () => {
+                        commentText.style.borderColor = "#ccc";
+                        commentText.style.boxShadow = "none";
+                    });
+
                     li.appendChild(commentText);
 
                     // Botão para adicionar comentário
                     const addCommentButton = document.createElement("button");
                     addCommentButton.textContent = "Adicionar Comentário";
-                    addCommentButton.style.display = "block";
-                    addCommentButton.style.marginTop = "2%";
+                    Object.assign(addCommentButton.style, {
+                        display: "block",
+                        marginTop: "10px",
+                        padding: "10px 16px",
+                        borderRadius: "8px",
+                        border: "none",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        color: "#fff",
+                        backgroundColor: "#3498db",
+                        cursor: "pointer",
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                        transition: "background-color 0.3s ease, box-shadow 0.3s ease",
+                    });
+
+                    // Efeito ao passar o mouse sobre o botão
+                    addCommentButton.addEventListener("mouseenter", () => {
+                        addCommentButton.style.backgroundColor = "#2a80b9"; // Tom mais escuro de azul
+                        addCommentButton.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.3)";
+                    });
+
+                    addCommentButton.addEventListener("mouseleave", () => {
+                        addCommentButton.style.backgroundColor = "#3498db";
+                        addCommentButton.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+                    });
+
+                    // Função onclick para o botão
                     addCommentButton.onclick = () => addComment(doc.id);
+
                     li.appendChild(addCommentButton);
 
                     // Adicionar o li à linha do tempo do usuário

@@ -2880,48 +2880,129 @@
 
         function openCheckoutModal(docId, data) {
             const modal = document.createElement("div");
-            modal.style.position = "fixed";
-            modal.style.top = "0";
-            modal.style.left = "0";
-            modal.style.width = "100%";
-            modal.style.height = "100%";
-            modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-            modal.style.display = "flex";
-            modal.style.justifyContent = "center";
-            modal.style.alignItems = "center";
-            modal.style.zIndex = "1000";
+            Object.assign(modal.style, {
+                position: "fixed",
+                top: "0",
+                left: "0",
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: "1000",
+                animation: "fadeIn 0.3s ease",
+                overflowY: "auto",
+            });
 
             const modalContent = document.createElement("div");
-            modalContent.style.backgroundColor = "#fff";
-            modalContent.style.padding = "20px";
-            modalContent.style.borderRadius = "8px";
-            modalContent.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
-            modalContent.style.textAlign = "center";
+            Object.assign(modalContent.style, {
+                backgroundColor: "#fff",
+                padding: "20px",
+                borderRadius: "12px",
+                boxShadow: "0 8px 16px rgba(0, 0, 0, 0.3)",
+                textAlign: "center",
+                width: "90%",
+                maxWidth: "400px",
+                height: "auto",
+                transform: "scale(0.8)",
+                animation: "scaleUp 0.3s ease forwards",
+                position: "relative",
+            });
+
+            // Botão de fechamento "X"
+            const closeButton = document.createElement("span");
+            closeButton.innerHTML = "&times;";
+            Object.assign(closeButton.style, {
+                position: "absolute",
+                top: "5px",
+                right: "4px",
+                fontSize: "40px",
+                color: "#e74c3c",
+                cursor: "pointer",
+            });
+
+            closeButton.onclick = () => closeModal(modal);
+
             modalContent.innerHTML = `
-        <h3>Agendar Serviço</h3>
-        <p>Serviço: ${data.descricao}</p>
-        <label>Data:</label>
-        <input type="date" id="serviceDate" required />
-        <label>Hora:</label>
-        <input type="time" id="serviceTime" required />
-        <label>Local:</label>
-        <input type="text" id="serviceLocation" placeholder="Digite o local" required />
-        <button id="confirmCheckout" style="background-color: #2ecc71; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; margin-top: 10px;">Confirmar</button>
+        <div style="text-align: left; margin-bottom: 20px;">
+            <img src="${data.imagemUrl}" alt="Miniatura do Anúncio" style="width: 100%; height: auto; max-height: 200px; border-radius: 8px; margin-bottom: 10px;" />
+            <p style="font-size: 16px; color: #7f8c8d; margin-bottom: 5px;">${data.mensagem}</p>
+            <p style="font-size: 16px; color: #27ae60; font-weight: bold;">Preço: R$ ${data.preco}</p>
+        </div>
+        <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Data:</label>
+        <input type="date" id="serviceDate" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px;" required />
+        <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Hora:</label>
+        <input type="time" id="serviceTime" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px;" required />
+        <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Local:</label>
+        <input type="text" id="serviceLocation" placeholder="Digite o local" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 20px;" required />
+        <button id="confirmCheckout" style="
+            background-color: #2ecc71; 
+            color: #fff; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        ">Confirmar</button>
     `;
+
+            modalContent.appendChild(closeButton); // Adiciona o botão de fechar no conteúdo
             modal.appendChild(modalContent);
             document.body.appendChild(modal);
 
+            // Botão Confirmar
             document.getElementById("confirmCheckout").onclick = () => {
                 const date = document.getElementById("serviceDate").value;
                 const time = document.getElementById("serviceTime").value;
                 const location = document.getElementById("serviceLocation").value;
                 if (date && time && location) {
                     confirmCheckout(docId, data, date, time, location);
-                    document.body.removeChild(modal);
+                    closeModal(modal);
                 } else {
                     alert("Preencha todos os campos!");
                 }
             };
+
+            // Adicionar keyframes
+            addKeyframes();
+        }
+
+        // Função para fechar o modal
+        function closeModal(modal) {
+            if (modal) {
+                modal.style.animation = "fadeOut 0.3s ease";
+                setTimeout(() => {
+                    if (modal.parentElement) {
+                        modal.parentElement.removeChild(modal);
+                    }
+                }, 300);
+            }
+        }
+
+        // Função para adicionar keyframes
+        function addKeyframes() {
+            const styleSheet = document.styleSheets[0];
+            styleSheet.insertRule(`
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    `, styleSheet.cssRules.length);
+            styleSheet.insertRule(`
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    `, styleSheet.cssRules.length);
+            styleSheet.insertRule(`
+        @keyframes scaleUp {
+            from { transform: scale(0.8); }
+            to { transform: scale(1); }
+        }
+    `, styleSheet.cssRules.length);
         }
 
         async function confirmCheckout(docId, data, date, time, location) {

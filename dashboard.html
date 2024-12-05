@@ -1875,7 +1875,6 @@
                 getAllUserTimeline();
                 exibirPerfilUsuario(user.uid);
                 checkUserRole();
-                loadChats(user.uid);
                 monitorChats(user.uid);
                 restoreNotificationCounter();
                 const userId = user.uid;
@@ -2208,6 +2207,7 @@
             }
 
             if (tabId === 'notificacoes') {
+                loadChats(auth.currentUser.uid);
                 resetNotificationCounter(); // Zerando o contador ao abrir a aba de notificações
             }
 

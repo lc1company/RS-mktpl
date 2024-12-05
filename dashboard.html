@@ -1711,6 +1711,7 @@
 
         <div id="historicoPedidos" class="tab-content" style="text-align: center;">
             <h2>Histórico de Pedidos</h2>
+            <div id="ordersContainer" style="margin: 20px;"></div>
         </div>
 
         <div id="meuPerfil" class="tab-content" style="text-align: center;">
@@ -2208,6 +2209,11 @@
 
             if (tabId === 'notificacoes') {
                 resetNotificationCounter(); // Zerando o contador ao abrir a aba de notificações
+            }
+
+            // Exibe os pedidos na aba de Histórico de Pedidos
+            if (tabId === 'historicoPedidos') {
+                displayOrders(); // Função para buscar e renderizar pedidos
             }
         }
 
@@ -3053,12 +3059,17 @@
             const buyerUid = auth.currentUser.uid;
             const sellerUid = data.userId;
 
+            // Gerar número de pedido randômico de 6 dígitos
+            const numeroPedido = `#${Math.floor(100000 + Math.random() * 900000)}`;
+
             const agendamento = {
                 buyerUid,
                 sellerUid,
                 anuncioId: docId,
                 descricao: data.descricao,
                 preco: data.preco,
+                imagemUrl: data.imagemUrl, // Adicionando a URL da imagem
+                numeroPedido, // Adicionando o número de pedido
                 date,
                 time,
                 location,
@@ -3072,6 +3083,123 @@
             } catch (error) {
                 console.error("Erro ao salvar agendamento:", error);
                 alert("Ocorreu um erro ao agendar o serviço. Tente novamente.");
+            }
+        }
+
+        async function displayOrders() {
+            const userUid = auth.currentUser.uid;
+
+            try {
+                // Busca os pedidos do Firestore onde o comprador ou vendedor é o usuário atual
+                const querySnapshot = await getDocs(query(collection(db, "agendamentos"), where("buyerUid", "==", userUid)));
+                const sellerSnapshot = await getDocs(query(collection(db, "agendamentos"), where("sellerUid", "==", userUid)));
+
+                // Combina pedidos de comprador e vendedor
+                const allOrders = [...querySnapshot.docs, ...sellerSnapshot.docs];
+
+                // Ordenar pedidos por ordem cronológica (mais recentes primeiro)
+                allOrders.sort((a, b) => b.data().timestamp - a.data().timestamp);
+
+                // Container para exibição
+                const ordersContainer = document.getElementById("ordersContainer");
+                ordersContainer.innerHTML = ""; // Limpa o container antes de renderizar
+
+                allOrders.forEach((doc) => {
+                    const order = doc.data();
+                    const isSeller = order.sellerUid === userUid;
+
+                    // Cria o elemento do pedido
+                    const orderCard = document.createElement("div");
+                    orderCard.style.cssText = `
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                margin: 10px 0;
+                padding: 15px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                background-color: white;
+            `;
+
+                    // Título do pedido
+                    const title = document.createElement("h3");
+                    title.textContent = order.descricao;
+                    title.style.cssText = `
+                font-size: 18px;
+                margin: 0 0 10px;
+                color: #333;
+            `;
+                    orderCard.appendChild(title);
+
+                    // Informações comuns
+                    const info = document.createElement("p");
+                    info.textContent = `Preço: R$${order.preco} | Data: ${order.date} | Hora: ${order.time} | Local: ${order.location}`;
+                    info.style.cssText = `
+                font-size: 14px;
+                margin: 0 0 10px;
+                color: #666;
+            `;
+                    orderCard.appendChild(info);
+
+                    // Botão de chat
+                    const chatButton = document.createElement("button");
+                    chatButton.textContent = "Chat";
+                    chatButton.style.cssText = `
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px;
+                cursor: pointer;
+                font-size: 14px;
+                margin-right: 10px;
+            `;
+                    chatButton.onclick = async () => {
+                        const otherUserUid = isSeller ? order.buyerUid : order.sellerUid;
+                        const produto = { descricao: order.descricao, preco: order.preco };
+                        iniciarCompra(userUid, otherUserUid, produto);
+                    };
+                    orderCard.appendChild(chatButton);
+
+                    // Exibe diferentes botões e informações com base no papel do usuário
+                    if (isSeller) {
+                        const acceptButton = document.createElement("button");
+                        acceptButton.textContent = "Aceitar Pedido";
+                        acceptButton.style.cssText = `
+                    background-color: #28a745;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    padding: 10px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    margin-right: 10px;
+                `;
+                        acceptButton.onclick = async () => {
+                            try {
+                                await updateDoc(doc.ref, { status: "confirmado" });
+                                alert("Pedido aceito com sucesso!");
+                                displayOrders(); // Atualiza a lista
+                            } catch (error) {
+                                console.error("Erro ao aceitar o pedido:", error);
+                            }
+                        };
+                        orderCard.appendChild(acceptButton);
+                    } else {
+                        const status = document.createElement("p");
+                        status.textContent = `Status do Pedido: ${order.status}`;
+                        status.style.cssText = `
+                    font-size: 14px;
+                    margin: 0 0 10px;
+                    color: ${order.status === "pendente" ? "#ffc107" : order.status === "confirmado" ? "#28a745" : "#dc3545"};
+                `;
+                        orderCard.appendChild(status);
+                    }
+
+                    // Adiciona o card ao container
+                    ordersContainer.appendChild(orderCard);
+                });
+            } catch (error) {
+                console.error("Erro ao buscar pedidos:", error);
+                alert("Erro ao carregar os pedidos.");
             }
         }
 
@@ -3352,7 +3480,7 @@
                 await updateDoc(chatRef, {
                     mensagens: arrayUnion({
                         sender: "vendedor",
-                        texto: `${produto.descricao}. O preço é R$ ${produto.preco}.`,
+                        texto: `Olá.`,
                         timestamp: timestamp,
                     })
                 });
@@ -3370,29 +3498,18 @@
         // Função para carregar chats do usuário
         async function loadChats(userId) {
             try {
-                // Consultas para chats onde o usuário é o vendedor ou comprador
-                const vendedorQuery = query(
-                    collection(db, "chats"),
-                    where("vendedorId", "==", userId)
-                );
+                const vendedorQuery = query(collection(db, "chats"), where("vendedorId", "==", userId));
+                const compradorQuery = query(collection(db, "chats"), where("compradorId", "==", userId));
 
-                const compradorQuery = query(
-                    collection(db, "chats"),
-                    where("compradorId", "==", userId)
-                );
-
-                // Recuperar dados de chats
                 const [vendedorSnapshot, compradorSnapshot] = await Promise.all([
                     getDocs(vendedorQuery),
                     getDocs(compradorQuery)
                 ]);
 
-                // Combinar todos os chats em um array
                 const allChats = [];
                 vendedorSnapshot.forEach(doc => allChats.push({ id: doc.id, data: doc.data() }));
                 compradorSnapshot.forEach(doc => allChats.push({ id: doc.id, data: doc.data() }));
 
-                // Função para buscar a última mensagem de um chat e retornar seu timestamp
                 const getLastMessageTimestamp = async (chatId) => {
                     const chatRef = doc(db, "chats", chatId);
                     const chatDoc = await getDoc(chatRef);
@@ -3402,101 +3519,82 @@
                         const lastMessage = chatData.mensagens[chatData.mensagens.length - 1];
                         return lastMessage.timestamp.toDate();
                     }
-                    return new Date(0); // Retorna uma data muito antiga se não houver mensagens
+                    return new Date(0);
                 };
 
-                // Adicionar timestamp da última mensagem e ordenar os chats
                 const chatsWithTimestamps = await Promise.all(allChats.map(async (chat) => {
                     const lastMessageTimestamp = await getLastMessageTimestamp(chat.id);
-                    return {
-                        ...chat,
-                        lastMessageTimestamp
-                    };
+                    return { ...chat, lastMessageTimestamp };
                 }));
 
-                // Ordenar chats por timestamp da última mensagem (mais recente em cima)
                 chatsWithTimestamps.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp);
 
-                // Selecionar o container onde os chats serão exibidos
                 const chatListContainer = document.getElementById("chatList");
-                chatListContainer.innerHTML = ""; // Limpar lista anterior
+                chatListContainer.innerHTML = "";
 
-                // Função para buscar os dados do usuário (nome e foto)
                 const getUserData = async (userId) => {
                     const userDoc = await getDoc(doc(db, "users", userId));
                     return userDoc.exists() ? userDoc.data() : null;
                 };
 
-                // Função para criar o elemento do chat
                 const createChatElement = async (chatData, chatId, lastMessageTimestamp) => {
                     const compradorData = await getUserData(chatData.compradorId);
                     const vendedorData = await getUserData(chatData.vendedorId);
 
                     const chatElement = document.createElement("div");
-                    chatElement.style.marginBottom = "15px";
-                    chatElement.style.padding = "15px";
-                    chatElement.style.border = "1px solid #ddd";
-                    chatElement.style.borderRadius = "8px";
                     chatElement.style.display = "flex";
                     chatElement.style.alignItems = "center";
-                    chatElement.style.backgroundColor = "#ffffff";
-                    chatElement.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.2)";
-                    chatElement.style.transition = "all 0.3s ease";
-                    chatElement.style.transform = "translateY(0)";
-
-                    // Função para aplicar o estilo de hover/touch
-                    function applyHoverStyles() {
-                        chatElement.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.4)";
-                        chatElement.style.transform = "translateY(-8px)";
-                    }
-
-                    // Função para remover o estilo de hover/touch
-                    function removeHoverStyles() {
-                        chatElement.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.2)";
-                        chatElement.style.transform = "translateY(0)";
-                    }
-
-                    // Adiciona os eventos de mouse e toque
-                    chatElement.addEventListener("mouseover", applyHoverStyles);
-                    chatElement.addEventListener("mouseout", removeHoverStyles);
-                    chatElement.addEventListener("touchstart", applyHoverStyles, { passive: true });
-                    chatElement.addEventListener("touchend", removeHoverStyles, { passive: true });
+                    chatElement.style.marginBottom = "10px";
+                    chatElement.style.padding = "10px";
+                    chatElement.style.border = "1px solid #ddd";
+                    chatElement.style.borderRadius = "8px";
+                    chatElement.style.backgroundColor = "#fff";
+                    chatElement.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+                    chatElement.style.cursor = "pointer";
 
                     const produto = chatData.produto || {};
-                    const imagemUrlProduto = produto.imagemUrl || "default-image-url.jpg";
-                    const descricaoProduto = produto.descricao || "Descrição não disponível";
+                    const imagemUrlProduto = produto.imagemUrl || "https://firebasestorage.googleapis.com/v0/b/redesocialmarktplace.appspot.com/o/default.png?alt=media&token=7dffcc8c-de86-4855-8f04-1fbb99bc8e39";
+                    const descricaoProduto = produto.descricao || "Produto não especificado";
                     const nomeComprador = compradorData?.fullName || "Comprador";
                     const nomeVendedor = vendedorData?.fullName || "Vendedor";
-                    const fotoComprador = compradorData?.photoURL || "default-user-image.jpg";
-                    const fotoVendedor = vendedorData?.photoURL || "default-user-image.jpg";
+                    const fotoComprador = compradorData?.photoURL || "https://via.placeholder.com/50";
+                    const fotoVendedor = vendedorData?.photoURL || "https://via.placeholder.com/50";
 
-                    // Formatar o timestamp para exibição
                     const formattedTimestamp = lastMessageTimestamp.toLocaleDateString("pt-BR", {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit"
                     });
 
                     chatElement.innerHTML = `
-        <div style="display: flex; align-items: center; position: relative;">
-            <img src="${imagemUrlProduto}" alt="${descricaoProduto}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 15px; position: relative;">
-            <div style="position: absolute; bottom: -10px; left: 10px; display: flex; align-items: center;">
-                <img src="${fotoComprador}" alt="${nomeComprador}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white; margin-right: -10px;">
-                <img src="${fotoVendedor}" alt="${nomeVendedor}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white;">
-            </div>
-            <div style="flex: 1;">
-                <strong style="display: block; margin-bottom: 5px;">${nomeComprador} iniciou um chat sobre ${descricaoProduto}</strong>
-                <div style="font-size: 0.9em; color: #666;">Última mensagem: ${formattedTimestamp}</div>
-                <button data-chat-id="${chatId}" data-produto-descricao="${descricaoProduto}" onclick="openChatFromButton(this)" style="padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Abrir Chat</button>
-            </div>
-        </div>`;
+                <img src="${imagemUrlProduto}" alt="${descricaoProduto}" 
+                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                <div style="flex: 1;">
+                    <div style="font-size: 1em; font-weight: bold;">${descricaoProduto}</div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                        <div style="text-align: center;">
+                            <img src="${fotoComprador}" alt="${nomeComprador}" 
+                                 style="width: 30px; height: 30px; border-radius: 50%; margin-bottom: 2px;">
+                            <div style="font-size: 0.8em; color: #555;">${nomeComprador}</div>
+                        </div>
+                        <div style="font-size: 0.8em; color: #777; text-align: center;">${formattedTimestamp}</div>
+                        <div style="text-align: center;">
+                            <img src="${fotoVendedor}" alt="${nomeVendedor}" 
+                                 style="width: 30px; height: 30px; border-radius: 50%; margin-bottom: 2px;">
+                            <div style="font-size: 0.8em; color: #555;">${nomeVendedor}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                    chatElement.addEventListener("click", () => {
+                        openChatFromButton({ dataset: { chatId } });
+                    });
 
                     return chatElement;
                 };
 
-                // Adicionar chats à lista
                 for (const chat of chatsWithTimestamps) {
                     const chatElement = await createChatElement(chat.data, chat.id, chat.lastMessageTimestamp);
                     chatListContainer.appendChild(chatElement);

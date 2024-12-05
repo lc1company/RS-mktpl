@@ -3611,16 +3611,37 @@
         }
 
         // Função para abrir o chat
+        let isFirstLoad = true; // Variável para controlar o primeiro carregamento do chat
+
         function openChat(chatId, produtoDescricao) {
             currentChatId = chatId; // Define o ID do chat atual
             const chatModal = document.getElementById("chatModal");
             chatModal.style.display = "block";
+
             loadChatMessages(chatId); // Carrega as mensagens do chat
 
+            // Espera a renderização das mensagens para armazenar a posição inicial de rolagem
+            const chatContainer = document.getElementById("chatContainer");
+            const initialScrollPosition = chatContainer.scrollTop;
+
+            // Verifica se o chatId atual corresponde ao chat sendo visualizado
             const chatRef = doc(db, "chats", chatId);
             onSnapshot(chatRef, (doc) => {
                 if (doc.exists()) {
-                    loadChatMessages(chatId); // Atualiza as mensagens em tempo real
+                    // Apenas atualiza as mensagens se o chat aberto for o mesmo que o chatId atual
+                    if (currentChatId === chatId) {
+                        loadChatMessages(chatId); // Atualiza as mensagens em tempo real
+
+                        // Só rola para a última mensagem na primeira vez que o chat é aberto
+                        if (isFirstLoad) {
+                            setTimeout(() => {
+                                chatContainer.scrollTop = chatContainer.scrollHeight; // Rola para o fim
+                            }, 100); // Aguarda um tempo para garantir que as mensagens tenham sido carregadas
+                            isFirstLoad = false; // Desativa o rolar automático após o primeiro carregamento
+                        } else {
+                            chatContainer.scrollTop = initialScrollPosition; // Mantém a posição de rolagem
+                        }
+                    }
                 }
             });
         }

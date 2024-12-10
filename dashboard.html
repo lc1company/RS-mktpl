@@ -3090,54 +3090,108 @@
             const userUid = auth.currentUser.uid;
 
             try {
-                // Busca os pedidos do Firestore onde o comprador ou vendedor é o usuário atual
-                const querySnapshot = await getDocs(query(collection(db, "agendamentos"), where("buyerUid", "==", userUid)));
-                const sellerSnapshot = await getDocs(query(collection(db, "agendamentos"), where("sellerUid", "==", userUid)));
+                // Buscar os pedidos no Firestore
+                const buyerOrdersSnapshot = await getDocs(query(collection(db, "agendamentos"), where("buyerUid", "==", userUid)));
+                const sellerOrdersSnapshot = await getDocs(query(collection(db, "agendamentos"), where("sellerUid", "==", userUid)));
 
-                // Combina pedidos de comprador e vendedor
-                const allOrders = [...querySnapshot.docs, ...sellerSnapshot.docs];
+                const allOrders = [...buyerOrdersSnapshot.docs, ...sellerOrdersSnapshot.docs];
 
-                // Ordenar pedidos por ordem cronológica (mais recentes primeiro)
+                // Ordenar pedidos por timestamp
                 allOrders.sort((a, b) => b.data().timestamp - a.data().timestamp);
 
-                // Container para exibição
                 const ordersContainer = document.getElementById("ordersContainer");
-                ordersContainer.innerHTML = ""; // Limpa o container antes de renderizar
+                ordersContainer.innerHTML = "";
 
-                allOrders.forEach((doc) => {
-                    const order = doc.data();
+                for (const docSnap of allOrders) {
+                    const order = docSnap.data();
                     const isSeller = order.sellerUid === userUid;
 
-                    // Cria o elemento do pedido
+                    // Buscar dados do comprador e vendedor
+                    const buyerRef = doc(db, "users", order.buyerUid);
+                    const sellerRef = doc(db, "users", order.sellerUid);
+
+                    const buyerUser = await getDoc(buyerRef);
+                    const sellerUser = await getDoc(sellerRef);
+
+                    const buyerPhoto = buyerUser.exists() ? buyerUser.data().photoURL : "";
+                    const sellerPhoto = sellerUser.exists() ? sellerUser.data().photoURL : "";
+                    const buyerName = buyerUser.exists() ? buyerUser.data().fullName : "Cliente";
+                    const sellerName = sellerUser.exists() ? sellerUser.data().fullName : "Prestador";
+
+                    // Criação do card do pedido
                     const orderCard = document.createElement("div");
                     orderCard.style.cssText = `
                 border: 1px solid #ddd;
-                border-radius: 8px;
-                margin: 10px 0;
-                padding: 15px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                background-color: white;
+                border-radius: 10px;
+                margin: 15px 0;
+                padding: 20px;
+                background-color: #fff;
+                box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+                transition: transform 0.2s;
+                font-family: Arial, sans-serif;
             `;
+                    orderCard.onmouseover = () => {
+                        orderCard.style.transform = "scale(1.02)";
+                    };
+                    orderCard.onmouseout = () => {
+                        orderCard.style.transform = "scale(1)";
+                    };
 
-                    // Título do pedido
                     const title = document.createElement("h3");
                     title.textContent = order.descricao;
-                    title.style.cssText = `
-                font-size: 18px;
-                margin: 0 0 10px;
-                color: #333;
-            `;
+                    title.style.cssText = "color: #333; font-size: 18px; margin-bottom: 10px;";
                     orderCard.appendChild(title);
 
-                    // Informações comuns
                     const info = document.createElement("p");
-                    info.textContent = `Preço: R$${order.preco} | Data: ${order.date} | Hora: ${order.time} | Local: ${order.location}`;
-                    info.style.cssText = `
-                font-size: 14px;
-                margin: 0 0 10px;
-                color: #666;
-            `;
+                    info.textContent = `Preço: R$${order.preco} | Data: ${order.date} | Local: ${order.location}`;
+                    info.style.cssText = "color: #555; font-size: 14px; margin-bottom: 15px;";
                     orderCard.appendChild(info);
+
+                    // Adicionar fotos e nomes
+                    const userPhoto = document.createElement("div");
+                    userPhoto.innerHTML = `
+                <img src="${isSeller ? buyerPhoto : sellerPhoto}" alt="Foto" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
+                <span style="font-weight: bold; color: #444;">${isSeller ? buyerName : sellerName}</span>
+            `;
+                    userPhoto.style.cssText = `display: flex; align-items: center; margin: 10px 0;`;
+                    orderCard.appendChild(userPhoto);
+
+                    // Adicionar status e botões
+                    const statusText = document.createElement("p");
+                    statusText.textContent = `Status: ${order.status}`;
+                    statusText.style.cssText = "font-weight: bold; color: #666; margin-bottom: 15px;";
+                    orderCard.appendChild(statusText);
+
+                    if (isSeller) {
+                        if (order.status === "pendente") {
+                            createButton(orderCard, "Aceitar Pedido", "#28a745", async () => {
+                                await updateDoc(docSnap.ref, { status: "pedido aceito" });
+                                displayOrders();
+                            });
+                        } else if (order.status === "pedido aceito") {
+                            createButton(orderCard, "Indo para o Local", "#007bff", async () => {
+                                await updateDoc(docSnap.ref, { status: "indo" });
+                                displayOrders();
+                            });
+                        } else if (order.status === "indo") {
+                            createButton(orderCard, "Cheguei ao Cliente", "#17a2b8", async () => {
+                                await updateDoc(docSnap.ref, { status: "cheguei" });
+                                displayOrders();
+                            });
+                        } else if (order.status === "cheguei") {
+                            createButton(orderCard, "Serviço Concluído", "#ffc107", async () => {
+                                await updateDoc(docSnap.ref, { status: "concluido" });
+                                displayOrders();
+                            });
+                        }
+                    } else {
+                        if (order.status === "pendente") {
+                            createButton(orderCard, "Cancelar Pedido", "#dc3545", async () => {
+                                await deleteDoc(docSnap.ref);
+                                displayOrders();
+                            });
+                        }
+                    }
 
                     // Botão de chat
                     const chatButton = document.createElement("button");
@@ -3159,48 +3213,29 @@
                     };
                     orderCard.appendChild(chatButton);
 
-                    // Exibe diferentes botões e informações com base no papel do usuário
-                    if (isSeller) {
-                        const acceptButton = document.createElement("button");
-                        acceptButton.textContent = "Aceitar Pedido";
-                        acceptButton.style.cssText = `
-                    background-color: #28a745;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    padding: 10px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    margin-right: 10px;
-                `;
-                        acceptButton.onclick = async () => {
-                            try {
-                                await updateDoc(doc.ref, { status: "confirmado" });
-                                alert("Pedido aceito com sucesso!");
-                                displayOrders(); // Atualiza a lista
-                            } catch (error) {
-                                console.error("Erro ao aceitar o pedido:", error);
-                            }
-                        };
-                        orderCard.appendChild(acceptButton);
-                    } else {
-                        const status = document.createElement("p");
-                        status.textContent = `Status do Pedido: ${order.status}`;
-                        status.style.cssText = `
-                    font-size: 14px;
-                    margin: 0 0 10px;
-                    color: ${order.status === "pendente" ? "#ffc107" : order.status === "confirmado" ? "#28a745" : "#dc3545"};
-                `;
-                        orderCard.appendChild(status);
-                    }
-
-                    // Adiciona o card ao container
                     ordersContainer.appendChild(orderCard);
-                });
+                }
             } catch (error) {
                 console.error("Erro ao buscar pedidos:", error);
                 alert("Erro ao carregar os pedidos.");
             }
+        }
+
+        // Função para criar botões
+        function createButton(parent, text, color, onClick) {
+            const button = document.createElement("button");
+            button.textContent = text;
+            button.style.cssText = `
+        background-color: ${color};
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 15px;
+        cursor: pointer;
+        margin: 5px;
+    `;
+            button.onclick = onClick;
+            parent.appendChild(button);
         }
 
         function showDetalhesAnuncio(data) {

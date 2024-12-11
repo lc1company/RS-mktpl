@@ -2975,29 +2975,28 @@
             closeButton.onclick = () => closeModal(modal);
 
             modalContent.innerHTML = `
-        <div style="text-align: left; margin-bottom: 20px;">
-            <img src="${data.imagemUrl}" alt="Miniatura do Anúncio" style="width: 100%; height: auto; max-height: 200px; border-radius: 8px; margin-bottom: 10px;" />
-            <p style="font-size: 16px; color: #7f8c8d; margin-bottom: 5px;">${data.mensagem}</p>
-            <p style="font-size: 16px; color: #27ae60; font-weight: bold;">Preço: R$ ${data.preco}</p>
-        </div>
-        <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Data:</label>
-        <input type="date" id="serviceDate" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px;" required />
-        <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Hora:</label>
-        <input type="time" id="serviceTime" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px;" required />
-        <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Local:</label>
-        <input type="text" id="serviceLocation" placeholder="Digite o local" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 20px;" required />
-        <button id="confirmCheckout" style="
-            background-color: #2ecc71; 
-            color: #fff; 
-            border: none; 
-            padding: 12px 20px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            width: 100%; 
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-        ">Confirmar</button>
-    `;
+                <div style="text-align: left; margin-bottom: 20px;">
+                <img src="${data.imagemUrl}" alt="Miniatura do Anúncio" style="width: 100%; height: auto; max-height: 200px; border-radius: 8px; margin-bottom: 10px;" />
+                <p style="font-size: 16px; color: #7f8c8d; margin-bottom: 5px;">${data.mensagem}</p>
+                <p style="font-size: 16px; color: #27ae60; font-weight: bold;">Preço: R$ ${data.preco}</p>
+            </div>
+            <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Data:</label>
+            <input type="date" id="serviceDate" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px;" required />
+            <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Hora:</label>
+            <input type="time" id="serviceTime" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px;" required />
+            <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Local:</label>
+            <input type="text" id="serviceLocation" placeholder="Digite o local" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 20px;" required />
+            <button id="confirmCheckout" style="
+                background-color: #2ecc71; 
+                color: #fff; 
+                border: none; 
+                padding: 12px 20px; 
+                border-radius: 6px; 
+                cursor: pointer; 
+                width: 100%; 
+                font-size: 16px;
+                transition: background-color 0.3s ease;
+            ">Confirmar</button>`;
 
             modalContent.appendChild(closeButton); // Adiciona o botão de fechar no conteúdo
             modal.appendChild(modalContent);
@@ -3090,23 +3089,28 @@
             const userUid = auth.currentUser.uid;
 
             try {
-                // Buscar os pedidos no Firestore
                 const buyerOrdersSnapshot = await getDocs(query(collection(db, "agendamentos"), where("buyerUid", "==", userUid)));
                 const sellerOrdersSnapshot = await getDocs(query(collection(db, "agendamentos"), where("sellerUid", "==", userUid)));
 
                 const allOrders = [...buyerOrdersSnapshot.docs, ...sellerOrdersSnapshot.docs];
 
-                // Ordenar pedidos por timestamp
                 allOrders.sort((a, b) => b.data().timestamp - a.data().timestamp);
 
                 const ordersContainer = document.getElementById("ordersContainer");
                 ordersContainer.innerHTML = "";
 
+                const statusDescriptions = {
+                    pendente: "Aguardando prestador aceitar o pedido",
+                    "pedido aceito": "Pedido aceito, aguardando data para o serviço",
+                    indo: "Prestador indo para o local",
+                    cheguei: "Prestador chegou ao local",
+                    concluido: "Serviço concluído"
+                };
+
                 for (const docSnap of allOrders) {
                     const order = docSnap.data();
                     const isSeller = order.sellerUid === userUid;
 
-                    // Buscar dados do comprador e vendedor
                     const buyerRef = doc(db, "users", order.buyerUid);
                     const sellerRef = doc(db, "users", order.sellerUid);
 
@@ -3118,49 +3122,72 @@
                     const buyerName = buyerUser.exists() ? buyerUser.data().fullName : "Cliente";
                     const sellerName = sellerUser.exists() ? sellerUser.data().fullName : "Prestador";
 
-                    // Criação do card do pedido
                     const orderCard = document.createElement("div");
                     orderCard.style.cssText = `
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                margin: 15px 0;
-                padding: 20px;
-                background-color: #fff;
-                box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-                transition: transform 0.2s;
-                font-family: Arial, sans-serif;
-            `;
-                    orderCard.onmouseover = () => {
-                        orderCard.style.transform = "scale(1.02)";
-                    };
-                    orderCard.onmouseout = () => {
-                        orderCard.style.transform = "scale(1)";
-                    };
+                        border: 1px solid #ddd;
+                        border-radius: 10px;
+                        margin: 15px 0;
+                        padding: 20px;
+                        background-color: #fff;
+                        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+                        font-family: Arial, sans-serif;
+                    `;
 
                     const title = document.createElement("h3");
                     title.textContent = order.descricao;
                     title.style.cssText = "color: #333; font-size: 18px; margin-bottom: 10px;";
                     orderCard.appendChild(title);
 
+                    const time = new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     const info = document.createElement("p");
-                    info.textContent = `Preço: R$${order.preco} | Data: ${order.date} | Local: ${order.location}`;
+                    info.textContent = `Preço: R$${order.preco} | Data: ${order.date} | Hora: ${time} | Local: ${order.location}`;
                     info.style.cssText = "color: #555; font-size: 14px; margin-bottom: 15px;";
                     orderCard.appendChild(info);
 
-                    // Adicionar fotos e nomes
                     const userPhoto = document.createElement("div");
                     userPhoto.innerHTML = `
-                <img src="${isSeller ? buyerPhoto : sellerPhoto}" alt="Foto" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
-                <span style="font-weight: bold; color: #444;">${isSeller ? buyerName : sellerName}</span>
-            `;
+                        <img src="${isSeller ? buyerPhoto : sellerPhoto}" alt="Foto" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
+                        <span style="font-weight: bold; color: #444;">${isSeller ? buyerName : sellerName}</span>
+                        <p style="color: #888; font-size: 12px;">${isSeller ? "Cliente" : "Prestador"}</p>
+                    `;
                     userPhoto.style.cssText = `display: flex; align-items: center; margin: 10px 0;`;
                     orderCard.appendChild(userPhoto);
 
-                    // Adicionar status e botões
-                    const statusText = document.createElement("p");
-                    statusText.textContent = `Status: ${order.status}`;
-                    statusText.style.cssText = "font-weight: bold; color: #666; margin-bottom: 15px;";
-                    orderCard.appendChild(statusText);
+                    const statusHistory = document.createElement("div");
+                    const statuses = ["pendente", "pedido aceito", "indo", "cheguei", "concluido"];
+                    statuses.forEach((status, index) => {
+                        if (index <= statuses.indexOf(order.status)) {
+                            const statusItem = document.createElement("div");
+                            statusItem.style.cssText = `
+                                display: flex;
+                                align-items: center;
+                                margin: 5px 0;
+                                font-size: 14px;
+                                font-weight: bold;
+                                color: ${order.status === status ? "#ffc107" : "#28a745"};
+                            `;
+
+                            // Ícone
+                            const icon = document.createElement("span");
+                            icon.style.cssText = `
+                                width: 16px;
+                                height: 16px;
+                                margin-right: 8px;
+                                display: inline-block;
+                                border-radius: 50%;
+                                background-color: ${order.status === status ? "#ffc107" : "#28a745"};
+                            `;
+
+                            // Texto do status
+                            const statusText = document.createElement("span");
+                            statusText.textContent = statusDescriptions[status];
+
+                            statusItem.appendChild(icon);
+                            statusItem.appendChild(statusText);
+                            statusHistory.appendChild(statusItem);
+                        }
+                    });
+                    orderCard.appendChild(statusHistory);
 
                     if (isSeller) {
                         if (order.status === "pendente") {
@@ -3193,19 +3220,18 @@
                         }
                     }
 
-                    // Botão de chat
                     const chatButton = document.createElement("button");
                     chatButton.textContent = "Chat";
                     chatButton.style.cssText = `
-                background-color: #007bff;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                padding: 10px;
-                cursor: pointer;
-                font-size: 14px;
-                margin-right: 10px;
-            `;
+                        background-color: #007bff;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        padding: 10px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        margin-right: 10px;
+                    `;
                     chatButton.onclick = async () => {
                         const otherUserUid = isSeller ? order.buyerUid : order.sellerUid;
                         const produto = { descricao: order.descricao, preco: order.preco };
@@ -3221,19 +3247,18 @@
             }
         }
 
-        // Função para criar botões
         function createButton(parent, text, color, onClick) {
             const button = document.createElement("button");
             button.textContent = text;
             button.style.cssText = `
-        background-color: ${color};
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 10px 15px;
-        cursor: pointer;
-        margin: 5px;
-    `;
+                background-color: ${color};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 10px 15px;
+                cursor: pointer;
+                margin: 5px;
+            `;
             button.onclick = onClick;
             parent.appendChild(button);
         }
@@ -3408,27 +3433,26 @@
 
         // Estilos CSS inline para animações e scroll
         document.head.innerHTML += `
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        <style>
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
 
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
 
-        @keyframes slideDown {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+            @keyframes slideDown {
+                from { transform: translateY(-20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
 
-        #modalDetalhes {
-            overflow-y: auto; /* Permite scroll vertical */
-        }
-    </style>
-`;
+            #modalDetalhes {
+                overflow-y: auto; /* Permite scroll vertical */
+            }
+        </style>`;
 
         function openFullscreen(currentImageUrl, imageUrls, currentIndex) {
             const fullscreenContainer = document.createElement("div");
@@ -3603,25 +3627,22 @@
                     });
 
                     chatElement.innerHTML = `
-                <img src="${imagemUrlProduto}" alt="${descricaoProduto}" 
-                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
-                <div style="flex: 1;">
-                    <div style="font-size: 1em; font-weight: bold;">${descricaoProduto}</div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                        <div style="text-align: center;">
-                            <img src="${fotoComprador}" alt="${nomeComprador}" 
-                                 style="width: 30px; height: 30px; border-radius: 50%; margin-bottom: 2px;">
-                            <div style="font-size: 0.8em; color: #555;">${nomeComprador}</div>
+                    <img src="${imagemUrlProduto}" alt="${descricaoProduto}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 1em; font-weight: bold;">${descricaoProduto}</div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                                <div style="text-align: center;">
+                                    <img src="${fotoComprador}" alt="${nomeComprador}" style="width: 30px; height: 30px; border-radius: 50%; margin-bottom: 2px;">
+                                    <div style="font-size: 0.8em; color: #555;">${nomeComprador}</div>
+                                </div>
+                                <div style="font-size: 0.8em; color: #777; text-align: center;">${formattedTimestamp}</div>
+                                <div style="text-align: center;">
+                                    <img src="${fotoVendedor}" alt="${nomeVendedor}" 
+                                    style="width: 30px; height: 30px; border-radius: 50%; margin-bottom: 2px;">
+                                <div style="font-size: 0.8em; color: #555;">${nomeVendedor}</div>
+                            </div>
                         </div>
-                        <div style="font-size: 0.8em; color: #777; text-align: center;">${formattedTimestamp}</div>
-                        <div style="text-align: center;">
-                            <img src="${fotoVendedor}" alt="${nomeVendedor}" 
-                                 style="width: 30px; height: 30px; border-radius: 50%; margin-bottom: 2px;">
-                            <div style="font-size: 0.8em; color: #555;">${nomeVendedor}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
+                    </div>`;
 
                     chatElement.addEventListener("click", () => {
                         openChatFromButton({ dataset: { chatId } });

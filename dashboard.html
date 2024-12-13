@@ -1627,6 +1627,8 @@
         </div>
         <button class="history-button" onclick="showTab('historicoPedidos')">
             <i class="fas fa-box"></i> Pedidos
+            <span id="ordersCounter"
+                style="display: none; background: red; color: white; border-radius: 50%; padding: 3px 8px; font-size: 12px; margin-left: 5px;"></span>
         </button>
     </header>
 
@@ -1877,6 +1879,7 @@
                 checkUserRole();
                 monitorChats(user.uid);
                 restoreNotificationCounter();
+                updateOrdersCounter();
                 const userId = user.uid;
             } else {
                 window.location.href = "login.html"
@@ -3085,16 +3088,37 @@
             }
         }
 
+        let nonCompletedOrdersCount = 0;
+
         async function displayOrders() {
             const userUid = auth.currentUser.uid;
 
             try {
+                // Atualizar o contador de pedidos não concluídos
+                await updateOrdersCounter();
+
                 const buyerOrdersSnapshot = await getDocs(query(collection(db, "agendamentos"), where("buyerUid", "==", userUid)));
                 const sellerOrdersSnapshot = await getDocs(query(collection(db, "agendamentos"), where("sellerUid", "==", userUid)));
 
                 const allOrders = [...buyerOrdersSnapshot.docs, ...sellerOrdersSnapshot.docs];
 
                 allOrders.sort((a, b) => b.data().timestamp - a.data().timestamp);
+
+                // Redefinir o contador de pedidos não concluídos
+                nonCompletedOrdersCount = 0;
+
+                // Verificar e contar os pedidos não concluídos
+                allOrders.forEach((docSnap) => {
+                    const order = docSnap.data();
+                    if (order.status !== "concluido") {
+                        nonCompletedOrdersCount++;
+                    }
+                });
+
+                // Atualizar o contador no botão
+                const ordersCounter = document.getElementById("ordersCounter");
+                ordersCounter.textContent = nonCompletedOrdersCount;
+                ordersCounter.style.display = nonCompletedOrdersCount > 0 ? "inline-block" : "none";
 
                 const ordersContainer = document.getElementById("ordersContainer");
                 ordersContainer.innerHTML = "";
@@ -3261,6 +3285,27 @@
             `;
             button.onclick = onClick;
             parent.appendChild(button);
+        }
+
+        async function updateOrdersCounter() {
+            const userUid = auth.currentUser.uid;
+
+            try {
+                const buyerOrdersSnapshot = await getDocs(query(collection(db, "agendamentos"), where("buyerUid", "==", userUid)));
+                const sellerOrdersSnapshot = await getDocs(query(collection(db, "agendamentos"), where("sellerUid", "==", userUid)));
+
+                const allOrders = [...buyerOrdersSnapshot.docs, ...sellerOrdersSnapshot.docs];
+
+                // Contar os pedidos não concluídos
+                const nonCompletedOrdersCount = allOrders.filter(docSnap => docSnap.data().status !== "concluido").length;
+
+                // Atualizar o contador no botão
+                const ordersCounter = document.getElementById("ordersCounter");
+                ordersCounter.textContent = nonCompletedOrdersCount;
+                ordersCounter.style.display = nonCompletedOrdersCount > 0 ? "inline-block" : "none";
+            } catch (error) {
+                console.error("Erro ao atualizar contador de pedidos:", error);
+            }
         }
 
         function showDetalhesAnuncio(data) {

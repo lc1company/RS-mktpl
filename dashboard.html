@@ -3846,9 +3846,21 @@
             const counterElement = document.getElementById("notificationCounter");
             counterElement.textContent = count > 0 ? count : '';
             counterElement.style.display = count > 0 ? 'flex' : 'none';
+
+            // Salvar o contador no localStorage
+            localStorage.setItem('unreadMessagesCount', count.toString());
         }
 
-        // Monitorar alterações nos chats
+        // Função para restaurar o contador após atualizar a página
+        function restoreNotificationCounter() {
+            const savedCount = localStorage.getItem('unreadMessagesCount');
+            if (savedCount !== null) {
+                unreadMessagesCount = parseInt(savedCount, 10);
+                updateNotificationCounter(unreadMessagesCount);
+            }
+        }
+
+        // Função para monitorar alterações nos chats
         async function monitorChats(userId) {
             const chatsRef = collection(db, "chats");
 
@@ -3885,17 +3897,10 @@
         function resetNotificationCounter() {
             unreadMessagesCount = 0;
             updateNotificationCounter(0);
-            localStorage.setItem('unreadMessagesCount', '0'); // Guardar no localStorage
         }
 
-        // Restaurar contador após atualizar a página
-        function restoreNotificationCounter() {
-            const savedCount = localStorage.getItem('unreadMessagesCount');
-            if (savedCount !== null) {
-                unreadMessagesCount = parseInt(savedCount, 10);
-                updateNotificationCounter(unreadMessagesCount);
-            }
-        }
+        // Restaurar o contador ao carregar a página
+        document.addEventListener("DOMContentLoaded", restoreNotificationCounter);
 
         document.addEventListener('DOMContentLoaded', function () {
             showTab('timeline');

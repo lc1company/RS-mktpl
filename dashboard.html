@@ -2988,7 +2988,11 @@
             <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Hora:</label>
             <input type="time" id="serviceTime" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px;" required />
             <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;">Local:</label>
+            <label style="display: block; font-size: 14px; margin-bottom: 5px; color: #34495e;"></label>
             <input type="text" id="serviceLocation" placeholder="Digite o local" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 20px;" required />
+            <input type="hidden" id="locationLat" />
+            <input type="hidden" id="locationLng" />
+
             <button id="confirmCheckout" style="
                 background-color: #2ecc71; 
                 color: #fff; 
@@ -3005,16 +3009,41 @@
             modal.appendChild(modalContent);
             document.body.appendChild(modal);
 
+            // Configurar Autocomplete no campo de localização
+            const locationInput = document.getElementById("serviceLocation");
+            const autocomplete = new google.maps.places.Autocomplete(locationInput, {
+                types: ["geocode"],
+                componentRestrictions: { country: "br" }, // Restringe a busca ao Brasil
+            });
+
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    alert("Por favor, selecione um local válido.");
+                    return;
+                }
+                document.getElementById("locationLat").value = place.geometry.location.lat();
+                document.getElementById("locationLng").value = place.geometry.location.lng();
+            });
+
             // Botão Confirmar
             document.getElementById("confirmCheckout").onclick = () => {
                 const date = document.getElementById("serviceDate").value;
                 const time = document.getElementById("serviceTime").value;
                 const location = document.getElementById("serviceLocation").value;
-                if (date && time && location) {
-                    confirmCheckout(docId, data, date, time, location);
+                const lat = document.getElementById("locationLat").value;
+                const lng = document.getElementById("locationLng").value;
+
+                if (date && time && location && lat && lng) {
+                    const locationData = {
+                        address: location,
+                        lat: parseFloat(lat),
+                        lng: parseFloat(lng),
+                    };
+                    confirmCheckout(docId, data, date, time, locationData);
                     closeModal(modal);
                 } else {
-                    alert("Preencha todos os campos!");
+                    alert("Preencha todos os campos corretamente!");
                 }
             };
 
@@ -3164,7 +3193,7 @@
 
                     const time = new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     const info = document.createElement("p");
-                    info.textContent = `Preço: R$${order.preco} | Data: ${order.date} | Hora: ${time} | Local: ${order.location}`;
+                    info.textContent = `Preço: R$${order.preco} | Data: ${formatDate(order.date)} | Hora: ${order.time} | Local: ${order.location ? order.location.address : "Endereço não disponível"}`;
                     info.style.cssText = "color: #555; font-size: 14px; margin-bottom: 15px;";
                     orderCard.appendChild(info);
 
@@ -3306,6 +3335,14 @@
             } catch (error) {
                 console.error("Erro ao atualizar contador de pedidos:", error);
             }
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, '0');  // Adiciona zero à esquerda se necessário
+            const month = String(d.getMonth() + 1).padStart(2, '0');  // Mês começa do 0 (Janeiro) então somamos 1
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
         }
 
         function showDetalhesAnuncio(data) {

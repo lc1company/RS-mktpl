@@ -1619,8 +1619,7 @@
 
     <header class="app-header">
         <div class="search-container">
-            <input type="text" class="search-input" placeholder="Buscar Serviço..."
-                oninput="filterPostsBySearch()" />
+            <input type="text" class="search-input" placeholder="Buscar Serviço..." oninput="filterPostsBySearch()" />
             <button class="search-button" onclick="filterPostsBySearch()">
                 <i class="fas fa-search"></i>
             </button>
@@ -1829,10 +1828,7 @@
         </div>
 
         <div id="financeiro" class="tab-content">
-            <h2>Resumo Financeiro</h2>
-            <div id="financialSummary">
-                <!-- Os dados de lucros serão carregados aqui -->
-            </div>
+            <div id="financialContainer"></div>
         </div>
 
         <footer>
@@ -1892,6 +1888,7 @@
                 monitorChats(user.uid);
                 restoreNotificationCounter();
                 updateOrdersCounter();
+                displayFinancialHistory(user.uid);
                 const userId = user.uid;
             } else {
                 window.location.href = "login.html"
@@ -3357,6 +3354,91 @@
             const month = String(d.getMonth() + 1).padStart(2, '0');  // Mês começa do 0 (Janeiro) então somamos 1
             const year = d.getFullYear();
             return `${day}/${month}/${year}`;
+        }
+
+        async function displayFinancialHistory() {
+            const userUid = auth.currentUser.uid;
+
+            try {
+                // Buscar pedidos do prestador com status "concluído"
+                const sellerOrdersSnapshot = await getDocs(
+                    query(
+                        collection(db, "agendamentos"),
+                        where("sellerUid", "==", userUid),
+                        where("status", "==", "concluido") // Apenas pedidos concluídos
+                    )
+                );
+
+                const orders = [];
+                sellerOrdersSnapshot.forEach((docSnap) => {
+                    const order = { ...docSnap.data(), id: docSnap.id };
+                    orders.push(order);
+                });
+
+                // Atualizar a interface
+                const financialContainer = document.getElementById("financialContainer");
+                financialContainer.innerHTML = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9fafc; border-radius: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);">
+                <h2 style="color: #333; margin-bottom: 20px; text-align: center; font-size: 24px; font-weight: bold;">
+                    <i style="color: #4caf50;" class="fas fa-wallet"></i> Resumo Financeiro
+                </h2>
+                <div id="orderList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; background: #fff; border-radius: 8px;">
+                    <!-- Lista de pedidos será renderizada aqui -->
+                </div>
+                <div style="text-align: center; font-size: 18px; font-weight: bold; color: #333; margin-top: 20px;">
+                    <p>Total Bruto: <span id="totalBruto" style="color: #4caf50;">R$ 0.00</span></p>
+                    <p>Total Líquido (80%): <span id="totalLiquido" style="color: #2196f3;">R$ 0.00</span></p>
+                </div>
+            </div>
+        `;
+
+                // Renderizar pedidos e somar valores
+                const renderOrders = () => {
+                    const orderList = document.getElementById("orderList");
+                    let totalBruto = 0;
+
+                    orderList.innerHTML = "";
+                    if (orders.length === 0) {
+                        orderList.innerHTML = `<p style="text-align: center; color: #888;">Nenhum pedido concluído encontrado.</p>`;
+                    } else {
+                        orders.forEach((order) => {
+                            const value = parseFloat(order.preco || 0);
+                            totalBruto += value;
+
+                            const orderItem = document.createElement("div");
+                            orderItem.style.padding = "15px";
+                            orderItem.style.borderBottom = "1px solid #ddd";
+                            orderItem.style.display = "flex";
+                            orderItem.style.justifyContent = "space-between";
+                            orderItem.style.alignItems = "center";
+                            orderItem.style.backgroundColor = "#f6f9fc";
+                            orderItem.style.borderRadius = "6px";
+                            orderItem.style.marginBottom = "10px";
+
+                            orderItem.innerHTML = `
+                        <div style="display: flex; align-items: center;">
+                            <i class="fas fa-money-bill-wave" style="font-size: 20px; color: #4caf50; margin-right: 10px;"></i>
+                            <span style="font-size: 16px; color: #333;">Entrada</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 16px; font-weight: bold; color: #4caf50;">+R$ ${value.toFixed(2)}</span>
+                        </div>
+                    `;
+                            orderList.appendChild(orderItem);
+                        });
+                    }
+
+                    const totalLiquido = totalBruto * 0.8; // 80% do total bruto
+                    document.getElementById("totalBruto").textContent = `R$ ${totalBruto.toFixed(2)}`;
+                    document.getElementById("totalLiquido").textContent = `R$ ${totalLiquido.toFixed(2)}`;
+                };
+
+                // Exibir todos os pedidos concluídos
+                renderOrders();
+            } catch (error) {
+                console.error("Erro ao carregar histórico financeiro:", error);
+                alert("Erro ao carregar histórico financeiro.");
+            }
         }
 
         function showDetalhesAnuncio(data) {

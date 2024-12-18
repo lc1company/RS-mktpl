@@ -1619,7 +1619,7 @@
 
     <header class="app-header">
         <div class="search-container">
-            <input type="text" class="search-input" placeholder="Pesquisar Serviço..."
+            <input type="text" class="search-input" placeholder="Buscar Serviço..."
                 oninput="filterPostsBySearch()" />
             <button class="search-button" onclick="filterPostsBySearch()">
                 <i class="fas fa-search"></i>
@@ -1642,7 +1642,12 @@
                 <span id="notificationCounter" class="notification-counter"></span>
             </div>
             <div class="tab" onclick="showTab('meuPerfil')"><i class="fas fa-user"></i><span>Meu Perfil</span></div>
-            <div class="tab" onclick="showTab('Produtor')"><i class="fas fa-bullhorn"></i><span>Anunciar</span></div>
+            <div class="tab" onclick="showTab('Produtor')" id="ProdutorTab" style="display: none;">
+                <i class="fas fa-bullhorn"></i><span>Anunciar</span>
+            </div>
+            <div class="tab" onclick="showTab('financeiro')" id="financeTab" style="display: none;">
+                <i class="fas fa-dollar-sign"></i><span>Financeiro</span>
+            </div>
             <div class="tab" onclick="showTab('userInfo')"><i class="fas fa-cog"></i><span>Configurações</span></div>
         </div>
 
@@ -1821,6 +1826,13 @@
                 </p>
             </div>
 
+        </div>
+
+        <div id="financeiro" class="tab-content">
+            <h2>Resumo Financeiro</h2>
+            <div id="financialSummary">
+                <!-- Os dados de lucros serão carregados aqui -->
+            </div>
         </div>
 
         <footer>
@@ -2132,6 +2144,8 @@
                 const userData = userDoc.data();
                 if (userData.role === "Anunciante") {
                     document.getElementById("formPublicacao").style.display = "block";
+                    document.getElementById("financeTab").style.display = "block";
+                    document.getElementById("ProdutorTab").style.display = "block";
                 } else {
                     document.getElementById("avisoNaoProdutor").style.display = "block";
                 }

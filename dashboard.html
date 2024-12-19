@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.8/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.7/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs/plugin/isBetween.min.js"></script>
     <title>HelpiFy</title>
 
     <style>
@@ -3271,8 +3273,29 @@
                             });
                         } else if (order.status === "cheguei") {
                             createButton(orderCard, "Serviço Concluído", "#ffc107", async () => {
-                                await updateDoc(docSnap.ref, { status: "concluido" });
-                                displayOrders();
+                                try {
+                                    // Obter a data e hora atuais no fuso horário de Brasília
+                                    const now = new Date();
+                                    const brasiliaTime = new Intl.DateTimeFormat("pt-BR", {
+                                        timeZone: "America/Sao_Paulo",
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    }).format(now);
+
+                                    // Salvar no Firestore
+                                    await updateDoc(docSnap.ref, {
+                                        status: "concluido",
+                                        completedAt: new Date(now) // Salvar como timestamp
+                                    });
+
+                                    displayOrders();
+                                } catch (error) {
+                                    console.error("Erro ao atualizar o documento:", error);
+                                    alert("Não foi possível salvar a hora de conclusão.");
+                                }
                             });
                         }
                     } else {
@@ -3382,6 +3405,14 @@
                 <h2 style="color: #333; margin-bottom: 20px; text-align: center; font-size: 24px; font-weight: bold;">
                     <i style="color: #4caf50;" class="fas fa-wallet"></i> Resumo Financeiro
                 </h2>
+                <div style="display: flex; justify-content: space-around; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button id="filterToday" style="padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer;">Hoje</button>
+                    <button id="filterWeek" style="padding: 10px 20px; background: #2196f3; color: white; border: none; border-radius: 8px; cursor: pointer;">Semanal</button>
+                    <button id="filterMonth" style="padding: 10px 20px; background: #fbc02d; color: white; border: none; border-radius: 8px; cursor: pointer;">Mensal</button>
+                    <input type="date" id="startDate" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px;" />
+                    <input type="date" id="endDate" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px;" />
+                    <button id="filterCustom" style="padding: 10px 20px; background: #e91e63; color: white; border: none; border-radius: 8px; cursor: pointer;">Filtrar</button>
+                </div>
                 <div id="orderList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; background: #fff; border-radius: 8px;">
                     <!-- Lista de pedidos será renderizada aqui -->
                 </div>
@@ -3392,16 +3423,32 @@
             </div>
         `;
 
-                // Renderizar pedidos e somar valores
-                const renderOrders = () => {
+                // Carregar o plugin isBetween
+                dayjs.extend(dayjs_plugin_isBetween);
+
+                const filterOrders = (startDate, endDate) => {
+                    const filteredOrders = orders.filter((order) => {
+                        // Converte o timestamp para objeto Date antes de usar com dayjs
+                        const orderDate = dayjs(order.completedAt.toDate()); // Converte para Date
+                        if (!orderDate.isValid()) {
+                            console.error("Data inválida para o pedido:", order.completedAt);
+                            return false; // Retorna false caso a data não seja válida
+                        }
+                        return orderDate.isBetween(startDate, endDate, null, '[]');
+                    });
+                    renderOrders(filteredOrders);
+                };
+
+                // Alterar o formato da data e hora no `renderOrders`:
+                const renderOrders = (filteredOrders = orders) => {
                     const orderList = document.getElementById("orderList");
                     let totalBruto = 0;
 
                     orderList.innerHTML = "";
-                    if (orders.length === 0) {
+                    if (filteredOrders.length === 0) {
                         orderList.innerHTML = `<p style="text-align: center; color: #888;">Nenhum pedido concluído encontrado.</p>`;
                     } else {
-                        orders.forEach((order) => {
+                        filteredOrders.forEach((order) => {
                             const value = parseFloat(order.preco || 0);
                             totalBruto += value;
 
@@ -3415,15 +3462,18 @@
                             orderItem.style.borderRadius = "6px";
                             orderItem.style.marginBottom = "10px";
 
+                            const orderTime = dayjs(order.completedAt).format('DD/MM/YYYY HH:mm'); // Exibir data e hora
+
                             orderItem.innerHTML = `
-                        <div style="display: flex; align-items: center;">
-                            <i class="fas fa-money-bill-wave" style="font-size: 20px; color: #4caf50; margin-right: 10px;"></i>
-                            <span style="font-size: 16px; color: #333;">Entrada</span>
-                        </div>
-                        <div style="text-align: right;">
-                            <span style="font-size: 16px; font-weight: bold; color: #4caf50;">+R$ ${value.toFixed(2)}</span>
-                        </div>
-                    `;
+                <div style="display: flex; align-items: center;">
+                    <i class="fas fa-money-bill-wave" style="font-size: 20px; color: #4caf50; margin-right: 10px;"></i>
+                    <span style="font-size: 16px; color: #333;">Entrada</span>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 16px; font-weight: bold; color: #4caf50;">+R$ ${value.toFixed(2)}</span>
+                    <div style="font-size: 14px; color: #888;">Data: ${dayjs(order.completedAt.toDate()).format('DD/MM/YYYY HH:mm')}</div>
+                </div>
+            `;
                             orderList.appendChild(orderItem);
                         });
                     }
@@ -3433,7 +3483,33 @@
                     document.getElementById("totalLiquido").textContent = `R$ ${totalLiquido.toFixed(2)}`;
                 };
 
-                // Exibir todos os pedidos concluídos
+                // Adicionar eventos nos filtros
+                document.getElementById("filterToday").addEventListener("click", () => {
+                    const today = dayjs().startOf('day');
+                    filterOrders(today, today.endOf('day'));
+                });
+
+                document.getElementById("filterWeek").addEventListener("click", () => {
+                    const startOfWeek = dayjs().startOf('week');
+                    filterOrders(startOfWeek, dayjs());
+                });
+
+                document.getElementById("filterMonth").addEventListener("click", () => {
+                    const startOfMonth = dayjs().startOf('month');
+                    filterOrders(startOfMonth, dayjs());
+                });
+
+                document.getElementById("filterCustom").addEventListener("click", () => {
+                    const startDate = dayjs(document.getElementById("startDate").value);
+                    const endDate = dayjs(document.getElementById("endDate").value);
+                    if (startDate.isValid() && endDate.isValid()) {
+                        filterOrders(startDate.startOf('day'), endDate.endOf('day')); // Certifique-se de incluir o final do dia
+                    } else {
+                        alert("Selecione as datas de início e fim.");
+                    }
+                });
+
+                // Exibir todos os pedidos concluídos inicialmente
                 renderOrders();
             } catch (error) {
                 console.error("Erro ao carregar histórico financeiro:", error);

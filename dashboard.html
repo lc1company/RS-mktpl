@@ -2085,7 +2085,7 @@
                 try {
                     const userDoc = await getDoc(doc(db, "users", userUid));
                     if (userDoc.exists()) {
-                        photoURL = userDoc.data().photoURL || "default-profile.png"; // Substitua por uma imagem padrão se necessário
+                        photoURL = userDoc.data().photoURL || "default-profile.png";
                     } else {
                         console.error("Usuário não encontrado.");
                         photoURL = "default-profile.png"; // Imagem padrão
@@ -2170,9 +2170,6 @@
             }
         }
 
-        let currentStoryIndex = 0;
-        let stories = []; // Array para armazenar os stories
-
         async function displayStories() {
             try {
                 const storyRef = collection(db, "stories");
@@ -2189,11 +2186,9 @@
                 const currentUserPhotoURL = auth.currentUser.photoURL;
                 await createStoryForm(currentUserUid, currentUserPhotoURL);
 
-                // Renderizar stories e armazená-los no array
-                stories = [];
+                // Renderizar stories
                 storiesSnapshot.forEach((doc) => {
                     const story = doc.data();
-                    stories.push(story); // Adicionar ao array de stories
 
                     const storyItem = document.createElement("div");
                     storyItem.style.cssText = `
@@ -2204,6 +2199,7 @@
             `;
 
                     if (story.isVideo) {
+                        // Miniatura do vídeo
                         const videoThumbnail = document.createElement("video");
                         videoThumbnail.src = story.fileURL;
                         videoThumbnail.alt = "Story Video";
@@ -2220,6 +2216,7 @@
 
                         storyItem.appendChild(videoThumbnail);
                     } else {
+                        // Imagem
                         const storyImage = document.createElement("img");
                         storyImage.src = story.fileURL;
                         storyImage.alt = "Story";
@@ -2232,7 +2229,7 @@
                         storyItem.appendChild(storyImage);
                     }
 
-                    storyItem.onclick = () => viewStory(0); // Exibir o primeiro story do array
+                    storyItem.onclick = () => viewStory(story.fileURL, story.isVideo);
                     storyContainer.appendChild(storyItem);
                 });
             } catch (error) {
@@ -2241,63 +2238,26 @@
             }
         }
 
-        function viewStory(index) {
-            currentStoryIndex = index;
-            const story = stories[currentStoryIndex];
+        function viewStory(fileURL, isVideo) {
             const modal = document.getElementById("storyModal");
             const modalContent = document.getElementById("storyModalContent");
 
-            if (story.isVideo) {
+            if (isVideo) {
                 modalContent.innerHTML = `
             <video controls autoplay style="width: 100%; height: auto;">
-                <source src="${story.fileURL}" type="video/mp4">
+                <source src="${fileURL}" type="video/mp4">
                 Seu navegador não suporta vídeos.
             </video>
         `;
             } else {
-                modalContent.innerHTML = `<img src="${story.fileURL}" style="width: 100%; height: auto;">`;
+                modalContent.innerHTML = `<img src="${fileURL}" style="width: 100%; height: auto;">`;
             }
-
-            const leftZone = document.createElement("div");
-            leftZone.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 50%;
-        height: 100%;
-        cursor: pointer;
-    `;
-            leftZone.onclick = () => navigateStory(-1);
-
-            const rightZone = document.createElement("div");
-            rightZone.style.cssText = `
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 50%;
-        height: 100%;
-        cursor: pointer;
-    `;
-            rightZone.onclick = () => navigateStory(1);
-
-            modalContent.appendChild(leftZone);
-            modalContent.appendChild(rightZone);
 
             modal.style.display = "block";
 
-            modal.onclick = (e) => {
-                if (e.target === modal) {
-                    modal.style.display = "none";
-                }
+            modal.onclick = () => {
+                modal.style.display = "none";
             };
-        }
-
-        function navigateStory(direction) {
-            const newIndex = currentStoryIndex + direction;
-
-            if (newIndex >= 0 && newIndex < stories.length) {
-                viewStory(newIndex);
-            }
         }
 
         // Função para obter a timeline do usuário

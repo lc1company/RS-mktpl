@@ -1614,6 +1614,14 @@
             transform: scale(1.2);
             color: white;
         }
+
+        #storyContainer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px;
+        }
     </style>
 </head>
 
@@ -1666,6 +1674,13 @@
                 <i class="fas fa-map-marker-alt"></i> Localizar minha cidade
             </button>
             <div id="cityFeedback" class="city-feedback"></div>
+            <div id="storyContainer" style="display: flex; overflow-x: scroll;"></div>
+            <div id="storyModal"
+                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
+                <div id="storyModalContent"
+                    style="margin: auto; position: relative; top: 50%; transform: translateY(-50%); max-width: 90%;">
+                </div>
+            </div>
             <ul class="timeline" id="userTimeline">
                 <!-- Timeline items will be dynamically added here -->
             </ul>
@@ -1891,6 +1906,8 @@
                 restoreNotificationCounter();
                 updateOrdersCounter();
                 displayFinancialHistory(user.uid);
+                createStoryForm(user.uid);
+                displayStories();
                 const userId = user.uid;
             } else {
                 window.location.href = "login.html"
@@ -1982,6 +1999,231 @@
                     document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
                 }
             });
+        }
+
+        function openStoryModal(userUid) {
+            // Criar ou mostrar o modal de upload
+            const modal = document.createElement("div");
+            modal.id = "uploadStoryModal";
+            modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    `;
+
+            const modalContent = document.createElement("div");
+            modalContent.style.cssText = `
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+    `;
+
+            // Input para upload do arquivo
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/*,video/*";
+            fileInput.style.marginBottom = "10px";
+
+            const uploadButton = document.createElement("button");
+            uploadButton.textContent = "Publicar Story";
+            uploadButton.style.cssText = `
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    `;
+
+            uploadButton.onclick = async () => {
+                if (fileInput.files.length === 0) {
+                    alert("Por favor, selecione um arquivo para publicar.");
+                    return;
+                }
+                const file = fileInput.files[0];
+                await saveStory(userUid, file);
+                modal.remove();
+                displayStories(); // Atualizar os stories exibidos
+            };
+
+            const closeButton = document.createElement("button");
+            closeButton.textContent = "Cancelar";
+            closeButton.style.cssText = `
+        background-color: #ccc;
+        color: black;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-left: 10px;
+    `;
+
+            closeButton.onclick = () => {
+                modal.remove();
+            };
+
+            modalContent.appendChild(fileInput);
+            modalContent.appendChild(document.createElement("br"));
+            modalContent.appendChild(uploadButton);
+            modalContent.appendChild(closeButton);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+
+        async function createStoryForm(userUid, photoURL) {
+            if (!photoURL) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", userUid));
+                    if (userDoc.exists()) {
+                        photoURL = userDoc.data().photoURL || "default-profile.png"; // Substitua por uma imagem padrão se necessário
+                    } else {
+                        console.error("Usuário não encontrado.");
+                        photoURL = "default-profile.png"; // Imagem padrão
+                    }
+                } catch (error) {
+                    console.error("Erro ao buscar photoURL:", error);
+                    photoURL = "default-profile.png"; // Imagem padrão
+                }
+            }
+
+            const storyContainer = document.getElementById("storyContainer");
+
+            // Botão para criar story
+            const addStory = document.createElement("div");
+            addStory.style.cssText = `
+        position: relative;
+        display: inline-block;
+        margin: 10px;
+        cursor: pointer;
+    `;
+
+            const userPhoto = document.createElement("img");
+            userPhoto.src = photoURL;
+            userPhoto.alt = "Foto do Usuário";
+            userPhoto.style.cssText = `
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 2px solid #007bff;
+    `;
+            addStory.appendChild(userPhoto);
+
+            const plusIcon = document.createElement("span");
+            plusIcon.textContent = "+";
+            plusIcon.style.cssText = `
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background-color: #007bff;
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+    `;
+            addStory.appendChild(plusIcon);
+
+            addStory.onclick = () => openStoryModal(userUid);
+            storyContainer.appendChild(addStory);
+        }
+
+        async function saveStory(userUid, file) {
+            try {
+                const storyRef = collection(db, "stories");
+                const timestamp = Date.now();
+                const filePath = `stories/${userUid}/${timestamp}-${file.name}`;
+                const fileRef = ref(storage, filePath);
+
+                // Fazer upload da imagem ou vídeo
+                await uploadBytes(fileRef, file);
+                const fileURL = await getDownloadURL(fileRef);
+
+                // Salvar no Firestore
+                await addDoc(storyRef, {
+                    userUid,
+                    timestamp,
+                    fileURL,
+                    expiresAt: timestamp + 24 * 60 * 60 * 1000 // Expiração em 24 horas
+                });
+
+                alert("Story publicado com sucesso!");
+            } catch (error) {
+                console.error("Erro ao salvar o story:", error);
+                alert("Não foi possível publicar o story.");
+            }
+        }
+
+        async function displayStories() {
+            try {
+                const storyRef = collection(db, "stories");
+                const now = Date.now();
+                const storiesSnapshot = await getDocs(
+                    query(storyRef, where("expiresAt", ">", now), orderBy("timestamp", "desc"))
+                );
+
+                const storyContainer = document.getElementById("storyContainer");
+                storyContainer.innerHTML = ""; // Limpar container
+
+                // Adicionar o botão de criar Story primeiro antes de exibir os stories
+                const currentUserUid = auth.currentUser.uid; // Obter o UID do usuário atual
+                const currentUserPhotoURL = auth.currentUser.photoURL; // Obter a URL da foto do usuário
+                await createStoryForm(currentUserUid, currentUserPhotoURL); // Cria o botão de novo story
+
+                // Adicionar stories após o botão de criar Story
+                storiesSnapshot.forEach((doc) => {
+                    const story = doc.data();
+
+                    const storyItem = document.createElement("div");
+                    storyItem.style.cssText = `
+                position: relative;
+                display: inline-block;
+                margin: 10px;
+                cursor: pointer;
+            `;
+
+                    const storyImage = document.createElement("img");
+                    storyImage.src = story.fileURL;
+                    storyImage.alt = "Story";
+                    storyImage.style.cssText = `
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                border: 2px solid #ffc107;
+            `;
+                    storyItem.appendChild(storyImage);
+
+                    storyItem.onclick = () => viewStory(story.fileURL);
+                    storyContainer.appendChild(storyItem);
+                });
+            } catch (error) {
+                console.error("Erro ao exibir stories:", error);
+                alert("Não foi possível carregar os stories.");
+            }
+        }
+
+        function viewStory(fileURL) {
+            const modal = document.getElementById("storyModal");
+            const modalContent = document.getElementById("storyModalContent");
+
+            modalContent.innerHTML = `<img src="${fileURL}" style="width: 100%; height: auto;">`;
+            modal.style.display = "block";
+
+            modal.onclick = () => {
+                modal.style.display = "none";
+            };
         }
 
         // Função para obter a timeline do usuário

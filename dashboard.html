@@ -3322,8 +3322,33 @@
                     chatButton.onclick = async () => {
                         const otherUserUid = isSeller ? order.buyerUid : order.sellerUid;
                         const produto = { descricao: order.descricao, preco: order.preco };
-                        iniciarCompra(userUid, otherUserUid, produto);
+
+                        try {
+                            // Verificar se o chat já existe
+                            const existingChatQuery = query(
+                                collection(db, "chats"),
+                                where("vendedorId", "in", [userUid, otherUserUid]),
+                                where("compradorId", "in", [userUid, otherUserUid]),
+                                where("produto.descricao", "==", produto.descricao)
+                            );
+                            const existingChatSnapshot = await getDocs(existingChatQuery);
+
+                            if (!existingChatSnapshot.empty) {
+                                // Abrir o chat existente
+                                const existingChat = existingChatSnapshot.docs[0];
+                                openChat(existingChat.id, produto.descricao);
+                                // Trocar para a aba de notificações
+                                showTab('notificacoes');
+                                console.log("Chat existente aberto:", existingChat.id);
+                            } else {
+                                // Criar um novo chat se não existir
+                                iniciarCompra(userUid, otherUserUid, produto);
+                            }
+                        } catch (error) {
+                            console.error("Erro ao verificar ou iniciar o chat:", error);
+                        }
                     };
+
                     orderCard.appendChild(chatButton);
 
                     ordersContainer.appendChild(orderCard);

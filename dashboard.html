@@ -2177,12 +2177,12 @@
                 const storyContainer = document.getElementById("storyContainer");
                 storyContainer.innerHTML = ""; // Limpar container
 
-                // Adicionar o botão de criar Story
-                const currentUserUid = auth.currentUser.uid; // Substitua pela lógica correta para obter o UID do usuário atual
-                const currentUserPhotoURL = auth.currentUser.photoURL; // Substitua pela lógica correta para obter o photoURL
-                createStoryForm(currentUserUid, currentUserPhotoURL);
+                // Adicionar o botão de criar Story primeiro antes de exibir os stories
+                const currentUserUid = auth.currentUser.uid; // Obter o UID do usuário atual
+                const currentUserPhotoURL = auth.currentUser.photoURL; // Obter a URL da foto do usuário
+                await createStoryForm(currentUserUid, currentUserPhotoURL); // Cria o botão de novo story
 
-                // Adicionar stories
+                // Adicionar stories após o botão de criar Story
                 storiesSnapshot.forEach((doc) => {
                     const story = doc.data();
 

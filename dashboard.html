@@ -1676,7 +1676,7 @@
             <div id="cityFeedback" class="city-feedback"></div>
             <div id="storyContainer" style="display: flex; overflow-x: scroll;"></div>
             <div id="storyModal"
-                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
+                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 9000;">
                 <div id="storyModalContent"
                     style="margin: auto; position: relative; top: 50%; transform: translateY(-50%); max-width: 90%;">
                 </div>
@@ -2147,16 +2147,20 @@
                 const filePath = `stories/${userUid}/${timestamp}-${file.name}`;
                 const fileRef = ref(storage, filePath);
 
-                // Fazer upload da imagem ou vídeo
+                // Fazer upload do arquivo
                 await uploadBytes(fileRef, file);
                 const fileURL = await getDownloadURL(fileRef);
+
+                // Detectar o tipo de arquivo (imagem ou vídeo)
+                const isVideo = file.type.startsWith("video");
 
                 // Salvar no Firestore
                 await addDoc(storyRef, {
                     userUid,
                     timestamp,
                     fileURL,
-                    expiresAt: timestamp + 24 * 60 * 60 * 1000 // Expiração em 24 horas
+                    expiresAt: timestamp + 24 * 60 * 60 * 1000, // Expira em 24 horas
+                    isVideo, // Adiciona essa informação ao Firestore
                 });
 
                 alert("Story publicado com sucesso!");
@@ -2177,12 +2181,12 @@
                 const storyContainer = document.getElementById("storyContainer");
                 storyContainer.innerHTML = ""; // Limpar container
 
-                // Adicionar o botão de criar Story primeiro antes de exibir os stories
-                const currentUserUid = auth.currentUser.uid; // Obter o UID do usuário atual
-                const currentUserPhotoURL = auth.currentUser.photoURL; // Obter a URL da foto do usuário
-                await createStoryForm(currentUserUid, currentUserPhotoURL); // Cria o botão de novo story
+                // Adicionar botão de criar Story
+                const currentUserUid = auth.currentUser.uid;
+                const currentUserPhotoURL = auth.currentUser.photoURL;
+                await createStoryForm(currentUserUid, currentUserPhotoURL);
 
-                // Adicionar stories após o botão de criar Story
+                // Renderizar stories
                 storiesSnapshot.forEach((doc) => {
                     const story = doc.data();
 
@@ -2194,18 +2198,38 @@
                 cursor: pointer;
             `;
 
-                    const storyImage = document.createElement("img");
-                    storyImage.src = story.fileURL;
-                    storyImage.alt = "Story";
-                    storyImage.style.cssText = `
-                width: 60px;
-                height: 60px;
-                border-radius: 50%;
-                border: 2px solid #ffc107;
-            `;
-                    storyItem.appendChild(storyImage);
+                    if (story.isVideo) {
+                        // Miniatura do vídeo
+                        const videoThumbnail = document.createElement("video");
+                        videoThumbnail.src = story.fileURL;
+                        videoThumbnail.alt = "Story Video";
+                        videoThumbnail.style.cssText = `
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 50%;
+                    border: 2px solid #ffc107;
+                `;
+                        videoThumbnail.muted = true;
+                        videoThumbnail.autoplay = false;
+                        videoThumbnail.controls = false;
+                        videoThumbnail.loop = false;
 
-                    storyItem.onclick = () => viewStory(story.fileURL);
+                        storyItem.appendChild(videoThumbnail);
+                    } else {
+                        // Imagem
+                        const storyImage = document.createElement("img");
+                        storyImage.src = story.fileURL;
+                        storyImage.alt = "Story";
+                        storyImage.style.cssText = `
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 50%;
+                    border: 2px solid #ffc107;
+                `;
+                        storyItem.appendChild(storyImage);
+                    }
+
+                    storyItem.onclick = () => viewStory(story.fileURL, story.isVideo);
                     storyContainer.appendChild(storyItem);
                 });
             } catch (error) {
@@ -2214,11 +2238,21 @@
             }
         }
 
-        function viewStory(fileURL) {
+        function viewStory(fileURL, isVideo) {
             const modal = document.getElementById("storyModal");
             const modalContent = document.getElementById("storyModalContent");
 
-            modalContent.innerHTML = `<img src="${fileURL}" style="width: 100%; height: auto;">`;
+            if (isVideo) {
+                modalContent.innerHTML = `
+            <video controls autoplay style="width: 100%; height: auto;">
+                <source src="${fileURL}" type="video/mp4">
+                Seu navegador não suporta vídeos.
+            </video>
+        `;
+            } else {
+                modalContent.innerHTML = `<img src="${fileURL}" style="width: 100%; height: auto;">`;
+            }
+
             modal.style.display = "block";
 
             modal.onclick = () => {

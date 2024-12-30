@@ -1674,7 +1674,7 @@
                 <i class="fas fa-map-marker-alt"></i> Localizar minha cidade
             </button>
             <div id="cityFeedback" class="city-feedback"></div>
-            <div id="storyContainer" style="display: flex; overflow-x: scroll;"></div>
+            <div id="storyContainer" style="display: none; overflow-x: scroll;"></div>
             <div id="storyModal"
                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 9000;">
                 <div id="storyModalContent"
@@ -1907,7 +1907,6 @@
                 updateOrdersCounter();
                 displayFinancialHistory(user.uid);
                 createStoryForm(user.uid);
-                displayStories();
                 const userId = user.uid;
             } else {
                 window.location.href = "login.html"
@@ -1939,7 +1938,7 @@
         // Variável global para armazenar a cidade atual
         let cidadeAtual = '';
 
-        // Função para capturar a localização e armazenar a cidade atual
+        // Função para capturar a localização e armazenar a cidade atual para filtrar os pots e os stories
         window.capturarLocalizacao = function () {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async function (position) {
@@ -1951,6 +1950,12 @@
 
                     if (cidadeAtual) {
                         console.log(`Localização capturada: Latitude ${latitude}, Longitude ${longitude}, Cidade: ${cidadeAtual}`);
+
+                        // Exibir os stories e o botão de adicionar stories
+                        document.getElementById("storyContainer").style.display = "flex";
+
+                        // Chamar a função displayStories com a cidade capturada
+                        displayStories(cidadeAtual);
 
                         // Mostra o feedback da cidade na tela
                         document.getElementById("cityFeedback").textContent = `Exibindo resultados para: ${cidadeAtual}`;
@@ -2001,7 +2006,48 @@
             });
         }
 
-        function openStoryModal(userUid) {
+        let cidadeSelecionada = null;
+
+        // Função que inicializa o Autocomplete para o campo de story
+        function initAutocompleteStory() {
+            try {
+                if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.places === 'undefined') {
+                    throw new Error("API do Google Maps não carregada corretamente.");
+                }
+
+                const inputLocalizacaoStory = document.getElementById("inputLocalizacaoStory"); // Usando o novo ID
+
+                // Inicializa o autocomplete para o campo específico do modal
+                const autocomplete = new google.maps.places.Autocomplete(inputLocalizacaoStory, {
+                    types: ['geocode'],
+                    componentRestrictions: { country: "br" }
+                });
+
+                autocomplete.addListener('place_changed', function () {
+                    currentPlace = autocomplete.getPlace(); // Atualiza a variável global com o local selecionado
+                    if (!currentPlace.geometry) {
+                        alert("Por favor, selecione um endereço válido da lista de sugestões.");
+                        return;
+                    }
+
+                    // Captura a cidade do endereço
+                    cidadeSelecionada = currentPlace.address_components.find(component =>
+                        component.types.includes("administrative_area_level_2")
+                    )?.long_name || "Cidade não identificada";
+
+                    console.log("Cidade selecionada:", cidadeSelecionada);
+                    console.log("Endereço:", currentPlace.formatted_address);
+                    console.log("Latitude:", currentPlace.geometry.location.lat());
+                    console.log("Longitude:", currentPlace.geometry.location.lng());
+                });
+            } catch (error) {
+                console.error("Erro ao inicializar Autocomplete:", error);
+                alert("Ocorreu um erro ao carregar o Google Maps. A página será recarregada.");
+                window.location.reload(); // Recarrega a página se a API do Google Maps não for carregada
+            }
+        }
+
+        async function openStoryModal(userUid) {
             // Criar ou mostrar o modal de upload
             const modal = document.createElement("div");
             modal.id = "uploadStoryModal";
@@ -2045,17 +2091,6 @@
         cursor: pointer;
     `;
 
-            uploadButton.onclick = async () => {
-                if (fileInput.files.length === 0) {
-                    alert("Por favor, selecione um arquivo para publicar.");
-                    return;
-                }
-                const file = fileInput.files[0];
-                await saveStory(userUid, file);
-                modal.remove();
-                displayStories(); // Atualizar os stories exibidos
-            };
-
             const closeButton = document.createElement("button");
             closeButton.textContent = "Cancelar";
             closeButton.style.cssText = `
@@ -2072,12 +2107,42 @@
                 modal.remove();
             };
 
+            // Adicionar o campo de localização
+            const locationInput = document.createElement("input");
+            locationInput.id = "inputLocalizacaoStory";  // Novo ID único para o input de localização no modal
+            locationInput.type = "text";
+            locationInput.placeholder = "Digite sua localização...";
+            locationInput.style.marginBottom = "10px";
+            modalContent.appendChild(locationInput);
+
             modalContent.appendChild(fileInput);
             modalContent.appendChild(document.createElement("br"));
             modalContent.appendChild(uploadButton);
             modalContent.appendChild(closeButton);
             modal.appendChild(modalContent);
             document.body.appendChild(modal);
+
+            // Chama a função de publicação do story
+            uploadButton.onclick = async () => {
+                if (fileInput.files.length === 0) {
+                    alert("Por favor, selecione um arquivo para publicar.");
+                    return;
+                }
+
+                if (!cidadeSelecionada) {
+                    alert("Por favor, selecione uma cidade antes de continuar.");
+                    return;
+                }
+
+                displayStories(cidadeSelecionada);
+
+                const file = fileInput.files[0];
+                await saveStory(userUid, file);
+                modal.remove();
+            };
+
+            // Inicializa o Autocomplete do Google Maps para o campo do modal
+            initAutocompleteStory(); // Função específica para o campo de localização do modal
         }
 
         async function createStoryForm(userUid, photoURL) {
@@ -2100,9 +2165,10 @@
 
             // Botão para criar story
             const addStory = document.createElement("div");
+            addStory.id = "addStoryButton";
             addStory.style.cssText = `
         position: relative;
-        display: inline-block;
+        display: none;
         margin: 10px;
         cursor: pointer;
     `;
@@ -2138,10 +2204,17 @@
 
             addStory.onclick = () => openStoryModal(userUid);
             storyContainer.appendChild(addStory);
+
+            checkUserRole();
         }
 
         async function saveStory(userUid, file) {
             try {
+                if (!cidadeSelecionada) {
+                    alert("Por favor, selecione uma localização válida antes de publicar.");
+                    return;
+                }
+
                 const storyRef = collection(db, "stories");
                 const timestamp = Date.now();
                 const filePath = `stories/${userUid}/${timestamp}-${file.name}`;
@@ -2154,11 +2227,12 @@
                 // Detectar o tipo de arquivo (imagem ou vídeo)
                 const isVideo = file.type.startsWith("video");
 
-                // Salvar no Firestore
+                // Salvar no Firestore, incluindo a cidade
                 await addDoc(storyRef, {
                     userUid,
                     timestamp,
                     fileURL,
+                    cidade: cidadeSelecionada, // Salva a cidade capturada
                     expiresAt: timestamp + 24 * 60 * 60 * 1000, // Expira em 24 horas
                     isVideo, // Adiciona essa informação ao Firestore
                 });
@@ -2170,12 +2244,24 @@
             }
         }
 
-        async function displayStories() {
+        async function displayStories(cidade) {
             try {
+                // Verifique se a cidade foi passada corretamente
+                if (!cidade) {
+                    throw new Error("A cidade não foi especificada.");
+                }
+
                 const storyRef = collection(db, "stories");
                 const now = Date.now();
+
+                // Consulta para obter os stories válidos para a cidade
                 const storiesSnapshot = await getDocs(
-                    query(storyRef, where("expiresAt", ">", now), orderBy("timestamp", "desc"))
+                    query(
+                        storyRef,
+                        where("expiresAt", ">", now),
+                        where("cidade", "==", cidade),
+                        orderBy("timestamp", "desc")
+                    )
                 );
 
                 const storyContainer = document.getElementById("storyContainer");
@@ -2234,7 +2320,7 @@
                 });
             } catch (error) {
                 console.error("Erro ao exibir stories:", error);
-                alert("Não foi possível carregar os stories.");
+                alert("Não foi possível carregar os stories. Verifique se a cidade está correta.");
             }
         }
 
@@ -2284,9 +2370,9 @@
             }
         }
 
-        // Inicializando o Autocomplete da API do Google Maps no campo de localização
         let currentPlace = null; // Variável global para armazenar o lugar selecionado
 
+        // Inicializando o Autocomplete da API do Google Maps no campo de localização
         function initAutocomplete() {
             try {
                 if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.places === 'undefined') {
@@ -2421,6 +2507,12 @@
                     document.getElementById("formPublicacao").style.display = "block";
                     document.getElementById("financeTab").style.display = "block";
                     document.getElementById("ProdutorTab").style.display = "block";
+
+                    // Torna o botão de criar stories visível
+                    const addStoryButton = document.getElementById("addStoryButton");
+                    if (addStoryButton) {
+                        addStoryButton.style.display = "inline-block"; // Torna o botão visível
+                    }
                 } else {
                     document.getElementById("avisoNaoProdutor").style.display = "block";
                 }

@@ -3807,8 +3807,8 @@
                 </div>
             </div>
             <div style="text-align: center; font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px;">
-                <p>Total Bruto: <span id="totalBruto" style="color: #4caf50;">R$ 0,00</span></p>
-                <p>Comissão: <span id="totalComissao" style="color: #e53935;">R$ 0,00</span></p>
+                <p id="totalBrutoWrapper">Total Bruto: <span id="totalBruto" style="color: #4caf50;">R$ 0,00</span></p>
+                <p id="totalComissaoWrapper">Comissão: <span id="totalComissao" style="color: #e53935;">R$ 0,00</span></p>
                 <p id="totalLiquidoWrapper" style="display: none;">Total Líquido: <span id="totalLiquido" style="color: #2196f3;">R$ 0,00</span></p>
             </div>
             <div style="display: flex; justify-content: space-around; margin-bottom: 20px; flex-wrap: wrap;">
@@ -3922,11 +3922,19 @@
                 document.getElementById("toggleBalance").addEventListener("click", () => {
                     const balance = document.getElementById("balance");
                     const eyeIcon = document.getElementById("eyeIcon");
+
+                    const totalBrutoWrapper = document.getElementById("totalBrutoWrapper");
+                    const totalComissaoWrapper = document.getElementById("totalComissaoWrapper");
+
                     if (balance.textContent.includes("*****")) {
                         balance.textContent = document.getElementById("totalLiquido").textContent;
+                        totalBrutoWrapper.style.display = "block"; // Exibir Total Bruto
+                        totalComissaoWrapper.style.display = "block"; // Exibir Comissão
                         eyeIcon.className = "fas fa-eye-slash";
                     } else {
                         balance.textContent = "R$ *****";
+                        totalBrutoWrapper.style.display = "none"; // Ocultar Total Bruto
+                        totalComissaoWrapper.style.display = "none"; // Ocultar Comissão
                         eyeIcon.className = "fas fa-eye";
                     }
                 });

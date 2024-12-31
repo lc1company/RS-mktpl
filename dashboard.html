@@ -3776,12 +3776,11 @@
             const userUid = auth.currentUser.uid;
 
             try {
-                // Buscar pedidos do prestador com status "concluído"
                 const sellerOrdersSnapshot = await getDocs(
                     query(
                         collection(db, "agendamentos"),
                         where("sellerUid", "==", userUid),
-                        where("status", "==", "concluido") // Apenas pedidos concluídos
+                        where("status", "==", "concluido")
                     )
                 );
 
@@ -3791,30 +3790,93 @@
                     orders.push(order);
                 });
 
-                // Atualizar a interface
                 const financialContainer = document.getElementById("financialContainer");
                 financialContainer.innerHTML = `
-            <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9fafc; border-radius: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);">
-                <h2 style="color: #333; margin-bottom: 20px; text-align: center; font-size: 24px; font-weight: bold;">
-                    <i style="color: #4caf50;" class="fas fa-wallet"></i> Resumo Financeiro
-                </h2>
-                <div style="display: flex; justify-content: space-around; margin-bottom: 20px; flex-wrap: wrap;">
-                    <button id="filterToday" style="padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer;">Hoje</button>
-                    <button id="filterWeek" style="padding: 10px 20px; background: #2196f3; color: white; border: none; border-radius: 8px; cursor: pointer;">Semanal</button>
-                    <button id="filterMonth" style="padding: 10px 20px; background: #fbc02d; color: white; border: none; border-radius: 8px; cursor: pointer;">Mensal</button>
-                    <input type="date" id="startDate" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px;" />
-                    <input type="date" id="endDate" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px;" />
-                    <button id="filterCustom" style="padding: 10px 20px; background: #e91e63; color: white; border: none; border-radius: 8px; cursor: pointer;">Filtrar</button>
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; border-radius: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <h2 style="color: #333; font-size: 20px; font-weight: bold;">
+                        <i style="color: #4caf50;" class="fas fa-wallet"></i> Total Líquido
+                    </h2>
                 </div>
-                <div id="orderList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; background: #fff; border-radius: 8px;">
-                    <!-- Lista de pedidos será renderizada aqui -->
-                </div>
-                <div style="text-align: center; font-size: 18px; font-weight: bold; color: #333; margin-top: 20px;">
-                    <p>Total Bruto: <span id="totalBruto" style="color: #4caf50;">R$ 0.00</span></p>
-                    <p>Total Líquido (80%): <span id="totalLiquido" style="color: #2196f3;">R$ 0.00</span></p>
+                <div style="position: relative;">
+                    <span id="toggleBalance" style="cursor: pointer; font-size: 18px; color: #888;">
+                        <i id="eyeIcon" class="fas fa-eye"></i>
+                    </span>
+                    <span id="balance" style="font-size: 24px; font-weight: bold; color: #4caf50; margin-left: 10px;">R$ *****,**</span>
                 </div>
             </div>
-        `;
+            <div style="text-align: center; font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px;">
+                <p>Total Bruto: <span id="totalBruto" style="color: #4caf50;">R$ 0,00</span></p>
+                <p>Comissão: <span id="totalComissao" style="color: #e53935;">R$ 0,00</span></p>
+                <p id="totalLiquidoWrapper" style="display: none;">Total Líquido: <span id="totalLiquido" style="color: #2196f3;">R$ 0,00</span></p>
+            </div>
+            <div style="display: flex; justify-content: space-around; margin-bottom: 20px; flex-wrap: wrap;">
+                <button id="filterToday" style="padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer;">Hoje</button>
+                <button id="filterWeek" style="padding: 10px 20px; background: #2196f3; color: white; border: none; border-radius: 8px; cursor: pointer;">Semanal</button>
+                <button id="filterMonth" style="padding: 10px 20px; background: #fbc02d; color: white; border: none; border-radius: 8px; cursor: pointer;">Mensal</button>
+                <input type="date" id="startDate" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px;" />
+                <input type="date" id="endDate" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px;" />
+                <button id="filterCustom" style="padding: 10px 20px; background: #e91e63; color: white; border: none; border-radius: 8px; cursor: pointer;">Filtrar</button>
+            </div>
+            <div id="orderList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; background: #fff; border-radius: 8px;">
+                <!-- Lista de pedidos será renderizada aqui -->
+            </div>
+        </div>
+    `;
+
+                const formatCurrency = (value) => {
+                    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+                };
+
+                const updateBalances = (filteredOrders) => {
+                    let totalBruto = 0;
+                    filteredOrders.forEach(order => {
+                        totalBruto += parseFloat(order.preco || 0);
+                    });
+                    const totalComissao = totalBruto * 0.2;
+                    const totalLiquido = totalBruto - totalComissao;
+
+                    document.getElementById("totalBruto").textContent = formatCurrency(totalBruto);
+                    document.getElementById("totalComissao").textContent = formatCurrency(totalComissao);
+                    document.getElementById("totalLiquido").textContent = formatCurrency(totalLiquido);
+                    document.getElementById("balance").textContent = formatCurrency(totalLiquido);
+                };
+
+                const renderOrders = (filteredOrders) => {
+                    const orderList = document.getElementById("orderList");
+                    orderList.innerHTML = "";
+                    if (filteredOrders.length === 0) {
+                        orderList.innerHTML = `<p style="text-align: center; color: #888;">Nenhum pedido concluído encontrado.</p>`;
+                    } else {
+                        filteredOrders.forEach(order => {
+                            const value = parseFloat(order.preco || 0);
+                            const comissao = value * 0.2;
+                            const orderTime = dayjs(order.completedAt.toDate()).format('DD/MM/YYYY HH:mm');
+
+                            const orderItem = document.createElement("div");
+                            orderItem.style.padding = "15px";
+                            orderItem.style.borderBottom = "1px solid #ddd";
+                            orderItem.style.display = "flex";
+                            orderItem.style.justifyContent = "space-between";
+                            orderItem.style.alignItems = "center";
+
+                            orderItem.innerHTML = `
+                        <div style="display: flex; align-items: center;">
+                            <i class="fas fa-money-bill-wave" style="font-size: 20px; color: #4caf50; margin-right: 10px;"></i>
+                            <span style="font-size: 16px; color: #333;">Entrada</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 16px; font-weight: bold; color: #4caf50;">+${formatCurrency(value)}</span>
+                            <div style="font-size: 14px; color: #e53935;">Comissão: -${formatCurrency(comissao)}</div>
+                            <div style="font-size: 14px; color: #888;">Data: ${orderTime}</div>
+                        </div>
+                    `;
+                            orderList.appendChild(orderItem);
+                        });
+                    }
+                    updateBalances(filteredOrders);
+                };
 
                 // Carregar o plugin isBetween
                 dayjs.extend(dayjs_plugin_isBetween);
@@ -3832,51 +3894,6 @@
                     renderOrders(filteredOrders);
                 };
 
-                // Alterar o formato da data e hora no `renderOrders`:
-                const renderOrders = (filteredOrders = orders) => {
-                    const orderList = document.getElementById("orderList");
-                    let totalBruto = 0;
-
-                    orderList.innerHTML = "";
-                    if (filteredOrders.length === 0) {
-                        orderList.innerHTML = `<p style="text-align: center; color: #888;">Nenhum pedido concluído encontrado.</p>`;
-                    } else {
-                        filteredOrders.forEach((order) => {
-                            const value = parseFloat(order.preco || 0);
-                            totalBruto += value;
-
-                            const orderItem = document.createElement("div");
-                            orderItem.style.padding = "15px";
-                            orderItem.style.borderBottom = "1px solid #ddd";
-                            orderItem.style.display = "flex";
-                            orderItem.style.justifyContent = "space-between";
-                            orderItem.style.alignItems = "center";
-                            orderItem.style.backgroundColor = "#f6f9fc";
-                            orderItem.style.borderRadius = "6px";
-                            orderItem.style.marginBottom = "10px";
-
-                            const orderTime = dayjs(order.completedAt).format('DD/MM/YYYY HH:mm'); // Exibir data e hora
-
-                            orderItem.innerHTML = `
-                <div style="display: flex; align-items: center;">
-                    <i class="fas fa-money-bill-wave" style="font-size: 20px; color: #4caf50; margin-right: 10px;"></i>
-                    <span style="font-size: 16px; color: #333;">Entrada</span>
-                </div>
-                <div style="text-align: right;">
-                    <span style="font-size: 16px; font-weight: bold; color: #4caf50;">+R$ ${value.toFixed(2)}</span>
-                    <div style="font-size: 14px; color: #888;">Data: ${dayjs(order.completedAt.toDate()).format('DD/MM/YYYY HH:mm')}</div>
-                </div>
-            `;
-                            orderList.appendChild(orderItem);
-                        });
-                    }
-
-                    const totalLiquido = totalBruto * 0.8; // 80% do total bruto
-                    document.getElementById("totalBruto").textContent = `R$ ${totalBruto.toFixed(2)}`;
-                    document.getElementById("totalLiquido").textContent = `R$ ${totalLiquido.toFixed(2)}`;
-                };
-
-                // Adicionar eventos nos filtros
                 document.getElementById("filterToday").addEventListener("click", () => {
                     const today = dayjs().startOf('day');
                     filterOrders(today, today.endOf('day'));
@@ -3896,14 +3913,25 @@
                     const startDate = dayjs(document.getElementById("startDate").value);
                     const endDate = dayjs(document.getElementById("endDate").value);
                     if (startDate.isValid() && endDate.isValid()) {
-                        filterOrders(startDate.startOf('day'), endDate.endOf('day')); // Certifique-se de incluir o final do dia
+                        filterOrders(startDate.startOf('day'), endDate.endOf('day'));
                     } else {
-                        alert("Selecione as datas de início e fim.");
+                        alert("Selecione datas válidas.");
                     }
                 });
 
-                // Exibir todos os pedidos concluídos inicialmente
-                renderOrders();
+                document.getElementById("toggleBalance").addEventListener("click", () => {
+                    const balance = document.getElementById("balance");
+                    const eyeIcon = document.getElementById("eyeIcon");
+                    if (balance.textContent.includes("*****")) {
+                        balance.textContent = document.getElementById("totalLiquido").textContent;
+                        eyeIcon.className = "fas fa-eye-slash";
+                    } else {
+                        balance.textContent = "R$ *****";
+                        eyeIcon.className = "fas fa-eye";
+                    }
+                });
+
+                renderOrders(orders);
             } catch (error) {
                 console.error("Erro ao carregar histórico financeiro:", error);
                 alert("Erro ao carregar histórico financeiro.");

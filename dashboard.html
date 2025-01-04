@@ -10,6 +10,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.8/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.7/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs/plugin/isBetween.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
     <title>HelpiFy</title>
 
     <style>
@@ -1908,6 +1911,10 @@
                 displayFinancialHistory(user.uid);
                 createStoryForm(user.uid);
                 const userId = user.uid;
+                const userDocRef = doc(db, "users", user.uid);
+                updateDoc(userDocRef, {
+                    lastActive: serverTimestamp(),
+                });
             } else {
                 window.location.href = "login.html"
                 console.log("Usuário não autenticado.");
@@ -3822,6 +3829,11 @@
             <div id="orderList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; background: #fff; border-radius: 8px;">
                 <!-- Lista de pedidos será renderizada aqui -->
             </div>
+
+            <button id="downloadPDF" style="padding: 10px 20px; background: #3f51b5; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+                Baixar PDF
+            </button>
+
         </div>
     `;
 
@@ -3894,6 +3906,16 @@
                     renderOrders(filteredOrders);
                 };
 
+                const downloadButton = document.getElementById("downloadPDF");
+
+                if (downloadButton) {
+                    downloadButton.addEventListener("click", () => {
+                        generateFinancialReportPDF(orders);
+                    });
+                } else {
+                    console.error("Botão 'downloadPDF' não encontrado no DOM.");
+                }
+
                 document.getElementById("filterToday").addEventListener("click", () => {
                     const today = dayjs().startOf('day');
                     filterOrders(today, today.endOf('day'));
@@ -3944,6 +3966,69 @@
                 console.error("Erro ao carregar histórico financeiro:", error);
                 alert("Erro ao carregar histórico financeiro.");
             }
+        }
+
+        function generateFinancialReportPDF(orders) {
+            const { jsPDF } = window.jspdf;
+
+            const doc = new jsPDF();
+            const headers = ["Data", "Descrição", "Valor Bruto", "Comissão (20%)", "Valor Líquido"];
+            const rows = orders.map(order => {
+                const value = parseFloat(order.preco || 0);
+                const comissao = value * 0.2;
+                const liquido = value - comissao;
+                const date = dayjs(order.completedAt.toDate()).format('DD/MM/YYYY HH:mm');
+                return [
+                    date,
+                    "Serviço concluído",
+                    formatCurrency(value),
+                    formatCurrency(comissao),
+                    formatCurrency(liquido)
+                ];
+            });
+
+            // Adiciona os totais ao final do relatório
+            const totalBruto = orders.reduce((sum, order) => sum + parseFloat(order.preco || 0), 0);
+            const totalComissao = totalBruto * 0.2;
+            const totalLiquido = totalBruto - totalComissao;
+
+            rows.push([], ["Totais", "", formatCurrency(totalBruto), formatCurrency(totalComissao), formatCurrency(totalLiquido)]);
+
+            // Configurações do título e estilo
+            doc.setFontSize(18);
+            doc.text("Relatório Financeiro", 14, 20);
+            doc.setFontSize(12);
+            doc.text(`Gerado em: ${dayjs().format("DD/MM/YYYY HH:mm")}`, 14, 30);
+
+            // Tabela
+            doc.autoTable({
+                head: [headers],
+                body: rows,
+                startY: 40,
+                styles: {
+                    halign: 'right',
+                    fontSize: 10,
+                },
+                columnStyles: {
+                    0: { halign: 'left' }, // Data alinhada à esquerda
+                    1: { halign: 'left' }  // Descrição alinhada à esquerda
+                }
+            });
+
+            // Adiciona um rodapé
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(10);
+                doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+            }
+
+            // Baixa o PDF
+            doc.save("relatorio_financeiro.pdf");
+        }
+
+        function formatCurrency(value) {
+            return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
 
         function showDetalhesAnuncio(data) {

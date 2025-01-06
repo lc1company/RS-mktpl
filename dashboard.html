@@ -1150,6 +1150,7 @@
             /* Necessário para o efeito de hover */
             overflow: hidden;
             /* Para o efeito de hover não ultrapassar o botão */
+            margin-top: 5%;
         }
 
         /* Ícone no Botão */
@@ -1672,7 +1673,6 @@
         </div>
 
         <div id="timeline" class="tab-content active">
-            <h2>Linha do Tempo</h2>
             <button onclick="capturarLocalizacao()" class="modern-button">
                 <i class="fas fa-map-marker-alt"></i> Localizar minha cidade
             </button>
@@ -1897,26 +1897,42 @@
         const user = auth.currentUser;
 
         // Verificar se o usuário está autenticado
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Se estiver autenticado, obter informações do usuário
-                getUserInfo(user.uid);
-                getUserTimeline(user.uid);
+                const userId = user.uid;
+
+                // Executar todas as funções necessárias
+                getUserInfo(userId);
+                getUserTimeline(userId);
                 getAllUserTimeline();
-                exibirPerfilUsuario(user.uid);
+                exibirPerfilUsuario(userId);
                 checkUserRole();
-                monitorChats(user.uid);
+                monitorChats(userId);
                 restoreNotificationCounter();
                 updateOrdersCounter();
-                displayFinancialHistory(user.uid);
-                createStoryForm(user.uid);
-                const userId = user.uid;
-                const userDocRef = doc(db, "users", user.uid);
-                updateDoc(userDocRef, {
+                displayFinancialHistory(userId);
+                createStoryForm(userId);
+
+                // Atualizar a última atividade do usuário
+                const userDocRef = doc(db, "users", userId);
+                await updateDoc(userDocRef, {
                     lastActive: serverTimestamp(),
                 });
+
+                // Recuperar a lista de pedidos
+                const orders = await fetchOrdersForUser(userId); // Busca os pedidos do usuário
+
+                // Configurar o evento de clique no botão para gerar o relatório
+                const downloadButton = document.getElementById("downloadPDF");
+                if (downloadButton) {
+                    downloadButton.addEventListener("click", () => {
+                        generateFinancialReportPDF(orders, userId);
+                    });
+                } else {
+                    console.error("Botão 'downloadPDF' não encontrado no DOM.");
+                }
             } else {
-                window.location.href = "login.html"
+                window.location.href = "login.html";
                 console.log("Usuário não autenticado.");
             }
         });
@@ -3910,7 +3926,7 @@
 
                 if (downloadButton) {
                     downloadButton.addEventListener("click", () => {
-                        generateFinancialReportPDF(orders);
+                        generateFinancialReportPDF(orders, userUid);
                     });
                 } else {
                     console.error("Botão 'downloadPDF' não encontrado no DOM.");
@@ -3968,12 +3984,31 @@
             }
         }
 
-        function generateFinancialReportPDF(orders) {
+        async function generateFinancialReportPDF(orders, userId) {
             const { jsPDF } = window.jspdf;
 
-            const doc = new jsPDF();
+            // Obtém o nome completo do usuário da coleção "users"
+            const userDocRef = doc(db, "users", userId); // 'doc' do Firestore
+            const userDocSnap = await getDoc(userDocRef);
+            const userName = userDocSnap.exists() ? userDocSnap.data().fullName : "Usuário Desconhecido";
+
+            // Filtra apenas os pedidos da última semana (domingo a sábado)
+            const now = dayjs();
+            const startOfWeek = now.startOf('week');
+            const endOfWeek = now.endOf('week');
+            const weeklyOrders = orders.filter(order => {
+                const orderDate = dayjs(order.completedAt.toDate());
+                return orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
+            });
+
+            if (weeklyOrders.length === 0) {
+                return; // Sai da função se não houver dados
+            }
+
+            // Configurações do relatório
+            const pdfDoc = new jsPDF();
             const headers = ["Data", "Descrição", "Valor Bruto", "Comissão (20%)", "Valor Líquido"];
-            const rows = orders.map(order => {
+            const rows = weeklyOrders.map(order => {
                 const value = parseFloat(order.preco || 0);
                 const comissao = value * 0.2;
                 const liquido = value - comissao;
@@ -3987,24 +4022,26 @@
                 ];
             });
 
-            // Adiciona os totais ao final do relatório
-            const totalBruto = orders.reduce((sum, order) => sum + parseFloat(order.preco || 0), 0);
+            // Calcula os totais
+            const totalBruto = weeklyOrders.reduce((sum, order) => sum + parseFloat(order.preco || 0), 0);
             const totalComissao = totalBruto * 0.2;
             const totalLiquido = totalBruto - totalComissao;
 
             rows.push([], ["Totais", "", formatCurrency(totalBruto), formatCurrency(totalComissao), formatCurrency(totalLiquido)]);
 
-            // Configurações do título e estilo
-            doc.setFontSize(18);
-            doc.text("Relatório Financeiro", 14, 20);
-            doc.setFontSize(12);
-            doc.text(`Gerado em: ${dayjs().format("DD/MM/YYYY HH:mm")}`, 14, 30);
+            // Adiciona título e intervalo de datas da semana
+            const reportTitle = `Relatório Financeiro - Semana de ${startOfWeek.format("DD/MM/YYYY")} a ${endOfWeek.format("DD/MM/YYYY")}`;
+            pdfDoc.setFontSize(18);
+            pdfDoc.text(reportTitle, 14, 20);
+            pdfDoc.setFontSize(12);
+            pdfDoc.text(`Nome do Usuário: ${userName}`, 14, 30);
+            pdfDoc.text(`Gerado em: ${now.format("DD/MM/YYYY HH:mm")}`, 14, 36);
 
             // Tabela
-            doc.autoTable({
+            pdfDoc.autoTable({
                 head: [headers],
                 body: rows,
-                startY: 40,
+                startY: 50,
                 styles: {
                     halign: 'right',
                     fontSize: 10,
@@ -4016,19 +4053,33 @@
             });
 
             // Adiciona um rodapé
-            const pageCount = doc.internal.getNumberOfPages();
+            const pageCount = pdfDoc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(10);
-                doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+                pdfDoc.setPage(i);
+                pdfDoc.setFontSize(10);
+                pdfDoc.text(`Página ${i} de ${pageCount}`, pdfDoc.internal.pageSize.width / 2, pdfDoc.internal.pageSize.height - 10, { align: 'center' });
             }
 
-            // Baixa o PDF
-            doc.save("relatorio_financeiro.pdf");
+            // Baixa o PDF com o nome da semana no arquivo
+            pdfDoc.save(`relatorio_financeiro_${startOfWeek.format("YYYYMMDD")}_a_${endOfWeek.format("YYYYMMDD")}.pdf`);
         }
 
         function formatCurrency(value) {
             return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        //Função para buscar pedidos do usuario para o relatorio financeiro
+        async function fetchOrdersForUser(userId) {
+            const ordersRef = collection(db, "orders");
+            const q = query(ordersRef, where("userId", "==", userId), orderBy("completedAt", "desc"));
+            const querySnapshot = await getDocs(q);
+
+            const orders = [];
+            querySnapshot.forEach((doc) => {
+                orders.push({ ...doc.data(), id: doc.id });
+            });
+
+            return orders;
         }
 
         function showDetalhesAnuncio(data) {

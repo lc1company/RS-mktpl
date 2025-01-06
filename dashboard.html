@@ -3091,6 +3091,7 @@
                     comprarButton.style.marginLeft = "10px";
                     comprarButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
                     comprarButton.style.transition = "all 0.3s ease";
+                    comprarButton.style.display = "none";
                     comprarButton.onclick = () => {
                         iniciarCompra(data.userId, auth.currentUser.uid, data);
                         comprarButton.style.transform = "scale(0.95)";
@@ -4103,6 +4104,29 @@
             if (data.imagensAdicionaisUrls) detalhesAnuncio.appendChild(createImageCarousel(data.imagensAdicionaisUrls));
             detalhesAnuncio.appendChild(createDescriptionAndPrice(data.descricao, data.preco));
             detalhesAnuncio.appendChild(createServiceDetails(data.tipoLimpeza, data.duracao));
+
+            // Adiciona o botão de chat
+            const chatButton = document.createElement("button");
+            chatButton.innerHTML = '<i class="fas fa-comment-dots"></i> iniciar Conversa';
+            chatButton.style.backgroundColor = "#e67e22";
+            chatButton.style.border = "none";
+            chatButton.style.color = "#fff";
+            chatButton.style.padding = "10px 16px";
+            chatButton.style.borderRadius = "6px";
+            chatButton.style.cursor = "pointer";
+            chatButton.style.fontSize = "16px";
+            chatButton.style.marginTop = "20px";
+            chatButton.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+            chatButton.style.transition = "all 0.3s ease";
+            chatButton.style.width = "100%";
+
+            chatButton.onclick = () => {
+                iniciarCompra(data.userId, auth.currentUser.uid, data);
+                chatButton.style.transform = "scale(0.95)";
+                setTimeout(() => chatButton.style.transform = "scale(1)", 100);
+            };
+
+            detalhesAnuncio.appendChild(chatButton);
         }
 
         // Funções auxiliares atualizadas para serviços

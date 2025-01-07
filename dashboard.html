@@ -1797,8 +1797,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="inputMensagem">Nome do local</label>
-                    <input type="text" id="inputMensagem" maxlength="200" placeholder="Nome do local" required>
+                    <label for="inputMensagem">Título</label>
+                    <input type="text" id="inputMensagem" maxlength="200" placeholder="Titulo do anuncio" required>
                 </div>
 
                 <div class="form-group">
@@ -1807,7 +1807,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="inputPreco">Preço do serviço</label>
+                    <label for="inputPreco">Valor do anuncio</label>
                     <input type="number" id="inputPreco" placeholder="Valor em reais R$" step="0.01" required>
                 </div>
 
@@ -1817,22 +1817,27 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="inputTipoLimpeza">Tipo de Limpeza</label>
-                    <select id="inputTipoLimpeza" required>
-                        <option value="" disabled selected>Selecione o tipo de limpeza</option>
-                        <option value="residencial">Limpeza Residencial</option>
-                        <option value="industrial">Limpeza Industrial</option>
-                        <option value="comercial">Limpeza Comercial</option>
-                        <option value="posObra">Limpeza Pós-Obra</option>
+                    <label for="inputTipoServico">Tipo de Serviço</label>
+                    <select id="inputTipoServico" required>
+                        <option value="" disabled selected>Selecione o tipo de serviço</option>
+                        <option value="manicure">Manicure</option>
+                        <option value="pedicure">Pedicure</option>
+                        <option value="manicurePedicure">Manicure & Pedicure</option>
+                        <option value="designerSobrancelhas">Designer de Sobrancelhas</option>
+                        <option value="maquiagem">Maquiagem</option>
+                        <option value="massagem">Massagem</option>
+                        <option value="depilacao">Depilação</option>
+                        <option value="alongamentoCilios">Alongamento de Cílios</option>
+                        <option value="tratamentoCapilar">Tratamento Capilar</option>
+                        <option value="outros">Outros Serviços</option>
                     </select>
-                </div>
 
-                <div class="form-group">
-                    <label for="inputDuracao">Duração do Serviço (horas)</label>
-                    <input type="number" id="inputDuracao" placeholder="Duração em horas" step="0.1" required>
-                </div>
+                    <div class="form-group">
+                        <label for="inputDuracao">Duração do Serviço (horas)</label>
+                        <input type="number" id="inputDuracao" placeholder="Duração em horas" step="0.1" required>
+                    </div>
 
-                <button type="submit">Publicar</button>
+                    <button type="submit">Publicar</button>
             </form>
 
             <div id="avisoNaoProdutor" style="display: none; margin-top: 15%;">
@@ -2442,7 +2447,7 @@
             const precoInput = document.getElementById("inputPreco").value;
             const imagemPrincipal = document.getElementById("inputImagem").files[0];
             const imagensAdicionais = document.getElementById("inputImagensAdicionais").files;
-            const tipoLimpeza = document.getElementById("inputTipoLimpeza").value;
+            const tipoServico = document.getElementById("inputTipoServico").value;
             const localizacao = document.getElementById("inputLocalizacao").value;
             const duracao = document.getElementById("inputDuracao").value;
 
@@ -2486,7 +2491,7 @@
                     imagemUrl: imagemPrincipalUrl,
                     imagensAdicionaisUrls: imagensAdicionaisUrls,
                     localizacao: localizacao,
-                    tipoLimpeza: tipoLimpeza,
+                    tipoServico: tipoServico,
                     duracao: duracao,
                     timestamp: serverTimestamp(),
                     userId: auth.currentUser.uid,
@@ -2499,7 +2504,7 @@
                 document.getElementById("inputImagem").value = "";
                 document.getElementById("inputImagensAdicionais").value = "";
                 document.getElementById("inputLocalizacao").value = "";
-                document.getElementById("inputTipoLimpeza").value = "";
+                document.getElementById("inputTipoServico").value = "";
                 document.getElementById("inputDuracao").value = "";
 
                 location.reload();
@@ -4103,7 +4108,7 @@
             if (data.imagemUrl) detalhesAnuncio.appendChild(createImage(data.imagemUrl));
             if (data.imagensAdicionaisUrls) detalhesAnuncio.appendChild(createImageCarousel(data.imagensAdicionaisUrls));
             detalhesAnuncio.appendChild(createDescriptionAndPrice(data.descricao, data.preco));
-            detalhesAnuncio.appendChild(createServiceDetails(data.tipoLimpeza, data.duracao));
+            detalhesAnuncio.appendChild(createServiceDetails(data.tipoServico, data.duracao));
 
             // Adiciona o botão de chat
             const chatButton = document.createElement("button");
@@ -4131,26 +4136,89 @@
 
         // Funções auxiliares atualizadas para serviços
         function createServiceDetails(servico, duracao) {
+
+            // Normaliza o valor para garantir que está correto
+            servico = servico ? servico.trim().toLowerCase() : 'outros';
+
             const container = document.createElement("div");
-            container.style.marginBottom = "20px";
+            container.style.marginBottom = "25px";
+            container.style.padding = "15px";
+            container.style.border = "1px solid #f0f0f0";
+            container.style.borderRadius = "10px";
+            container.style.boxShadow = "0px 4px 8px rgba(0, 0, 0, 0.1)";
+            container.style.backgroundColor = "#fff";
+            container.style.display = "flex";
+            container.style.alignItems = "center";
+
+            // Ícone do serviço
+            const iconContainer = document.createElement("div");
+            iconContainer.style.marginRight = "15px";
+            const icon = document.createElement("i");
+            icon.style.fontSize = "32px";
+            icon.style.color = "#ff69b4";
+
+            // Verificar e definir o ícone conforme o serviço
+            switch (servico) {
+                case "manicure":
+                    icon.className = "fa fa-hand-sparkles"; // Icone manicure
+                    break;
+                case "pedicure":
+                    icon.className = "fa fa-footprint"; // Icone pedicure
+                    break;
+                case "manicurepedicure":
+                    icon.className = "fa fa-spa"; // Icone manicure e pedicure
+                    break;
+                case "designersobrancelhas":
+                    icon.className = "fa fa-eye"; // Icone sobrancelhas
+                    break;
+                case "maquiagem":
+                    icon.className = "fa fa-paint-brush"; // Icone maquiagem
+                    break;
+                case "massagem":
+                    icon.className = "fa fa-hand-holding-heart"; // Icone massagem
+                    break;
+                case "depilacao":
+                    icon.className = "fa fa-water"; // Icone depilação
+                    break;
+                case "alongamentocilios":
+                    icon.className = "fa fa-eye-slash"; // Icone cílios
+                    break;
+                case "tratamentocapilar":
+                    icon.className = "fa fa-cut"; // Icone tratamento capilar
+                    break;
+                case "outros":
+                    icon.className = "fa fa-star"; // Icone outros
+                    break;
+                default:
+                    icon.className = "fa fa-circle"; // Icone padrão
+            }
+
+            iconContainer.appendChild(icon);
+            container.appendChild(iconContainer);
+
+            // Informações do serviço
+            const infoContainer = document.createElement("div");
 
             const servicoElem = document.createElement("p");
-            servicoElem.innerHTML = `<i class="fa fa-concierge-bell"></i> <strong>Serviço:</strong> ${servico}`;
+            servicoElem.innerHTML = `<strong>Serviço:</strong> ${servico}`;
             Object.assign(servicoElem.style, {
-                color: "#1e90ff",
+                color: "#333",
                 fontSize: "16px",
-                marginBottom: "10px",
+                fontWeight: "500",
+                marginBottom: "5px",
             });
 
             const duracaoElem = document.createElement("p");
-            duracaoElem.innerHTML = `<i class="fa fa-clock"></i> <strong>Duração:</strong> ${duracao} horas`;
+            duracaoElem.innerHTML = `<strong>Duração:</strong> ${duracao} horas`;
             Object.assign(duracaoElem.style, {
-                color: "#1e90ff",
-                fontSize: "16px",
+                color: "#555",
+                fontSize: "14px",
             });
 
-            container.appendChild(servicoElem);
-            container.appendChild(duracaoElem);
+            infoContainer.appendChild(servicoElem);
+            infoContainer.appendChild(duracaoElem);
+            container.appendChild(infoContainer);
+
             return container;
         }
 

@@ -2866,6 +2866,19 @@
                     userName.style.fontWeight = "bold";
                     userName.style.cursor = "pointer";
                     userName.onclick = () => showUserProfile(user.userId); // Abrir o perfil do usuário ao clicar no nome
+
+                    // Adicionar o nome do usuário
+                    userName.textContent = user.fullName;
+
+                    // Criar o ícone de verificado
+                    const verifiedIcon = document.createElement("i");
+                    verifiedIcon.classList.add("fas", "fa-check-circle"); // Adiciona a classe Font Awesome para o ícone de verificado
+                    verifiedIcon.style.color = "#007bff"; // Define a cor azul do ícone
+                    verifiedIcon.style.marginLeft = "8px"; // Espaço entre o nome e o ícone
+
+                    // Adicionar o nome do usuário e o ícone ao contêiner
+                    userName.append(verifiedIcon); // Coloca o ícone depois do nome
+
                     userInfoContainer.appendChild(userName);
 
                     // Adicionar o contêiner de informações do usuário ao li

@@ -1918,6 +1918,7 @@
                 updateOrdersCounter();
                 displayFinancialHistory(userId);
                 createStoryForm(userId);
+                initAutocomplete();
 
                 // Atualizar a última atividade do usuário
                 const userDocRef = doc(db, "users", userId);
@@ -2433,10 +2434,6 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            initAutocomplete();
-        });
-
         // Função para publicar uma nova publicação
         document.getElementById("formPublicacao").addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -2904,6 +2901,32 @@
                         li.appendChild(precoElemento);
                     } else {
                         console.error("O preço recuperado não é um número válido.");
+                    }
+
+                    // Adicionar a localização com um ícone ao início
+                    if (data.localizacao) {
+                        const localizacaoContainer = document.createElement("div");
+                        localizacaoContainer.style.display = "flex";
+                        localizacaoContainer.style.alignItems = "center";
+                        localizacaoContainer.style.marginBottom = "10px";
+
+                        // Ícone de localização
+                        const icon = document.createElement("i");
+                        icon.className = "fa fa-map-marker-alt"; // Classe Font Awesome para o ícone
+                        icon.style.marginRight = "5px";
+                        icon.style.color = "#ff5733"; // Cor para destaque
+                        icon.style.fontSize = "18px";
+                        localizacaoContainer.appendChild(icon);
+
+                        // Texto de localização
+                        const localizacaoText = document.createElement("span");
+                        localizacaoText.textContent = data.localizacao;
+                        localizacaoText.style.fontSize = "14px";
+                        localizacaoText.style.color = "#555";
+                        localizacaoContainer.appendChild(localizacaoText);
+
+                        // Adicionar ao início do elemento `li`
+                        li.insertBefore(localizacaoContainer, li.firstChild);
                     }
 
                     // Adicionar data e hora da publicação

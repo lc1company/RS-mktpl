@@ -2884,11 +2884,23 @@
                     // Adicionar o contêiner de informações do usuário ao li
                     li.appendChild(userInfoContainer);
 
-                    // Adicionar a mensagem da publicação
+                    // Adicionar a mensagem (Título) da publicação
                     const mensagem = document.createElement("p");
                     mensagem.textContent = data.mensagem;
                     mensagem.style.marginBottom = "10px";
-                    mensagem.style.fontSize = "16px";
+                    mensagem.style.fontSize = "18px";
+                    mensagem.style.fontWeight = "bold";
+                    mensagem.style.color = "#2c3e50"; // Cor mais moderna
+                    mensagem.style.display = "flex";
+                    mensagem.style.alignItems = "center";
+
+                    // Adicionar um ícone ao lado do título
+                    const mensagemIcon = document.createElement("i");
+                    mensagemIcon.classList.add("fas", "fa-clipboard"); // Ícone de um bloco de notas
+                    mensagemIcon.style.color = "#3498db"; // Azul
+                    mensagemIcon.style.marginRight = "8px";
+
+                    mensagem.prepend(mensagemIcon); // Adicionar o ícone antes do texto
                     li.appendChild(mensagem);
 
                     // Adicionar a descrição do produto
@@ -2896,12 +2908,22 @@
                     descricao.textContent = `Descrição: ${data.descricao}`;
                     descricao.style.fontSize = "14px";
                     descricao.style.color = "#666";
+                    descricao.style.marginBottom = "10px";
+                    descricao.style.display = "flex";
+                    descricao.style.alignItems = "center";
+
+                    // Adicionar um ícone ao lado da descrição
+                    const descricaoIcon = document.createElement("i");
+                    descricaoIcon.classList.add("fas", "fa-info-circle"); // Ícone informativo
+                    descricaoIcon.style.color = "#95a5a6";
+                    descricaoIcon.style.marginRight = "8px";
+
+                    descricao.prepend(descricaoIcon); // Adicionar o ícone antes do texto
                     li.appendChild(descricao);
 
                     // Adicionar o preço do produto
                     const preco = data.preco; // O valor recuperado do banco de dados
 
-                    // Verificar se o valor é um número válido
                     if (!isNaN(preco)) {
                         // Formatar o preço como moeda BRL
                         const precoFormatado = parseFloat(preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -2910,7 +2932,18 @@
                         precoElemento.textContent = `Preço: ${precoFormatado}`;
                         precoElemento.style.fontSize = "16px";
                         precoElemento.style.fontWeight = "bold";
-                        precoElemento.style.color = "#333";
+                        precoElemento.style.color = "#27ae60"; // Verde para destacar o preço
+                        precoElemento.style.marginBottom = "10px";
+                        precoElemento.style.display = "flex";
+                        precoElemento.style.alignItems = "center";
+
+                        // Adicionar um ícone ao lado do preço
+                        const precoIcon = document.createElement("i");
+                        precoIcon.classList.add("fas", "fa-tag"); // Ícone de etiqueta de preço
+                        precoIcon.style.color = "#27ae60";
+                        precoIcon.style.marginRight = "8px";
+
+                        precoElemento.prepend(precoIcon); // Adicionar o ícone antes do texto
                         li.appendChild(precoElemento);
                     } else {
                         console.error("O preço recuperado não é um número válido.");
@@ -2947,6 +2980,16 @@
                     dataHora.textContent = `Data e Hora: ${dataFormatada}`;
                     dataHora.style.fontSize = "12px";
                     dataHora.style.color = "#999";
+                    dataHora.style.display = "flex";
+                    dataHora.style.alignItems = "center";
+
+                    // Adicionar um ícone ao lado da data e hora
+                    const dataHoraIcon = document.createElement("i");
+                    dataHoraIcon.classList.add("fas", "fa-clock"); // Ícone de relógio
+                    dataHoraIcon.style.color = "#999";
+                    dataHoraIcon.style.marginRight = "8px";
+
+                    dataHora.prepend(dataHoraIcon); // Adicionar o ícone antes do texto
                     li.appendChild(dataHora);
 
                     // Adicionar a imagem da publicação

@@ -2905,7 +2905,7 @@
 
                     // Adicionar a descrição do produto
                     const descricao = document.createElement("p");
-                    descricao.textContent = `Descrição: ${data.descricao}`;
+                    descricao.textContent = `${data.descricao}`;
                     descricao.style.fontSize = "14px";
                     descricao.style.color = "#666";
                     descricao.style.marginBottom = "10px";
@@ -2929,7 +2929,7 @@
                         const precoFormatado = parseFloat(preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
                         const precoElemento = document.createElement("p");
-                        precoElemento.textContent = `Preço: ${precoFormatado}`;
+                        precoElemento.textContent = `${precoFormatado}`;
                         precoElemento.style.fontSize = "16px";
                         precoElemento.style.fontWeight = "bold";
                         precoElemento.style.color = "#27ae60"; // Verde para destacar o preço
